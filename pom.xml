@@ -33,7 +33,6 @@
     <modules>
         <module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>
     </modules>
-    <packaging>pom</packaging>
     <name>WSO2 Carbon - On Premise Userstore Agent</name>
     <description>
 

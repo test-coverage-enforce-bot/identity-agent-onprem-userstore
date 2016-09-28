@@ -37,25 +37,18 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class LDAPUserStoreManager implements UserStoreManager {
 
     private Map<String, String> userStoreProperties = null;
     private static Log log = LogFactory.getLog(LDAPUserStoreManager.class);
-    private static final int MAX_USER_CACHE = 200;
     private static final String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     private static final String PROPERTY_REFERRAL_IGNORE ="ignore";
     public static final String MEMBER_UID = "memberUid";
-    private static Map<String, Object> userCache = new ConcurrentHashMap<>(MAX_USER_CACHE); //TODO remove cache
     private LDAPConnectionContext connectionSource;
 
     public LDAPUserStoreManager(Map<String,String> userStoreProperties)
             throws UserStoreException {
-        if (log.isDebugEnabled()) {
-            log.debug("Started " + System.currentTimeMillis()); //TODO Change description
-        }
-
         this.userStoreProperties = userStoreProperties;
         // check if required configurations are in the user-mgt.xml
         checkRequiredUserStoreConfigurations();
@@ -162,32 +155,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
 
         boolean bValue = false;
-        // check cached user DN first.
         String name;
-        LdapName ldn = (LdapName)userCache.get(userName);
-        if (ldn != null) {
-            name = ldn.toString();
-            try {
-                if (debug) {
-                    log.debug("Cache hit. Using DN " + name);
-                }
-                bValue = this.bindAsUser(name, (String) credential);
-            } catch (NamingException e) {
-                // do nothing if bind fails since we check for other DN
-                // patterns as well.
-                if (log.isDebugEnabled()) {
-                    log.debug("Checking authentication with UserDN " + name + "failed " +
-                            e.getMessage(), e);
-                }
-            }
-
-            if (bValue) {
-                return true;
-            }
-            // we need not check binding for this name again, so store this and check
-            failedUserDN = name;
-
-        }
         // read DN patterns from user-mgt.xml
         String patterns = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
 
@@ -199,7 +167,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
             // if the property is present, split it using # to see if there are
             // multiple patterns specified.
-            String[] userDNPatternList = patterns.split("#");
+            String[] userDNPatternList = patterns.split(CommonConstants.XML_PATTERN_SEPERATOR);
             if (userDNPatternList.length > 0) {
                 for (String userDNPattern : userDNPatternList) {
                     name = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
@@ -214,8 +182,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
                     try {
                         bValue = this.bindAsUser(name, (String) credential);
                         if (bValue) {
-                            LdapName ldapName = new LdapName(name);
-                            userCache.put(userName, ldapName);
                             break;
                         }
                     } catch (NamingException e) {
@@ -238,10 +204,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
                         log.debug("Authenticating with " + name);
                     }
                     bValue = this.bindAsUser(name, (String) credential);
-                    if (bValue) {
-                        LdapName ldapName = new LdapName(name);
-                        userCache.put(userName, ldapName);
-                    }
                 }
             } catch (NamingException e) {
                 String errorMessage = "Cannot bind user : " + userName;
@@ -263,27 +225,23 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         String userAttributeSeparator = ",";
         String userDN = null;
-        LdapName ldn = (LdapName)userCache.get(userName);
 
-        if (ldn == null) {
-            // read list of patterns from user-mgt.xml
-            String patterns = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
+        // read list of patterns from user-mgt.xml
+        String patterns = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
 
-            if (patterns != null && !patterns.isEmpty()) {
+        if (patterns != null && !patterns.isEmpty()) {
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Using User DN Patterns " + patterns);
-                }
-
-                if (patterns.contains("#")) { //TODO constant
-                    userDN = getNameInSpaceForUserName(userName);
-                } else {
-                    userDN = MessageFormat.format(patterns, escapeSpecialCharactersForDN(userName));
-                }
+            if (log.isDebugEnabled()) {
+                log.debug("Using User DN Patterns " + patterns);
             }
-        } else {
-            userDN = ldn.toString();
+
+            if (patterns.contains(CommonConstants.XML_PATTERN_SEPERATOR)) {
+                userDN = getNameInSpaceForUserName(userName);
+            } else {
+                userDN = MessageFormat.format(patterns, escapeSpecialCharactersForDN(userName));
+            }
         }
+
 
         Map<String, String> values = new HashMap<>();
         DirContext dirContext = this.connectionSource.getContext();
@@ -403,7 +361,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             givenMax =
                     Integer.parseInt(userStoreProperties.get(CommonConstants.PROPERTY_MAX_USER_LIST));
         } catch (Exception e) {
-            givenMax = CommonConstants.MAX_USER_ROLE_LIST;
+            givenMax = CommonConstants.MAX_USER_LIST;
         }
 
         try {
@@ -413,7 +371,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             searchTime = CommonConstants.MAX_SEARCH_TIME;
         }
 
-        if (maxItemLimit < 0 || maxItemLimit > givenMax) {
+        if (maxItemLimit <= 0 || maxItemLimit > givenMax) {
             maxItemLimit = givenMax;
         }
 
@@ -470,7 +428,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
         try {
             dirContext = connectionSource.getContext();
             // handle multiple search bases
-            String[] searchBaseArray = searchBases.split("#");
+            String[] searchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
 
             for (String searchBase : searchBaseArray) {
 
@@ -557,7 +515,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             givenMax = Integer.parseInt(userStoreProperties.
                     get(CommonConstants.PROPERTY_MAX_ROLE_LIST));
         } catch (Exception e) {
-            givenMax = CommonConstants.MAX_USER_ROLE_LIST;
+            givenMax = CommonConstants.MAX_USER_LIST;
         }
 
         try {
@@ -571,11 +529,11 @@ public class LDAPUserStoreManager implements UserStoreManager {
             maxItemLimit = givenMax;
         }
 
-        List<String> externalRoles = new ArrayList<String>();
+        List<String> externalRoles = new ArrayList<>();
 
         // handling multiple search bases
         String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
-        String[] searchBaseArray = searchBases.split("#");
+        String[] searchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
         for (String searchBase : searchBaseArray) {
             // get the role list from the group search base
             externalRoles.addAll(getLDAPRoleNames(searchTime, filter, maxItemLimit,
@@ -600,12 +558,12 @@ public class LDAPUserStoreManager implements UserStoreManager {
      * @return
      * @throws UserStoreException
      */
-    protected List<String> getLDAPRoleNames(int searchTime, String filter, int maxItemLimit,
-                                            String searchFilter, String roleNameProperty,
-                                            String searchBase)
+    private List<String> getLDAPRoleNames(int searchTime, String filter, int maxItemLimit,
+                                          String searchFilter, String roleNameProperty,
+                                          String searchBase)
             throws UserStoreException {
         boolean debug = log.isDebugEnabled();
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
 
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -665,9 +623,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
 
         if (debug) {
-            Iterator<String> rolesIte = roles.iterator();
-            while (rolesIte.hasNext()) {
-                log.debug("result: " + rolesIte.next());
+            for (String role : roles) {
+                log.debug("result: " + role);
             }
         }
 
@@ -726,7 +683,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             }
         }
 
-        String[] searchBaseAraay = searchBases.split("#");
+        String[] searchBaseAraay = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
         NamingEnumeration<SearchResult> answer = null;
 
         try {
@@ -762,7 +719,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
         userSearchFilter = userSearchFilter.replace("?", escapeSpecialCharactersForFilter(userName));
         String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
         if (userDNPattern != null && userDNPattern.trim().length() > 0) {
-            String[] patterns = userDNPattern.split("#");
+            String[] patterns = userDNPattern.split(CommonConstants.XML_PATTERN_SEPERATOR);
             for (String pattern : patterns) {
                 searchBase = MessageFormat.format(pattern, escapeSpecialCharactersForDN(userName));
                 String userDN = getNameInSpaceForUserName(userName, searchBase, userSearchFilter);
@@ -782,10 +739,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private String getNameInSpaceForUserName(String userName, String searchBase, String searchFilter) throws UserStoreException {
         boolean debug = log.isDebugEnabled();
 
-        if (userCache.get(userName) != null) {
-            return userCache.get(userName).toString();
-        }
-
         String userDN = null;
 
         DirContext dirContext = this.connectionSource.getContext();
@@ -802,7 +755,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                 }
             }
             SearchResult userObj;
-            String[] searchBases = searchBase.split("#");
+            String[] searchBases = searchBase.split(CommonConstants.XML_PATTERN_SEPERATOR);
             for (String base : searchBases) {
                 answer = dirContext.search(escapeDNForSearch(base), searchFilter, searchCtls);
                 if (answer.hasMore()) {
@@ -814,10 +767,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
                         break;
                     }
                 }
-            }
-            if (userDN != null) {
-                LdapName ldn = new LdapName(userDN);
-                userCache.put(userName, ldn);
             }
             if (debug) {
                 log.debug("Name in space for " + userName + " is " + userDN);
@@ -1026,7 +975,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
     /**
      * {@inheritDoc}
      */
-    protected String[] getLDAPRoleListOfUser(String userName, String searchBase) throws UserStoreException {
+    private String[] getLDAPRoleListOfUser(String userName, String searchBase) throws UserStoreException {
         boolean debug = log.isDebugEnabled();
         List<String> list = new ArrayList<String>();
 
@@ -1044,7 +993,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                 userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
         String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
         String nameInSpace;
-        if (userDNPattern != null && userDNPattern.trim().length() > 0 && !userDNPattern.contains("#")) {
+        if (userDNPattern != null && userDNPattern.trim().length() > 0 && !userDNPattern.contains(CommonConstants.XML_PATTERN_SEPERATOR)) {
 
             nameInSpace = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
         } else {
@@ -1118,7 +1067,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             dirContext = connectionSource.getContext();
 
             // handle multiple search bases
-            String[] searchBaseArray = searchBases.split("#");
+            String[] searchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
             for (String searchBase : searchBaseArray) {
 
                 try {

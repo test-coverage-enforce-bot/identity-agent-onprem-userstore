@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.agent.onprem.userstore.resource.GroupResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.UserResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretCallbackHandlerService;
 import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
+import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.msf4j.MicroservicesRunner;
 
 /**
@@ -30,7 +31,7 @@ import org.wso2.msf4j.MicroservicesRunner;
  */
 public class Application {
     public static void main(String[] args) {
-
+        new SecretManagerInitializer().init();
         new MicroservicesRunner()
                 .deploy(new UserResource(),new Authenticate(), new GroupResource())
                 .start();

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.securevault.SecurityConstants;
 import org.wso2.securevault.secret.SecretCallbackHandler;
@@ -45,7 +46,7 @@ public class SecretManagerInitializer {
     private final String GLOBAL_PREFIX = "carbon.";
 
     public SecretCallbackHandlerService init() {
-
+        System.setProperty(CommonConstants.CARBON_HOME, UserStoreUtils.getProductHomePath());
         Properties properties = new Properties();
 
         if (secretManager.isInitialized()) {
@@ -96,7 +97,7 @@ public class SecretManagerInitializer {
         try {
             in = new FileInputStream(dataSourceFile);
             properties.load(in);
-            properties.setProperty("keystore.identity.location", productnHome + File.separator + CONF_DIR + File.separator + SECURITY_DIR + File.separator + "wso2carbon.jks");
+            properties.setProperty("keystore.identity.location", productnHome + File.separator + properties.getProperty("keystore.identity.location"));
             properties.setProperty("keystore.identity.store.secretProvider","org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
             properties.setProperty("keystore.identity.key.secretProvider","org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
         } catch (IOException e) {

@@ -42,7 +42,7 @@ public class GroupResource {
         try {
             UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             if(limit==null ||limit.isEmpty()){
-                limit = String.valueOf(CommonConstants.MAX_USER_ROLE_LIST);
+                limit = String.valueOf(CommonConstants.MAX_USER_LIST);
             }
             String[] usernames = ldapUserStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
             JSONObject jsonObject = new JSONObject();

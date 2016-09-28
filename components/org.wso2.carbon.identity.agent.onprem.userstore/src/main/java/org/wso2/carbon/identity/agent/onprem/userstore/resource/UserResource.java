@@ -21,74 +21,76 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfiguration;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
-import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretCallbackHandlerService;
-import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
-import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Map;
 
 @Path("/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
-    public UserResource() {
-        System.setProperty("carbon.home", UserStoreUtils.getProductHomePath());
-        SecretManagerInitializer secretManagerInitializer = new SecretManagerInitializer();
-        SecretCallbackHandlerService secretCallbackHandlerService = secretManagerInitializer.init();
-    }
-
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserAttributes(@PathParam("username") String username, @QueryParam("attributes") String attributes){
+    public Response getUserAttributes(@PathParam("username") String username, @QueryParam("attributes") String attributes){
         try {
+            if(attributes == null || attributes.isEmpty()){
+                return Response.status(Response.Status.BAD_REQUEST).entity("Required User Attributes are not Specified!").build();
+            }
             String[] attributeArray = attributes.split(",");
             UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             Map<String,String> propertyMap = ldapUserStoreManager.getUserPropertyValues(username,attributeArray);
             JSONObject returnObject = new JSONObject(propertyMap);
-            return returnObject.toString();
-        } catch (Exception e) {
-            log.error(e.getMessage());//TODo log with a message / specialize exceptions
-            return ""; //TODO Error code and error message
+            return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllUserNames(@QueryParam("limit") String limit){
-
+    public Response getAllUserNames(@QueryParam("limit") String limit){
         try {
+            if(limit==null ||limit.isEmpty()){
+                limit = String.valueOf(CommonConstants.MAX_USER_LIST);
+            }
             UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             String[] usernames = ldapUserStoreManager.doListUsers("*", Integer.parseInt(limit));
             JSONObject jsonObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
             jsonObject.put("usernames", usernameArray);
-            return jsonObject.toString();
+            return Response.status(Response.Status.OK).entity(jsonObject.toString()).build();
         } catch (UserStoreException e) {
             log.error(e.getMessage());
-            return "";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }catch(NumberFormatException ex){
+            String errorMessage = "Limit Should be an integer: ";
+            log.error(errorMessage + ex.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST).entity(JSONObject.stringToValue(errorMessage + ex.getMessage())).build();
         }
     }
 
     @GET
     @Path("{username}/groups")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserRoles(@PathParam("username") String username){
+    public Response getUserRoles(@PathParam("username") String username){
         try {
             UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             String[]  roles = ldapUserStoreManager.doGetExternalRoleListOfUser(username);
             JSONObject jsonObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(roles);
             jsonObject.put("groups", usernameArray);
-            return jsonObject.toString();
-        } catch (Exception e) {
-            log.error(e.getMessage());//TODo log with a message / specialize exceptions
-            return ""; //TODO Error code and error message
+            return Response.status(Response.Status.OK).entity(jsonObject.toString()).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 }

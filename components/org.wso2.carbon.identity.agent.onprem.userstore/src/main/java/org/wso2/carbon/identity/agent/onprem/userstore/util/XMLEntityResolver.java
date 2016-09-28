@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.agent.onprem.userstore.constant;
+package org.wso2.carbon.identity.agent.onprem.userstore.util;
 
-public class XMLConfigurationConstants {
-    public static String LOCAL_NAME_PROPERTY = "Property";
-    public static String ATTR_NAME_PROP_NAME = "name";
-    public static String LOCAL_NAME_CONFIGURATION = "Configuration";
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+
+public class XMLEntityResolver implements EntityResolver {
+
+    @Override
+    public InputSource resolveEntity(String publicId, String systemId) throws SAXException,
+                                                                              IOException {
+        throw new SAXException("Possible XML External Entity (XXE) attack. Skip resolving entity");
+    }
+
 }

@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfigura
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
+import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretCallbackHandlerService;
+import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
+import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -33,27 +36,30 @@ import java.util.Map;
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
+    public UserResource() {
+        System.setProperty("carbon.home", UserStoreUtils.getProductHomePath());
+        SecretManagerInitializer secretManagerInitializer = new SecretManagerInitializer();
+        SecretCallbackHandlerService secretCallbackHandlerService = secretManagerInitializer.init();
+    }
 
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
     public String getUserAttributes(@PathParam("username") String username, @QueryParam("attributes") String attributes){
         try {
-            UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             String[] attributeArray = attributes.split(",");
+            UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             Map<String,String> propertyMap = ldapUserStoreManager.getUserPropertyValues(username,attributeArray);
             JSONObject returnObject = new JSONObject(propertyMap);
             return returnObject.toString();
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return "";
+            log.error(e.getMessage());//TODo log with a message / specialize exceptions
+            return ""; //TODO Error code and error message
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public String getAllUserNames(@QueryParam("limit") String limit){
 
         try {
@@ -66,6 +72,23 @@ public class UserResource {
         } catch (UserStoreException e) {
             log.error(e.getMessage());
             return "";
+        }
+    }
+
+    @GET
+    @Path("{username}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getUserRoles(@PathParam("username") String username){
+        try {
+            UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
+            String[]  roles = ldapUserStoreManager.doGetExternalRoleListOfUser(username);
+            JSONObject jsonObject = new JSONObject();
+            JSONArray usernameArray = new JSONArray(roles);
+            jsonObject.put("groups", usernameArray);
+            return jsonObject.toString();
+        } catch (Exception e) {
+            log.error(e.getMessage());//TODo log with a message / specialize exceptions
+            return ""; //TODO Error code and error message
         }
     }
 }

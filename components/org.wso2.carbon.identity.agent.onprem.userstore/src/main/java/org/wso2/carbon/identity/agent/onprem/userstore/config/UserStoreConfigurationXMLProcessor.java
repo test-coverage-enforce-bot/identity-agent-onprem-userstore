@@ -18,10 +18,16 @@ package org.wso2.carbon.identity.agent.onprem.userstore.config;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.OMXMLParserWrapper;
+import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.XMLConfigurationConstants;
+import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
+import org.wso2.carbon.identity.agent.onprem.userstore.exception.XMLException;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
+import org.wso2.carbon.identity.agent.onprem.userstore.util.XMLUtils;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -32,14 +38,15 @@ import java.util.Map;
 
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
-    private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
+    private static final String USERSTORE_CONFIG_FILE = "conf/userstore-config.xml";
     private static Map<String,String> properties;
     private InputStream inStream = null;
+    private SecretResolver secretResolver;
 
     Map<String,String> buildUserStoreConfigurationFromFile(){
         OMElement rootElement;
         try {
-            rootElement = getRootElement();
+            rootElement = getConfigElement();
             properties = buildUserStoreConfiguration(rootElement);
 
             if (inStream != null) {
@@ -63,16 +70,22 @@ class UserStoreConfigurationXMLProcessor {
             String propName = propElem.getAttributeValue(new QName(
                     XMLConfigurationConstants.ATTR_NAME_PROP_NAME));
             String propValue = propElem.getText();
+
+            if (secretResolver != null && secretResolver.isInitialized()) {
+                if (secretResolver.isTokenProtected("UserManager.Property." + propName)) {
+                    propValue = secretResolver.resolve("UserManager.Property." + propName);
+                }
+            }
             map.put(propName.trim(), propValue.trim());
         }
         return map;
     }
 
 
-    private OMElement getRootElement() throws XMLStreamException, IOException{
+    private OMElement getConfigElement() throws XMLStreamException, IOException, UserStoreException {
         OMXMLParserWrapper builder;
 
-        File profileConfigXml = new File(UserStoreUtils.getConfigDirPath(),
+        File profileConfigXml = new File(UserStoreUtils.getProductHomePath(),
                 USERSTORE_CONFIG_FILE);
         if (profileConfigXml.exists()) {
             inStream = new FileInputStream(profileConfigXml);
@@ -85,9 +98,24 @@ class UserStoreConfigurationXMLProcessor {
             }
             throw new FileNotFoundException(message);
         }
-        builder = OMXMLBuilderFactory.createOMBuilder(inStream);
+        try {
+            inStream = XMLUtils.replaceSystemVariablesInXml(inStream);
+        } catch (XMLException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
+        builder = new StAXOMBuilder(inStream);
+        OMElement rootElement = builder.getDocumentElement();
 
-        return builder.getDocumentElement();
+        setSecretResolver(rootElement);
+
+        OMElement configElement = rootElement.getFirstChildWithName(new QName(
+                XMLConfigurationConstants.LOCAL_NAME_CONFIGURATION));
+
+
+        return configElement;
     }
 
+    private void setSecretResolver(OMElement rootElement) {
+        secretResolver = SecretResolverFactory.create(rootElement, true);
+    }
 }

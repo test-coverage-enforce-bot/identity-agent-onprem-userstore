@@ -31,11 +31,11 @@ public class LDAPConstants {
     //KDC specific constant
     public static final String SERVER_PRINCIPAL_ATTRIBUTE_VALUE = "Service";
     //DNS related constant
-    public static final String ACTIVE_DIRECTORY_DOMAIN_CONTROLLER_SERVICE = "_ldap._tcp.";
-    public static final String SRV_ATTRIBUTE_NAME = "SRV";
-    public static final String A_RECORD_ATTRIBUTE_NAME = "A";
-    public static final String DNS_URL = "URLOfDNS";
-    public static final String DNS_DOMAIN_NAME = "DNSDomainName";
     public static final String CONNECTION_POOLING_ENABLED = "ConnectionPoolingEnabled";
+    public static final String GROUP_SEARCH_BASE = "GroupSearchBase";
+    public static final String GROUP_NAME_LIST_FILTER = "GroupNameListFilter";
+    public static final String GROUP_NAME_ATTRIBUTE = "GroupNameAttribute";
+    public static final String MEMBERSHIP_ATTRIBUTE = "MembershipAttribute";
+    public static final String ROLE_NAME_FILTER = "GroupNameSearchFilter";
 
 }

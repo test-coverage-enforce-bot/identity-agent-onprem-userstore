@@ -17,6 +17,8 @@ package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
 import java.util.Map;
 
+//TODO: class comments
+
 public class UserStoreConfiguration {
     private static Map<String,String> userStoreProperties;
     private static UserStoreConfiguration instance = new UserStoreConfiguration();

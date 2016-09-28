@@ -26,5 +26,9 @@ public interface UserStoreManager {
 
     boolean doAuthenticate(String userName, Object credential) throws UserStoreException;
 
-     String[] doListUsers(String filter, int maxItemLimit) throws UserStoreException;
+    String[] doListUsers(String filter, int maxItemLimit) throws UserStoreException;
+
+    String[] doGetRoleNames(String filter, int maxItemLimit) throws UserStoreException;
+
+    String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException;
 }

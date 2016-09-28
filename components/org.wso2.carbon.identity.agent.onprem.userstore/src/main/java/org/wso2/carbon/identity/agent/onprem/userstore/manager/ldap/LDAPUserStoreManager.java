@@ -27,12 +27,14 @@ import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.JNDIUtil;
 
 import javax.naming.AuthenticationException;
+import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.PartialResultException;
 import javax.naming.directory.*;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,19 +46,19 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private static final int MAX_USER_CACHE = 200;
     private static final String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     private static final String PROPERTY_REFERRAL_IGNORE ="ignore";
-    private static Map<String, Object> userCache = new ConcurrentHashMap<>(MAX_USER_CACHE);
+    public static final String MEMBER_UID = "memberUid";
+    private static Map<String, Object> userCache = new ConcurrentHashMap<>(MAX_USER_CACHE); //TODO remove cache
     private LDAPConnectionContext connectionSource;
 
     public LDAPUserStoreManager(Map<String,String> userStoreProperties)
             throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Started " + System.currentTimeMillis());
+            log.debug("Started " + System.currentTimeMillis()); //TODO Change description
         }
 
         this.userStoreProperties = userStoreProperties;
         // check if required configurations are in the user-mgt.xml
         checkRequiredUserStoreConfigurations();
-        connectionSource = null;
         this.connectionSource = new LDAPConnectionContext(this.userStoreProperties);
     }
 
@@ -104,6 +106,30 @@ public class LDAPUserStoreManager implements UserStoreManager {
         if (usernameAttribute == null || usernameAttribute.trim().length() == 0) {
             throw new UserStoreException(
                     "Required UserNameAttribute property is not set at the LDAP configurations");
+        }
+        String groupSearchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+        if (groupSearchBase == null || groupSearchBase.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required GroupSearchBase property is not set at the LDAP configurations");
+        }
+        String groupNameListFilter =
+                userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
+        if (groupNameListFilter == null || groupNameListFilter.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required GroupNameListFilter property is not set at the LDAP configurations");
+        }
+
+        String groupNameAttribute =
+                userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+        if (groupNameAttribute == null || groupNameAttribute.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required GroupNameAttribute property is not set at the LDAP configurations");
+        }
+        String memebershipAttribute =
+                userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+        if (memebershipAttribute == null || memebershipAttribute.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required MembershipAttribute property is not set at the LDAP configurations");
         }
 
     }
@@ -231,7 +257,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
 
     /**
-     *
+     * TODO Method comments
      */
     public Map<String, String> getUserPropertyValues(String userName, String[] propertyNames) throws UserStoreException {
 
@@ -249,7 +275,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                     log.debug("Using User DN Patterns " + patterns);
                 }
 
-                if (patterns.contains("#")) {
+                if (patterns.contains("#")) { //TODO constant
                     userDN = getNameInSpaceForUserName(userName);
                 } else {
                     userDN = MessageFormat.format(patterns, escapeSpecialCharactersForDN(userName));
@@ -260,12 +286,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
 
         Map<String, String> values = new HashMap<>();
-        // if user name contains domain name, remove domain name
-        String[] userNames = userName.split(CommonConstants.DOMAIN_SEPARATOR);
-        if (userNames.length > 1) {
-            userName = userNames[1];
-        }
-
         DirContext dirContext = this.connectionSource.getContext();
         String userSearchFilter = userStoreProperties.get(LDAPConstants.USER_NAME_SEARCH_FILTER);
         String searchFilter = userSearchFilter.replace("?", escapeSpecialCharactersForFilter(userName));
@@ -520,6 +540,140 @@ public class LDAPUserStoreManager implements UserStoreManager {
         return userNames;
     }
 
+    /**
+     *
+     */
+    public String[] doGetRoleNames(String filter, int maxItemLimit) throws UserStoreException {
+
+        if (maxItemLimit == 0) {
+            return new String[0];
+        }
+
+        int givenMax;
+
+        int searchTime;
+
+        try {
+            givenMax = Integer.parseInt(userStoreProperties.
+                    get(CommonConstants.PROPERTY_MAX_ROLE_LIST));
+        } catch (Exception e) {
+            givenMax = CommonConstants.MAX_USER_ROLE_LIST;
+        }
+
+        try {
+            searchTime = Integer.parseInt(userStoreProperties.
+                    get(CommonConstants.PROPERTY_MAX_SEARCH_TIME));
+        } catch (Exception e) {
+            searchTime = CommonConstants.MAX_SEARCH_TIME;
+        }
+
+        if (maxItemLimit < 0 || maxItemLimit > givenMax) {
+            maxItemLimit = givenMax;
+        }
+
+        List<String> externalRoles = new ArrayList<String>();
+
+        // handling multiple search bases
+        String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+        String[] searchBaseArray = searchBases.split("#");
+        for (String searchBase : searchBaseArray) {
+            // get the role list from the group search base
+            externalRoles.addAll(getLDAPRoleNames(searchTime, filter, maxItemLimit,
+                    userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER),
+                    userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE),
+                    searchBase));
+        }
+
+        return externalRoles.toArray(new String[externalRoles.size()]);
+    }
+
+    /**
+     * Returns the list of role names for the given search base and other
+     * parameters
+     *
+     * @param searchTime
+     * @param filter
+     * @param maxItemLimit
+     * @param searchFilter
+     * @param roleNameProperty
+     * @param searchBase     *
+     * @return
+     * @throws UserStoreException
+     */
+    protected List<String> getLDAPRoleNames(int searchTime, String filter, int maxItemLimit,
+                                            String searchFilter, String roleNameProperty,
+                                            String searchBase)
+            throws UserStoreException {
+        boolean debug = log.isDebugEnabled();
+        List<String> roles = new ArrayList<String>();
+
+        SearchControls searchCtls = new SearchControls();
+        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        searchCtls.setCountLimit(maxItemLimit);
+        searchCtls.setTimeLimit(searchTime);
+
+        String returnedAtts[] = {roleNameProperty};
+        searchCtls.setReturningAttributes(returnedAtts);
+
+        StringBuffer finalFilter = new StringBuffer();
+        finalFilter.append("(&").append(searchFilter).append("(").append(roleNameProperty).append("=")
+                .append(escapeSpecialCharactersForFilterWithStarAsRegex(filter)).append("))");
+
+        if (debug) {
+            log.debug("Listing roles. SearchBase: " + searchBase + " ConstructedFilter: " +
+                    finalFilter.toString());
+        }
+
+        DirContext dirContext = null;
+        NamingEnumeration<SearchResult> answer = null;
+
+        try {
+            dirContext = connectionSource.getContext();
+            answer = dirContext.search(escapeDNForSearch(searchBase), finalFilter.toString(), searchCtls);
+
+            while (answer.hasMoreElements()) {
+                SearchResult sr = answer.next();
+                if (sr.getAttributes() != null) {
+                    Attribute attr = sr.getAttributes().get(roleNameProperty);
+                    if (attr != null) {
+                        String name = (String) attr.get();
+                        roles.add(name);
+                    }
+                }
+            }
+        } catch (PartialResultException e) {
+            // can be due to referrals in AD. so just ignore error
+            String errorMessage = "Error occurred while getting LDAP role names. SearchBase: " + searchBase + " ConstructedFilter: " +
+                    finalFilter.toString();
+            if (isIgnorePartialResultException()) {
+                if (log.isDebugEnabled()) {
+                    log.debug(errorMessage, e);
+                }
+            } else {
+                throw new UserStoreException(errorMessage, e);
+            }
+        } catch (NamingException e) {
+            String errorMessage = "Error occurred while getting LDAP role names. SearchBase: " + searchBase + " ConstructedFilter: " +
+                    finalFilter.toString();
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        } finally {
+            JNDIUtil.closeNamingEnumeration(answer);
+            JNDIUtil.closeContext(dirContext);
+        }
+
+        if (debug) {
+            Iterator<String> rolesIte = roles.iterator();
+            while (rolesIte.hasNext()) {
+                log.debug("result: " + rolesIte.next());
+            }
+        }
+
+        return roles;
+    }
+
     private boolean bindAsUser(String dn, String credentials) throws NamingException,
             UserStoreException {
         boolean isAuthed = false;
@@ -603,12 +757,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     private String getNameInSpaceForUserName(String userName) throws UserStoreException {
-        // check the cache first
-        LdapName ldn = (LdapName)userCache.get(userName);
-        if (ldn != null) {
-            return ldn.toString();
-        }
-
         String searchBase;
         String userSearchFilter = userStoreProperties.get(LDAPConstants.USER_NAME_SEARCH_FILTER);
         userSearchFilter = userSearchFilter.replace("?", escapeSpecialCharactersForFilter(userName));
@@ -867,5 +1015,198 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         return PROPERTY_REFERRAL_IGNORE.equals(userStoreProperties.get(LDAPConstants.PROPERTY_REFERRAL));
     }
+
+    @Override
+    public String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException {
+
+        // Get the effective search base
+        String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+        return getLDAPRoleListOfUser(userName, searchBase);
+    }
+    /**
+     * {@inheritDoc}
+     */
+    protected String[] getLDAPRoleListOfUser(String userName, String searchBase) throws UserStoreException {
+        boolean debug = log.isDebugEnabled();
+        List<String> list = new ArrayList<String>();
+
+        SearchControls searchCtls = new SearchControls();
+        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        // Load normal roles with the user
+        String searchFilter;
+        String roleNameProperty;
+        searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
+        roleNameProperty =
+                userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+
+        String membershipProperty =
+                userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+        String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
+        String nameInSpace;
+        if (userDNPattern != null && userDNPattern.trim().length() > 0 && !userDNPattern.contains("#")) {
+
+            nameInSpace = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
+        } else {
+            nameInSpace = this.getNameInSpaceForUserName(userName);
+        }
+
+        String membershipValue;
+        if (nameInSpace != null) {
+            try {
+                LdapName ldn = new LdapName(nameInSpace);
+                if (MEMBER_UID.equals(userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE))) {
+                    // membership value of posixGroup is not DN of the user
+                    List rdns = ldn.getRdns();
+                    membershipValue = ((Rdn) rdns.get(rdns.size() - 1)).getValue().toString();
+                } else {
+                    membershipValue = escapeLdapNameForFilter(ldn);
+                }
+            } catch (InvalidNameException e) {
+                log.error("Error while creating LDAP name from: " + nameInSpace);
+                throw new UserStoreException("Invalid naming exception for : " + nameInSpace, e);
+            }
+        } else {
+            return new String[0];
+        }
+
+        searchFilter =
+                "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue + "))";
+        String returnedAtts[] = {roleNameProperty};
+        searchCtls.setReturningAttributes(returnedAtts);
+
+        if (debug) {
+            log.debug("Reading roles with the membershipProperty Property: " + membershipProperty);
+        }
+
+        list = this.getListOfNames(searchBase, searchFilter, searchCtls, roleNameProperty);
+
+
+
+        String[] result = list.toArray(new String[list.size()]);
+
+        if (result != null) {
+            for (String rolename : result) {
+                log.debug("Found role: " + rolename);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param searchBases
+     * @param searchFilter
+     * @param searchCtls
+     * @param property
+     * @return
+     * @throws UserStoreException
+     */
+    private List<String> getListOfNames(String searchBases, String searchFilter,
+                                        SearchControls searchCtls, String property)
+            throws UserStoreException {
+        boolean debug = log.isDebugEnabled();
+        List<String> names = new ArrayList<String>();
+        DirContext dirContext = null;
+        NamingEnumeration<SearchResult> answer = null;
+
+        if (debug) {
+            log.debug("Result for searchBase: " + searchBases + " searchFilter: " + searchFilter +
+                    " property:" + property);
+        }
+
+        try {
+            dirContext = connectionSource.getContext();
+
+            // handle multiple search bases
+            String[] searchBaseArray = searchBases.split("#");
+            for (String searchBase : searchBaseArray) {
+
+                try {
+                    answer = dirContext.search(escapeDNForSearch(searchBase), searchFilter, searchCtls);
+
+                    while (answer.hasMoreElements()) {
+                        SearchResult sr = answer.next();
+                        if (sr.getAttributes() != null) {
+                            Attribute attr = sr.getAttributes().get(property);
+                            if (attr != null) {
+                                for (Enumeration vals = attr.getAll(); vals.hasMoreElements(); ) {
+                                    String name = (String) vals.nextElement();
+                                    if (debug) {
+                                        log.debug("Found user: " + name);
+                                    }
+                                    names.add(name);
+                                }
+                            }
+                        }
+                    }
+                } catch (NamingException e) {
+                    // ignore
+                    if (log.isDebugEnabled()) {
+                        log.debug(e);
+                    }
+                }
+
+                if (debug) {
+                    for (String name : names) {
+                        log.debug("Result  :  " + name);
+                    }
+                }
+
+            }
+
+            return names;
+        } finally {
+            JNDIUtil.closeNamingEnumeration(answer);
+            JNDIUtil.closeContext(dirContext);
+        }
+    }
+
+
+    /**
+     * This method escapes the special characters in a LdapName
+     * according to the ldap filter escaping standards
+     * @param ldn
+     * @return
+     */
+    private String escapeLdapNameForFilter(LdapName ldn){
+
+        if (ldn == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Received null value to escape special characters. Returning null");
+            }
+            return null;
+        }
+
+        boolean replaceEscapeCharacters = true;
+
+        String replaceEscapeCharactersAtUserLoginString = userStoreProperties
+                .get(CommonConstants.PROPERTY_REPLACE_ESCAPE_CHARACTERS_AT_USER_LOGIN);
+
+        if (replaceEscapeCharactersAtUserLoginString != null) {
+            replaceEscapeCharacters = Boolean
+                    .parseBoolean(replaceEscapeCharactersAtUserLoginString);
+            if (log.isDebugEnabled()) {
+                log.debug("Replace escape characters configured to: "
+                        + replaceEscapeCharactersAtUserLoginString);
+            }
+        }
+
+        if (replaceEscapeCharacters) {
+            String escapedDN = "";
+            for (int i = ldn.size()-1; i > -1; i--) { //escaping the rdns separately and re-constructing the DN
+                escapedDN = escapedDN + escapeSpecialCharactersForFilterWithStarAsRegex(ldn.get(i));
+                if (i != 0) {
+                    escapedDN += ",";
+                }
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Escaped DN value for filter : " + escapedDN);
+            }
+            return escapedDN;
+        } else {
+            return ldn.toString();
+        }
+    }
+
 
 }

@@ -25,6 +25,7 @@
         <artifactId>msf4j-service</artifactId>
         <version>2.0.0</version>
     </parent>
+    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.carbon.identity.agent.onprem.userstore.java</groupId>
@@ -33,7 +34,7 @@
     <modules>
         <module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>
     </modules>
-    <name>WSO2 Carbon - On Premise Userstore Agent</name>
+    <name>WSO2 Carbon - On Premise Userstore Agent Parent</name>
     <description>
 
     </description>
@@ -45,7 +46,6 @@
         <connection>scm:git:https://github.com/wso2-extensions/identity-agent-onprem-userstore.git</connection>
         <tag>HEAD</tag>
     </scm>
-
 
     <dependencyManagement>
         <dependencies>
@@ -70,14 +70,39 @@
                 <version>${commons.axiom.impl.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.securevault</groupId>
+                <artifactId>org.wso2.securevault</artifactId>
+                <version>${securevault.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xerces.wso2</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>${version.xercesImpl}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
 
     <properties>
         <microservice.mainClass>Application</microservice.mainClass>
         <org.json.version>20160810</org.json.version>
         <commons.codec.version>1.9</commons.codec.version>
-        <commons.axiom.impl.version>1.2.19</commons.axiom.impl.version>
-        <commons.axiom.api.version>1.2.19</commons.axiom.api.version>
+        <commons.axiom.impl.version>1.2.11-wso2v11</commons.axiom.impl.version>
+        <commons.axiom.api.version>1.2.11-wso2v11</commons.axiom.api.version>
+        <securevault.version>1.0.0-wso2v2</securevault.version>
+        <version.xercesImpl>2.8.1.wso2v2</version.xercesImpl>
     </properties>
 </project>

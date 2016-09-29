@@ -22,7 +22,7 @@ import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
 import org.wso2.securevault.secret.SecretManager;
 import org.wso2.securevault.secret.SingleSecretCallback;
 
-/**
+/*
  * SecretManager based secret provider , this can be used by other application
  * to get secret form  SecretManager
  */

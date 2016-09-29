@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.exception;
  */
 public class UserStoreException extends Exception {
 
-    /**
+    /*
      * Default serial
      */
     private static final long serialVersionUID = -6057036683816666265L;

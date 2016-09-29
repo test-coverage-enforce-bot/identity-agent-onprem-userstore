@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.model;
 
+/**
+ *
+ */
 public class User {
     private String username;
     private String password;

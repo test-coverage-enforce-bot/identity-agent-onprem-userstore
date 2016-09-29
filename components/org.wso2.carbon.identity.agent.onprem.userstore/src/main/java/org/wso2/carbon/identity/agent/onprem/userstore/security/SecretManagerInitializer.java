@@ -40,13 +40,13 @@ public class SecretManagerInitializer {
 
     private SecretManager secretManager = SecretManager.getInstance();
     private static final Log log = LogFactory.getLog(SecretManagerInitializer.class);
-    private final String SECRET_CONF = "secret-conf.properties";
-    private final String CONF_DIR = "conf";
-    private final String SECURITY_DIR = "security";
-    private final String GLOBAL_PREFIX = "carbon.";
+    private static final String SECRET_CONF = "secret-conf.properties";
+    private static final String CONF_DIR = "conf";
+    private static final String SECURITY_DIR = "security";
+    private static final String GLOBAL_PREFIX = "carbon.";
 
     public SecretCallbackHandlerService init() {
-        if(System.getProperty(CommonConstants.CARBON_HOME) == null){
+        if (System.getProperty(CommonConstants.CARBON_HOME) == null) {
             System.setProperty(CommonConstants.CARBON_HOME, UserStoreUtils.getProductHomePath());
         }
         Properties properties = new Properties();
@@ -88,7 +88,8 @@ public class SecretManagerInitializer {
     private Properties loadProperties() {
         Properties properties = new Properties();
         String productnHome = System.getProperty(CommonConstants.CARBON_HOME);
-        String filePath = productnHome + File.separator + CONF_DIR + File.separator + SECURITY_DIR + File.separator + SECRET_CONF;
+        String filePath = productnHome + File.separator + CONF_DIR +
+                File.separator + SECURITY_DIR + File.separator + SECRET_CONF;
 
         File dataSourceFile = new File(filePath);
         if (!dataSourceFile.exists()) {
@@ -99,9 +100,12 @@ public class SecretManagerInitializer {
         try {
             in = new FileInputStream(dataSourceFile);
             properties.load(in);
-            properties.setProperty("keystore.identity.location", productnHome + File.separator + properties.getProperty("keystore.identity.location"));
-            properties.setProperty("keystore.identity.store.secretProvider","org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
-            properties.setProperty("keystore.identity.key.secretProvider","org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
+            properties.setProperty("keystore.identity.location", productnHome +
+                    File.separator + properties.getProperty("keystore.identity.location"));
+            properties.setProperty("keystore.identity.store.secretProvider",
+                    "org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
+            properties.setProperty("keystore.identity.key.secretProvider",
+                    "org.wso2.carbon.identity.agent.onprem.userstore.security.DefaultSecretCallbackHandler");
         } catch (IOException e) {
             String msg = "Error loading properties from a file at :" + filePath;
             log.warn(msg, e);

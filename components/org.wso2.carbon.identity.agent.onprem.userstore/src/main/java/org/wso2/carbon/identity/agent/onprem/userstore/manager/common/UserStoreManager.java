@@ -18,8 +18,12 @@ package org.wso2.carbon.identity.agent.onprem.userstore.manager.common;
 
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 
-import java.util.*;
+import java.util.Map;
 
+
+/**
+ *
+ */
 public interface UserStoreManager {
 
     Map<String, String> getUserPropertyValues(String userName, String[] propertyNames) throws UserStoreException;

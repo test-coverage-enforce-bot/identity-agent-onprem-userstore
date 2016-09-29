@@ -22,12 +22,16 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.LDAPConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 
-import javax.naming.*;
+import java.util.Hashtable;
+import java.util.Map;
+import javax.naming.Context;
+import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-import java.util.*;
+
+
 
 class LDAPConnectionContext {
 
@@ -88,8 +92,8 @@ class LDAPConnectionContext {
             environment.put("com.sun.jndi.ldap.connect.timeout", "5000");
         }
 
-        if(StringUtils.isNotEmpty(readTimeout)){
-            environment.put("com.sun.jndi.ldap.read.timeout",readTimeout);
+        if (StringUtils.isNotEmpty(readTimeout)) {
+            environment.put("com.sun.jndi.ldap.read.timeout", readTimeout);
         }
     }
 

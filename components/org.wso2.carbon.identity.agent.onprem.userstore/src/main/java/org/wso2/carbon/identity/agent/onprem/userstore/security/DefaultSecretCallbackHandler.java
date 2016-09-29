@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
-import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
 import org.wso2.securevault.secret.SingleSecretCallback;
 
@@ -56,7 +55,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
 
     public void handleSingleSecretCallback(SingleSecretCallback singleSecretCallback) {
 
-        if(keyStorePassWord == null && privateKeyPassWord == null){
+        if (keyStorePassWord == null && privateKeyPassWord == null) {
 
             String textFileName;
             String passwords[];
@@ -64,13 +63,13 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
             String productHome = System.getProperty(CommonConstants.CARBON_HOME);
 
             String osName = System.getProperty("os.name");
-            if(osName.toLowerCase().indexOf("win") == -1){
+            if (!osName.toLowerCase().contains("win")) {
                 textFileName = "password";
             } else {
                 textFileName = "password.txt";
             }
             keyDataFile = new File(productHome + File.separator + textFileName);
-            if(keyDataFile.exists()){
+            if (keyDataFile.exists()) {
                 passwords = readPassword(keyDataFile);
                 privateKeyPassWord = keyStorePassWord = passwords[0];
                 if (!deleteConfigFile()) {
@@ -82,11 +81,11 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
                 if ((console = System.console()) != null && (password = console.readPassword("[%s]",
                                 "Enter KeyStore and Private Key Password :")) != null) {
                     keyStorePassWord = String.valueOf(password);
-                    privateKeyPassWord= keyStorePassWord;
+                    privateKeyPassWord = keyStorePassWord;
                 }
             }
         }
-        if(singleSecretCallback.getId().equals("identity.key.password")){
+        if (singleSecretCallback.getId().equals("identity.key.password")) {
             singleSecretCallback.setSecret(privateKeyPassWord);
         } else {
             singleSecretCallback.setSecret(keyStorePassWord);
@@ -94,24 +93,24 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     }
 
 
-    private String[] readPassword(File file){
+    private String[] readPassword(File file) {
 
         String stringLines[] = new String[2];
         FileInputStream inputStream = null;
         BufferedReader bufferedReader = null;
-        try{
+        try {
             inputStream = new FileInputStream(file);
-            bufferedReader= new BufferedReader(new InputStreamReader(inputStream));
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             stringLines[0] = bufferedReader.readLine();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             handleException("Error reading password from text file ", e);
         } finally {
             try {
-                if(bufferedReader != null){
+                if (bufferedReader != null) {
                     bufferedReader.close();
                 }                
-                if(inputStream != null){
+                if (inputStream != null) {
                     inputStream.close();
                 }
             } catch (IOException e) {
@@ -121,21 +120,21 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         return stringLines;
     }
 
-    private boolean deleteConfigFile(){
+    private boolean deleteConfigFile() {
         FileOutputStream outputStream = null;
         BufferedWriter bufferedWriter = null;
-        try{
+        try {
             outputStream = new FileOutputStream(keyDataFile);
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
             bufferedWriter.write("!@#$%^&*()SDFGHJZXCVBNM!@#$%^&*");
-        }catch (Exception e){
+        } catch (Exception e) {
             handleException("Error writing values to text file ", e);
         } finally {
             try {
-               if(bufferedWriter != null){
+               if (bufferedWriter != null) {
                     bufferedWriter.close();
                 }                
-                if(outputStream != null){
+                if (outputStream != null) {
                     outputStream.close();
                 }
             } catch (IOException e) {

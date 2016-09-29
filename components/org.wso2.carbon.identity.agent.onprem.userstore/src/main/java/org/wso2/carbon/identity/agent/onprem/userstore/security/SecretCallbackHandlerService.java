@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 
 import org.wso2.securevault.secret.SecretCallbackHandler;
 
+/**
+ *
+ */
 public class SecretCallbackHandlerService {
     
     private SecretCallbackHandler secretCallbackHandler;

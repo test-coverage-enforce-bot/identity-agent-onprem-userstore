@@ -27,9 +27,6 @@ import org.wso2.carbon.identity.agent.onprem.userstore.exception.XMLException;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.XMLUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
-
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,16 +35,19 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+
 
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
     private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
     private static final String CONF_DIR = "conf";
-    private static Map<String,String> properties;
+    private static Map<String, String> properties;
     private InputStream inStream = null;
     private SecretResolver secretResolver;
 
-    Map<String,String> buildUserStoreConfigurationFromFile(){
+    Map<String, String> buildUserStoreConfigurationFromFile() {
         OMElement rootElement;
         try {
             rootElement = getConfigElement();

@@ -16,8 +16,11 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
+/**
+ *
+ */
 public class XMLConfigurationConstants {
-    public static String LOCAL_NAME_PROPERTY = "Property";
-    public static String ATTR_NAME_PROP_NAME = "name";
-    public static String LOCAL_NAME_CONFIGURATION = "Configuration";
+    public static final String LOCAL_NAME_PROPERTY = "Property";
+    public static final String ATTR_NAME_PROP_NAME = "name";
+    public static final String LOCAL_NAME_CONFIGURATION = "Configuration";
 }

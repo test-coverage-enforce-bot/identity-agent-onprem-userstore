@@ -32,7 +32,7 @@ public class Application {
     public static void main(String[] args) {
         new SecretManagerInitializer().init();
         new MicroservicesRunner()
-                .deploy(new UserResource(),new Authenticate(), new GroupResource(), new Status())
+                .deploy(new UserResource(), new Authenticate(), new GroupResource(), new Status())
                 .start();
         }
 }

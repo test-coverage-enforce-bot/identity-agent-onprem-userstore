@@ -22,6 +22,9 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
+/**
+ *
+ */
 class XMLEntityResolver implements EntityResolver {
 
     @Override

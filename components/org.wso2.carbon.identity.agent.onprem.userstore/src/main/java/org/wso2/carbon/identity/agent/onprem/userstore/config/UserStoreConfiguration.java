@@ -17,26 +17,28 @@ package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
 import java.util.Map;
 
-//TODO: class comments
-
+/**
+ *
+ */
 public class UserStoreConfiguration {
-    private static Map<String,String> userStoreProperties;
+    private static Map<String, String> userStoreProperties;
     private static UserStoreConfiguration instance = new UserStoreConfiguration();
 
-    private UserStoreConfiguration(){
+    private UserStoreConfiguration() {
         init();
     }
 
     private void init() {
-        UserStoreConfigurationXMLProcessor userStoreConfigurationXMLProcessor = new UserStoreConfigurationXMLProcessor();
+        UserStoreConfigurationXMLProcessor userStoreConfigurationXMLProcessor
+                = new UserStoreConfigurationXMLProcessor();
         userStoreProperties = userStoreConfigurationXMLProcessor.buildUserStoreConfigurationFromFile();
     }
 
-    public static UserStoreConfiguration getConfiguration(){
+    public static UserStoreConfiguration getConfiguration() {
         return instance;
     }
 
-    public Map<String,String> getUserStoreProperties(){
+    public Map<String, String> getUserStoreProperties() {
         return userStoreProperties;
     }
 }

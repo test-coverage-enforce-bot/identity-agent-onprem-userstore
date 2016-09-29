@@ -24,6 +24,9 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
+/**
+ *
+ */
 public class JNDIUtil {
 
     private static Log log = LogFactory.getLog(JNDIUtil.class);

@@ -24,30 +24,34 @@ import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfigura
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+/**
+ *
+ */
 @Path("/status")
 public class Status {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserAttributes(){
-        boolean isActive = false;
+    public Response getUserAttributes() {
         Map<String , Boolean> returnMap = new HashMap<>();
         try {
-            UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            isActive = ldapUserStoreManager.getConnectionStatus();
-            returnMap.put("active", isActive);
+            UserStoreManager ldapUserStoreManager =
+                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
+            ldapUserStoreManager.getConnectionStatus();
+            returnMap.put("active", true);
             return Response.status(Response.Status.OK).entity(new JSONObject(returnMap).toString()).build();
         } catch (UserStoreException e) {
             log.error(e.getMessage());
-            returnMap.put("active", isActive);
+            returnMap.put("active", false);
             return Response.status(Response.Status.OK).entity(new JSONObject(returnMap).toString()).build();
         }
     }

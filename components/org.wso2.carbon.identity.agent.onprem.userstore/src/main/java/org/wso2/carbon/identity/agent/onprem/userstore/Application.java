@@ -19,9 +19,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.Authenticate;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.GroupResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.UserResource;
-import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretCallbackHandlerService;
 import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
-import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.msf4j.MicroservicesRunner;
 
 /**

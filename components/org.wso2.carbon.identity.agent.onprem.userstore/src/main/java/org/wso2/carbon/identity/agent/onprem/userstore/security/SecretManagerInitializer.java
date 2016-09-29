@@ -46,7 +46,9 @@ public class SecretManagerInitializer {
     private final String GLOBAL_PREFIX = "carbon.";
 
     public SecretCallbackHandlerService init() {
-        System.setProperty(CommonConstants.CARBON_HOME, UserStoreUtils.getProductHomePath());
+        if(System.getProperty(CommonConstants.CARBON_HOME) == null){
+            System.setProperty(CommonConstants.CARBON_HOME, UserStoreUtils.getProductHomePath());
+        }
         Properties properties = new Properties();
 
         if (secretManager.isInitialized()) {
@@ -85,7 +87,7 @@ public class SecretManagerInitializer {
 
     private Properties loadProperties() {
         Properties properties = new Properties();
-        String productnHome = UserStoreUtils.getProductHomePath();
+        String productnHome = System.getProperty(CommonConstants.CARBON_HOME);
         String filePath = productnHome + File.separator + CONF_DIR + File.separator + SECURITY_DIR + File.separator + SECRET_CONF;
 
         File dataSourceFile = new File(filePath);

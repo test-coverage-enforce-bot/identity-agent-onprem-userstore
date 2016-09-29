@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 /**
  * Base Class for capturing any type of exception that occurs in SecretCallbackHandler.
  */
-public class SecretCallbackHandlerException extends RuntimeException {
+class SecretCallbackHandlerException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.
      *
      * @param message the detail message.
      */
-    public SecretCallbackHandlerException(String message) {
+    SecretCallbackHandlerException(String message) {
         super(message);
     }
 
@@ -37,7 +37,7 @@ public class SecretCallbackHandlerException extends RuntimeException {
      * @param message the detail message.
      * @param cause   the cause of this exception.
      */
-    public SecretCallbackHandlerException(String message, Throwable cause) {
+    SecretCallbackHandlerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.util;
 
 import com.sun.org.apache.xerces.internal.util.SecurityManager;
-import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -77,7 +76,7 @@ public class XMLUtils {
         return toInputStream(doc);
     }
 
-    public static void resolveLeafNodeValue(Node node) {
+    private static void resolveLeafNodeValue(Node node) {
         if (node != null) {
             Element element = (Element) node;
             NodeList childNodeList = element.getChildNodes();
@@ -93,7 +92,7 @@ public class XMLUtils {
         }
     }
 
-    public static String resolveSystemProperty(String text) {
+    private static String resolveSystemProperty(String text) {
         int indexOfStartingChars = -1;
         int indexOfClosingBrace;
 
@@ -128,7 +127,7 @@ public class XMLUtils {
      * @return Returns InputStream.
      * @throws XMLException
      */
-    public static InputStream toInputStream(Document doc) throws XMLException {
+    private static InputStream toInputStream(Document doc) throws XMLException {
         InputStream in;
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

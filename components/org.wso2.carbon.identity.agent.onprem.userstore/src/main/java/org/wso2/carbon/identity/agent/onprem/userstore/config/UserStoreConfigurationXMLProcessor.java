@@ -16,29 +16,33 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.OMXMLParserWrapper;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.XMLConfigurationConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.XMLException;
-import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.XMLUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
-    private static final String USERSTORE_CONFIG_FILE = "conf/userstore-config.xml";
+    private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
+    private static final String CONF_DIR = "conf";
     private static Map<String,String> properties;
     private InputStream inStream = null;
     private SecretResolver secretResolver;
@@ -85,8 +89,8 @@ class UserStoreConfigurationXMLProcessor {
     private OMElement getConfigElement() throws XMLStreamException, IOException, UserStoreException {
         OMXMLParserWrapper builder;
 
-        File profileConfigXml = new File(UserStoreUtils.getProductHomePath(),
-                USERSTORE_CONFIG_FILE);
+        File profileConfigXml = new File(System.getProperty(CommonConstants.CARBON_HOME),
+                CONF_DIR + File.separator + USERSTORE_CONFIG_FILE);
         if (profileConfigXml.exists()) {
             inStream = new FileInputStream(profileConfigXml);
         }
@@ -108,11 +112,9 @@ class UserStoreConfigurationXMLProcessor {
 
         setSecretResolver(rootElement);
 
-        OMElement configElement = rootElement.getFirstChildWithName(new QName(
+
+        return rootElement.getFirstChildWithName(new QName(
                 XMLConfigurationConstants.LOCAL_NAME_CONFIGURATION));
-
-
-        return configElement;
     }
 
     private void setSecretResolver(OMElement rootElement) {

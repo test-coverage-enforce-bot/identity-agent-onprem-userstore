@@ -44,7 +44,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private static Log log = LogFactory.getLog(LDAPUserStoreManager.class);
     private static final String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     private static final String PROPERTY_REFERRAL_IGNORE ="ignore";
-    public static final String MEMBER_UID = "memberUid";
+    private static final String MEMBER_UID = "memberUid";
     private LDAPConnectionContext connectionSource;
 
     public LDAPUserStoreManager(Map<String,String> userStoreProperties)
@@ -134,9 +134,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         boolean debug = log.isDebugEnabled();
 
-
-        String failedUserDN = null;
-
         if (userName == null || credential == null) {
             return false;
         }
@@ -171,10 +168,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
             if (userDNPatternList.length > 0) {
                 for (String userDNPattern : userDNPatternList) {
                     name = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
-                    // check if the same name is found and checked from cache
-                    if (failedUserDN != null && failedUserDN.equalsIgnoreCase(name)) {
-                        continue;
-                    }
 
                     if (debug) {
                         log.debug("Authenticating with " + name);
@@ -573,7 +566,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
         String returnedAtts[] = {roleNameProperty};
         searchCtls.setReturningAttributes(returnedAtts);
 
-        StringBuffer finalFilter = new StringBuffer();
+        StringBuilder finalFilter = new StringBuilder();
         finalFilter.append("(&").append(searchFilter).append("(").append(roleNameProperty).append("=")
                 .append(escapeSpecialCharactersForFilterWithStarAsRegex(filter)).append("))");
 
@@ -977,7 +970,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
      */
     private String[] getLDAPRoleListOfUser(String userName, String searchBase) throws UserStoreException {
         boolean debug = log.isDebugEnabled();
-        List<String> list = new ArrayList<String>();
+        List<String> list;
 
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -1034,10 +1027,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         String[] result = list.toArray(new String[list.size()]);
 
-        if (result != null) {
-            for (String rolename : result) {
-                log.debug("Found role: " + rolename);
-            }
+        for (String rolename : result) {
+            log.debug("Found role: " + rolename);
         }
         return result;
     }
@@ -1054,7 +1045,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                                         SearchControls searchCtls, String property)
             throws UserStoreException {
         boolean debug = log.isDebugEnabled();
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         DirContext dirContext = null;
         NamingEnumeration<SearchResult> answer = null;
 
@@ -1156,6 +1147,5 @@ public class LDAPUserStoreManager implements UserStoreManager {
             return ldn.toString();
         }
     }
-
 
 }

@@ -31,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/groups")
 public class GroupResource {
@@ -38,20 +39,20 @@ public class GroupResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllRoleNames(@QueryParam("limit") String limit){
+    public Response getAllRoleNames(@QueryParam("limit") String limit){
         try {
             UserStoreManager ldapUserStoreManager = new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             if(limit==null ||limit.isEmpty()){
                 limit = String.valueOf(CommonConstants.MAX_USER_LIST);
             }
             String[] usernames = ldapUserStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
-            JSONObject jsonObject = new JSONObject();
+            JSONObject returnObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
-            jsonObject.put("roles", usernameArray);
-            return jsonObject.toString();
-        } catch (UserStoreException e) {
+            returnObject.put("roles", usernameArray);
+            return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
+        }catch (UserStoreException e) {
             log.error(e.getMessage());
-            return "";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 }

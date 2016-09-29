@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
 public class CommonConstants {
-    public static final String DOMAIN_SEPARATOR = "/";
     public static final String PROPERTY_REPLACE_ESCAPE_CHARACTERS_AT_USER_LOGIN = "ReplaceEscapeCharactersAtUserLogin";
     public static final String PROPERTY_MAX_USER_LIST = "MaxUserNameListLength";
     public static final String PROPERTY_MAX_SEARCH_TIME = "MaxSearchQueryTime";

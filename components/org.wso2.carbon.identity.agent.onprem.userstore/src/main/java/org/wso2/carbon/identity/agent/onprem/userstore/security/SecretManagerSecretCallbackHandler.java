@@ -26,15 +26,11 @@ import org.wso2.securevault.secret.SingleSecretCallback;
  * SecretManager based secret provider , this can be used by other application
  * to get secret form  SecretManager
  */
-public class SecretManagerSecretCallbackHandler extends AbstractSecretCallbackHandler {
+class SecretManagerSecretCallbackHandler extends AbstractSecretCallbackHandler {
 
     private final SecretManager secretManager;
 
-    public SecretManagerSecretCallbackHandler() {
-        secretManager = null;
-    }
-
-    public SecretManagerSecretCallbackHandler(SecretManager secretManager) {
+    SecretManagerSecretCallbackHandler(SecretManager secretManager) {
         this.secretManager = secretManager;
     }
 

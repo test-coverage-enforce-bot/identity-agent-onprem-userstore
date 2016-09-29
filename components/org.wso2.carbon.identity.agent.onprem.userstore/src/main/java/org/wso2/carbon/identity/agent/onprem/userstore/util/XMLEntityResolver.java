@@ -22,7 +22,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-public class XMLEntityResolver implements EntityResolver {
+class XMLEntityResolver implements EntityResolver {
 
     @Override
     public InputSource resolveEntity(String publicId, String systemId) throws SAXException,

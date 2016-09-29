@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 import org.wso2.securevault.secret.AbstractSecretCallbackHandler;
 import org.wso2.securevault.secret.SingleSecretCallback;
@@ -60,7 +61,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
             String textFileName;
             String passwords[];
 
-            String productHome = UserStoreUtils.getProductHomePath();
+            String productHome = System.getProperty(CommonConstants.CARBON_HOME);
 
             String osName = System.getProperty("os.name");
             if(osName.toLowerCase().indexOf("win") == -1){

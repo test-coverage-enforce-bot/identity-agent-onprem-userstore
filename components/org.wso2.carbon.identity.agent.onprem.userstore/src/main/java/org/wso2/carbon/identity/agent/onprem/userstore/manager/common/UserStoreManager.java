@@ -31,4 +31,6 @@ public interface UserStoreManager {
     String[] doGetRoleNames(String filter, int maxItemLimit) throws UserStoreException;
 
     String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException;
+
+    boolean getConnectionStatus();
 }

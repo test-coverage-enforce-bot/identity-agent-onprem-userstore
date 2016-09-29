@@ -965,6 +965,17 @@ public class LDAPUserStoreManager implements UserStoreManager {
         String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
         return getLDAPRoleListOfUser(userName, searchBase);
     }
+
+    @Override
+    public boolean getConnectionStatus() {
+        try {
+            connectionSource.getContext();
+        } catch (UserStoreException e) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * {@inheritDoc}
      */

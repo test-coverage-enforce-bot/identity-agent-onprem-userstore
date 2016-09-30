@@ -17,8 +17,8 @@ package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
 import java.util.Map;
 
-/**
- *
+/*
+ *  singleton to get the user store properties from userstore-mgt.xml
  */
 public class UserStoreConfiguration {
     private static Map<String, String> userStoreProperties;

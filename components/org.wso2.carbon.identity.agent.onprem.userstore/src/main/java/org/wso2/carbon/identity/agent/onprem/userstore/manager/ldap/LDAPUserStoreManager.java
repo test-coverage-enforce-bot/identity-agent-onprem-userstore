@@ -47,8 +47,8 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 
-/**
- *
+/*
+ *  User Store manager for LDAP user stores
  */
 public class LDAPUserStoreManager implements UserStoreManager {
 

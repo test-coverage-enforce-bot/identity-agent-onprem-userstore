@@ -39,6 +39,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
 
+/**.
+ *  Preocess XML files and retrieve properties
+ */
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
     private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";

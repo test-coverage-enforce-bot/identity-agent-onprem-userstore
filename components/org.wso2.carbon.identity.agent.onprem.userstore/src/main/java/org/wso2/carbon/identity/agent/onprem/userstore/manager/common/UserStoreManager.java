@@ -21,8 +21,8 @@ import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreExcept
 import java.util.Map;
 
 
-/**
- *
+/*
+ * base userstore manager
  */
 public interface UserStoreManager {
 

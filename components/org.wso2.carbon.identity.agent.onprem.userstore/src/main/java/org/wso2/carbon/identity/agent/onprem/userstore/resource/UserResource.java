@@ -35,9 +35,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-/**
- *
+/**.
+ *  users REST endpoint
  */
+
 @Path("/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
@@ -52,7 +53,7 @@ public class UserResource {
                 return Response.status(Response.Status.BAD_REQUEST).
                         entity("Required User Attributes are not Specified!").build();
             }
-            String[] attributeArray = attributes.split(",");
+            String[] attributeArray = attributes.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
             UserStoreManager ldapUserStoreManager =
                     new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
             Map<String, String> propertyMap = ldapUserStoreManager.getUserPropertyValues(username, attributeArray);
@@ -73,7 +74,8 @@ public class UserResource {
             }
             UserStoreManager ldapUserStoreManager =
                     new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            String[] usernames = ldapUserStoreManager.doListUsers("*", Integer.parseInt(limit));
+            String[] usernames = ldapUserStoreManager.
+                    doListUsers(CommonConstants.WILD_CARD_FILTER, Integer.parseInt(limit));
             JSONObject jsonObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
             jsonObject.put("usernames", usernameArray);

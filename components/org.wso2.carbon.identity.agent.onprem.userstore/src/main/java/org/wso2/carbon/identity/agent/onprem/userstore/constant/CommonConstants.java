@@ -25,6 +25,8 @@ public class CommonConstants {
     public static final String PROPERTY_MAX_SEARCH_TIME = "MaxSearchQueryTime";
     public static final String PROPERTY_MAX_ROLE_LIST = "MaxRoleNameListLength";
     public static final String XML_PATTERN_SEPERATOR = "#";
+    public static final String ATTRIBUTE_LIST_SEPERATOR = ",";
+    public static final String WILD_CARD_FILTER = "*";
     public static final String CARBON_HOME = "carbon.home";
     public static final int MAX_USER_LIST = 100;
     public static final int MAX_SEARCH_TIME = 10000;   // ms

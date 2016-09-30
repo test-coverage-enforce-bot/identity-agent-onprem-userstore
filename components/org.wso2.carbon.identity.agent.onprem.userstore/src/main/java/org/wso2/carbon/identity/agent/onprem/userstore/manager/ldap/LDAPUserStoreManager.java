@@ -47,7 +47,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 
-/*
+/**.
  *  User Store manager for LDAP user stores
  */
 public class LDAPUserStoreManager implements UserStoreManager {
@@ -62,6 +62,10 @@ public class LDAPUserStoreManager implements UserStoreManager {
     public LDAPUserStoreManager(Map<String, String> userStoreProperties)
             throws UserStoreException {
         this.userStoreProperties = userStoreProperties;
+        if (userStoreProperties == null) {
+            throw new UserStoreException(
+                    "User Store Properties Could not be found!");
+        }
         // check if required configurations are in the user-mgt.xml
         checkRequiredUserStoreConfigurations();
         this.connectionSource = new LDAPConnectionContext(this.userStoreProperties);

@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.util;
 
-import com.sun.org.apache.xerces.internal.util.SecurityManager;
+import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -66,6 +66,7 @@ public class XMLUtils {
             doc = documentBuilder.parse(xmlConfiguration);
         } catch (Exception e) {
             throw new XMLException("Error in building Document", e);
+
         }
         NodeList nodeList = null;
         if (doc != null) {

@@ -95,6 +95,7 @@ class UserStoreConfigurationXMLProcessor {
         File profileConfigXml = new File(System.getProperty(CommonConstants.CARBON_HOME),
                 CONF_DIR + File.separator + USERSTORE_CONFIG_FILE);
         if (profileConfigXml.exists()) {
+
             inStream = new FileInputStream(profileConfigXml);
         }
 
@@ -110,6 +111,7 @@ class UserStoreConfigurationXMLProcessor {
         } catch (XMLException e) {
             throw new UserStoreException(e.getMessage(), e);
         }
+
         builder = new StAXOMBuilder(inStream);
         OMElement rootElement = builder.getDocumentElement();
 

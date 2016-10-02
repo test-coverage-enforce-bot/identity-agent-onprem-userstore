@@ -39,8 +39,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
 
-/**.
- *  Preocess XML files and retrieve properties
+/**
+ *  Preocess XML files and retrieve properties.
  */
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
@@ -50,6 +50,9 @@ class UserStoreConfigurationXMLProcessor {
     private InputStream inStream = null;
     private SecretResolver secretResolver;
 
+    /**
+     * @return the Map of user store properties
+     */
     Map<String, String> buildUserStoreConfigurationFromFile() {
         OMElement rootElement;
         try {
@@ -68,6 +71,10 @@ class UserStoreConfigurationXMLProcessor {
         return properties;
     }
 
+    /**
+     * @param rootElement - The root OMElement of the XML file
+     * @return - the map of user store properties
+     */
     private Map<String, String> buildUserStoreConfiguration(OMElement rootElement) {
         Map<String, String> map = new HashMap<>();
         Iterator<?> ite = rootElement.getChildrenWithName(new QName(
@@ -89,6 +96,13 @@ class UserStoreConfigurationXMLProcessor {
     }
 
 
+    /**
+     * @return - the <Configuration> element of the userstore-mgt.xml file.
+     * @throws XMLStreamException - if an error occurs in building the XML configurations.
+     * @throws IOException - if the file does not exist, is a directory rather than a regular file,
+     * or for some other reason cannot be opened for reading.
+     * @throws UserStoreException - if the inputStream is null or cannot validate the XML file.
+     */
     private OMElement getConfigElement() throws XMLStreamException, IOException, UserStoreException {
         OMXMLParserWrapper builder;
 
@@ -122,6 +136,9 @@ class UserStoreConfigurationXMLProcessor {
                 XMLConfigurationConstants.LOCAL_NAME_CONFIGURATION));
     }
 
+    /**
+     * @param rootElement - The root OMElement of the XML file
+     */
     private void setSecretResolver(OMElement rootElement) {
         secretResolver = SecretResolverFactory.create(rootElement, true);
     }

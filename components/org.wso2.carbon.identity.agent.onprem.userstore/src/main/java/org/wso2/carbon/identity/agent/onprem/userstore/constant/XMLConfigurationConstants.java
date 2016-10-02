@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
 /**
- *
+ * Constants used when reading XML files.
  */
 public class XMLConfigurationConstants {
     public static final String LOCAL_NAME_PROPERTY = "Property";

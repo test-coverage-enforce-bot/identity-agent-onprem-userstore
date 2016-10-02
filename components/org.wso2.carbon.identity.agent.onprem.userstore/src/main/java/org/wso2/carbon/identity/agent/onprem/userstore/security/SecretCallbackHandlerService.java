@@ -21,16 +21,22 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 import org.wso2.securevault.secret.SecretCallbackHandler;
 
 /**
- *
+ * Secret Callback handler model.
  */
 public class SecretCallbackHandlerService {
     
     private SecretCallbackHandler secretCallbackHandler;
 
+    /**
+     * @return - the secret callback handler.
+     */
     public SecretCallbackHandler getSecretCallbackHandler() {
         return secretCallbackHandler;
     }
 
+    /**
+     * @param secretCallbackHandler - the secret callback handler.
+     */
     public void setSecretCallbackHandler(SecretCallbackHandler secretCallbackHandler) {
         this.secretCallbackHandler = secretCallbackHandler;
     }

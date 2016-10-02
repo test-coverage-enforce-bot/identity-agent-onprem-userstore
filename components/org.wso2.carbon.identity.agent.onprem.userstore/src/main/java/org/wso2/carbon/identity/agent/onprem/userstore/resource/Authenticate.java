@@ -36,11 +36,17 @@ import javax.ws.rs.core.Response;
 
 
 /**
- *
+ * REST endpoint fro authentication.
  */
 @Path("/authenticate")
 public class Authenticate {
     private static Logger log = LoggerFactory.getLogger(Authenticate.class);
+
+    /**
+     * @param user - user object with username and password being set.
+     * @return - true if the user is authenticated.
+     * - false otherwise.
+     */
         @POST
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)

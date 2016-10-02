@@ -35,14 +35,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-/**.
- *  users REST endpoint
+/**
+ *  users REST endpoint.
  */
 
 @Path("/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
+    /**
+     * @param username - username of the user whose attributes are required.
+     * @param attributes - required attribute list separated by commas, as a QueryParam.
+     * @return - Map with the requested attribute names mapped to their values.
+     */
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -65,6 +70,10 @@ public class UserResource {
         }
     }
 
+    /**
+     * @param limit - maximum number of usernames required. Deafult value will be taken if not specified.
+     * @return - the list of usernames up to the given limit.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllUserNames(@QueryParam("limit") String limit) {
@@ -91,6 +100,10 @@ public class UserResource {
         }
     }
 
+    /**
+     * @param username - username of the user whose role names are required.
+     * @return - the list of role names of the given user.
+     */
     @GET
     @Path("{username}/groups")
     @Produces(MediaType.APPLICATION_JSON)

@@ -38,7 +38,7 @@ import javax.xml.transform.stream.StreamResult;
 
 
 /**
- *
+ * This class is used for validating the XML files through apache xerces.
  */
 public class XMLUtils {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -48,7 +48,7 @@ public class XMLUtils {
      *
      * @param xmlConfiguration InputStream that carries xml configuration
      * @return returns a InputStream that has evaluated system variables in input
-     * @throws XMLException
+     * @throws XMLException - if an error occurs while validating XML file
      */
     public static InputStream replaceSystemVariablesInXml(InputStream xmlConfiguration) throws XMLException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -129,7 +129,7 @@ public class XMLUtils {
      *
      * @param doc  the DOM.Document to be converted to InputStream.
      * @return Returns InputStream.
-     * @throws XMLException
+     * @throws XMLException if an error occurs while validating XML file.
      */
     private static InputStream toInputStream(Document doc) throws XMLException {
         InputStream in;

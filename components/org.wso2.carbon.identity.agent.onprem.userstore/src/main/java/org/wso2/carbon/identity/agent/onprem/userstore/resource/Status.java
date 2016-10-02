@@ -29,16 +29,20 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-/**.
- *  connection health check endpoint
+/**
+ *  connection health check endpoint.
  */
 @Path("/status")
 public class Status {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
+    /**
+     * @return 200 OK if the connection is healthy,
+     * 500 INTERNAL SERVER ERROR otherwise.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserAttributes() {
+    public Response checkConnectionStatus() {
         try {
             UserStoreManager ldapUserStoreManager =
                     new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());

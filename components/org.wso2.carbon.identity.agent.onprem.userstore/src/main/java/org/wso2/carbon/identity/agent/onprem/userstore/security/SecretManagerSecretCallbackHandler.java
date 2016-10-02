@@ -30,10 +30,16 @@ class SecretManagerSecretCallbackHandler extends AbstractSecretCallbackHandler {
 
     private final SecretManager secretManager;
 
+    /**
+     * @param secretManager - secret manager which the callacks are being handled of.
+     */
     SecretManagerSecretCallbackHandler(SecretManager secretManager) {
         this.secretManager = secretManager;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     protected void handleSingleSecretCallback(SingleSecretCallback singleSecretCallback) {
 
         if (!secretManager.isInitialized()) {

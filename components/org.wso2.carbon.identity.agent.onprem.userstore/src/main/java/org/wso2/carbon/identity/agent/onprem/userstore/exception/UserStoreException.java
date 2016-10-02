@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.exception;
 
 /**
- * The exception to throw when there is a problem with the realm.
+ * The exception to throw when there is a problem with the userstores.
  */
 public class UserStoreException extends Exception {
 

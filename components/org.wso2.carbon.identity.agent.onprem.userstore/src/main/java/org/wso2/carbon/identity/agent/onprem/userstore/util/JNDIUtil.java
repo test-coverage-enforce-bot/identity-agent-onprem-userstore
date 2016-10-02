@@ -25,7 +25,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 
 /**
- *
+ * Used for closing the LDAP connections.
  */
 public class JNDIUtil {
 

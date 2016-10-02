@@ -17,8 +17,8 @@ package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
 import java.util.Map;
 
-/**.
- *  singleton to get the user store properties from userstore-mgt.xml
+/**
+ *  singleton to get the user store properties from userstore-mgt.xml.
  */
 public class UserStoreConfiguration {
     private static Map<String, String> userStoreProperties;
@@ -28,16 +28,25 @@ public class UserStoreConfiguration {
         init();
     }
 
+    /**
+     *  Initializes the User Store properties.
+     */
     private void init() {
         UserStoreConfigurationXMLProcessor userStoreConfigurationXMLProcessor
                 = new UserStoreConfigurationXMLProcessor();
         userStoreProperties = userStoreConfigurationXMLProcessor.buildUserStoreConfigurationFromFile();
     }
 
+    /**
+     * @return instance of UserStoreConfiguration with properties initialized.
+     */
     public static UserStoreConfiguration getConfiguration() {
         return instance;
     }
 
+    /**
+     * @return the map of userStoreProperties from userstore-mgt.xml.
+     */
     public Map<String, String> getUserStoreProperties() {
         return userStoreProperties;
     }

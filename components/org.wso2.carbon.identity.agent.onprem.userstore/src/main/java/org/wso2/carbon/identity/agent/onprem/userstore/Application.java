@@ -20,6 +20,7 @@ import org.wso2.carbon.identity.agent.onprem.userstore.resource.Authenticate;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.GroupResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.Status;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.UserResource;
+import org.wso2.carbon.identity.agent.onprem.userstore.security.JWTSecurityInterceptor;
 import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
 import org.wso2.msf4j.MicroservicesRunner;
 
@@ -32,6 +33,7 @@ public class Application {
     public static void main(String[] args) {
         new SecretManagerInitializer().init();
         new MicroservicesRunner()
+                .addInterceptor(new JWTSecurityInterceptor())
                 .deploy(new UserResource(), new Authenticate(), new GroupResource(), new Status())
                 .start();
         }

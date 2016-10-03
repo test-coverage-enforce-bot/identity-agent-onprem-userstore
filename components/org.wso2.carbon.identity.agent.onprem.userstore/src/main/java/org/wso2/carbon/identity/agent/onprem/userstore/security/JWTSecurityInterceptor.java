@@ -36,8 +36,6 @@ import java.io.InputStream;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -55,7 +53,6 @@ public class JWTSecurityInterceptor implements Interceptor {
 
     private JSONObject jsonHeaderObject;
     private static final Base64 base64Url = new Base64(true);
-    private static List<String> tokenList = new ArrayList<String>();
 
     @Override
     public boolean preCall(Request request, Response responder, ServiceMethodInfo serviceMethodInfo)
@@ -81,10 +78,6 @@ public class JWTSecurityInterceptor implements Interceptor {
             log.error(e.getMessage() + " Requested Path: " + request.getUri());
         }
         return false;
-    }
-
-    private void addToCache(String token) {
-        tokenList.add(token);
     }
 
     /**
@@ -151,18 +144,19 @@ public class JWTSecurityInterceptor implements Interceptor {
 
         String signatureAlgorithm = (String) jsonHeaderObject.get("alg");
 
-        if ("RS256".equals(signatureAlgorithm)) {
-            signatureAlgorithm = "SHA256withRSA";
-        } else if ("RS515".equals(signatureAlgorithm)) {
-            signatureAlgorithm = "SHA512withRSA";
-        } else if ("RS384".equals(signatureAlgorithm)) {
-            signatureAlgorithm = "SHA384withRSA";
-        } else if ("RS512".equals(signatureAlgorithm)) {
-            signatureAlgorithm = "SHA512withRSA";
-        } else {
-            signatureAlgorithm = "SHA256withRSA";
+        switch (signatureAlgorithm){
+            case "RS256":
+                signatureAlgorithm = "SHA256withRSA";
+            case "RS515":
+                signatureAlgorithm = "SHA512withRSA";
+            case "RS384":
+                signatureAlgorithm = "SHA384withRSA";
+            case "RS512":
+                signatureAlgorithm = "SHA512withRSA";
+            default:
+                signatureAlgorithm = "SHA256withRSA";
         }
-        return signatureAlgorithm;
+       return signatureAlgorithm;
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.util;
 
-import com.sun.org.apache.xerces.internal.util.SecurityManager;
+import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,7 +38,7 @@ import javax.xml.transform.stream.StreamResult;
 
 
 /**
- *
+ * This class is used for validating the XML files through apache xerces.
  */
 public class XMLUtils {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -48,7 +48,7 @@ public class XMLUtils {
      *
      * @param xmlConfiguration InputStream that carries xml configuration
      * @return returns a InputStream that has evaluated system variables in input
-     * @throws XMLException
+     * @throws XMLException - if an error occurs while validating XML file
      */
     public static InputStream replaceSystemVariablesInXml(InputStream xmlConfiguration) throws XMLException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -66,6 +66,7 @@ public class XMLUtils {
             doc = documentBuilder.parse(xmlConfiguration);
         } catch (Exception e) {
             throw new XMLException("Error in building Document", e);
+
         }
         NodeList nodeList = null;
         if (doc != null) {
@@ -128,7 +129,7 @@ public class XMLUtils {
      *
      * @param doc  the DOM.Document to be converted to InputStream.
      * @return Returns InputStream.
-     * @throws XMLException
+     * @throws XMLException if an error occurs while validating XML file.
      */
     private static InputStream toInputStream(Document doc) throws XMLException {
         InputStream in;

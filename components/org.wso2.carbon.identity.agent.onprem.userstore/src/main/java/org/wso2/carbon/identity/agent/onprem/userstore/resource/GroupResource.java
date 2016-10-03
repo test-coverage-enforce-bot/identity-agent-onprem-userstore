@@ -20,11 +20,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfiguration;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
-import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
+import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,22 +33,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- *
+ * REST endpoint for user groups.
  */
 @Path("/groups")
 public class GroupResource {
     private static Logger log = LoggerFactory.getLogger(GroupResource.class);
 
+    /**
+     * @param limit - maximum number of the role names that should be returned.
+     * @return - list of the role names in the userstore.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllRoleNames(@QueryParam("limit") String limit) {
         try {
-            UserStoreManager ldapUserStoreManager =
-                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
             if (limit == null || limit.isEmpty()) {
                 limit = String.valueOf(CommonConstants.MAX_USER_LIST);
             }
-            String[] usernames = ldapUserStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
+            String[] usernames = userStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
             JSONObject returnObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
             returnObject.put("roles", usernameArray);

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.security;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
-import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
+import org.wso2.carbon.identity.agent.onprem.userstore.util.ApplicationUtils;
 import org.wso2.securevault.SecurityConstants;
 import org.wso2.securevault.secret.SecretCallbackHandler;
 import org.wso2.securevault.secret.SecretCallbackHandlerFactory;
@@ -34,7 +34,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * 
+ *  Securevault initializer.
  */
 public class SecretManagerInitializer {
 
@@ -45,9 +45,12 @@ public class SecretManagerInitializer {
     private static final String SECURITY_DIR = "security";
     private static final String GLOBAL_PREFIX = "carbon.";
 
+    /** initializes the secure vault configurations.
+     * @return - the initialized SecretCallbackHandlerService.
+     */
     public SecretCallbackHandlerService init() {
         if (System.getProperty(CommonConstants.CARBON_HOME) == null) {
-            System.setProperty(CommonConstants.CARBON_HOME, UserStoreUtils.getProductHomePath());
+            System.setProperty(CommonConstants.CARBON_HOME, ApplicationUtils.getProductHomePath());
         }
         Properties properties = new Properties();
 
@@ -85,6 +88,9 @@ public class SecretManagerInitializer {
     }
 
 
+    /**
+     * @return - the properties of the ciphertool configuration which is stored in the secret-conf.properties file.
+     */
     private Properties loadProperties() {
         Properties properties = new Properties();
         String productnHome = System.getProperty(CommonConstants.CARBON_HOME);

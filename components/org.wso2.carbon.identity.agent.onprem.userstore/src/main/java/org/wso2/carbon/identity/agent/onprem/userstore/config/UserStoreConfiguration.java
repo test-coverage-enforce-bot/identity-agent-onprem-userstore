@@ -15,29 +15,47 @@
  */
 package org.wso2.carbon.identity.agent.onprem.userstore.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
+
 import java.util.Map;
 
 /**
- *
+ *  Singleton to get the user store properties from userstore-mgt.xml.
  */
 public class UserStoreConfiguration {
+    private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);
     private static Map<String, String> userStoreProperties;
     private static UserStoreConfiguration instance = new UserStoreConfiguration();
 
     private UserStoreConfiguration() {
-        init();
+        try {
+            init();
+        } catch (UserStoreException e) {
+            log.error("Error in configuring the UserStoreManager: " + e.getMessage());
+        }
     }
 
-    private void init() {
+    /**
+     *  Initializes the User Store properties.
+     */
+    private void init() throws UserStoreException {
         UserStoreConfigurationXMLProcessor userStoreConfigurationXMLProcessor
                 = new UserStoreConfigurationXMLProcessor();
         userStoreProperties = userStoreConfigurationXMLProcessor.buildUserStoreConfigurationFromFile();
     }
 
+    /**
+     * @return instance of UserStoreConfiguration with properties initialized.
+     */
     public static UserStoreConfiguration getConfiguration() {
         return instance;
     }
 
+    /**
+     * @return the map of userStoreProperties from userstore-mgt.xml.
+     */
     public Map<String, String> getUserStoreProperties() {
         return userStoreProperties;
     }

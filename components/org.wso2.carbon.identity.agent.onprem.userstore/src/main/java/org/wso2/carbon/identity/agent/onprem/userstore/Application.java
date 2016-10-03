@@ -24,11 +24,13 @@ import org.wso2.carbon.identity.agent.onprem.userstore.security.JWTSecurityInter
 import org.wso2.carbon.identity.agent.onprem.userstore.security.SecretManagerInitializer;
 import org.wso2.msf4j.MicroservicesRunner;
 
+
 /**
  * Application entry point.
  *
  * @since 0.1
  */
+
 public class Application {
     public static void main(String[] args) {
         new SecretManagerInitializer().init();

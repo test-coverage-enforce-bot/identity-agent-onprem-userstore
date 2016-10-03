@@ -39,34 +39,67 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
 
+/**
+ *  Process XML files and retrieve properties.
+ */
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
     private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
     private static final String CONF_DIR = "conf";
-    private static Map<String, String> properties;
     private InputStream inStream = null;
     private SecretResolver secretResolver;
 
-    Map<String, String> buildUserStoreConfigurationFromFile() {
+    /**
+     * @return the Map of user store properties
+     */
+    Map<String, String> buildUserStoreConfigurationFromFile() throws UserStoreException {
         OMElement rootElement;
+        Map<String, String> properties;
         try {
-            rootElement = getConfigElement();
+            rootElement = getRootElement();
             properties = buildUserStoreConfiguration(rootElement);
 
             if (inStream != null) {
                 inStream.close();
             }
-        } catch (Exception e) {
+        } catch (UserStoreException e) {
             String message = "Error while reading userstore configuration from file";
             if (log.isDebugEnabled()) {
                 log.debug(message, e);
             }
+            throw new UserStoreException(message, e);
+        } catch (IOException e) {
+            String message = "Error while closing the input stream";
+            if (log.isDebugEnabled()) {
+                log.debug(message, e);
+            }
+            throw new UserStoreException(message, e);
+        } catch (XMLStreamException e) {
+            String message = "Error while validating the XML file";
+            if (log.isDebugEnabled()) {
+                log.debug(message, e);
+            }
+            throw new UserStoreException(message, e);
         }
         return properties;
     }
 
-    private Map<String, String> buildUserStoreConfiguration(OMElement rootElement) {
+    /**
+     * @param rootElement - The root OMElement of the XML file
+     * @return - the map of user store properties
+     */
+    private Map<String, String> buildUserStoreConfiguration(OMElement rootElement) throws UserStoreException {
+        String userStoreClass;
         Map<String, String> map = new HashMap<>();
+        userStoreClass = rootElement.getAttributeValue(new QName(XMLConfigurationConstants.LOCAL_NAME_CLASS));
+        if (userStoreClass == null || userStoreClass.isEmpty()) {
+            String message = "Mandatory Property UserStoreManager Class is not set";
+            if (log.isDebugEnabled()) {
+                log.debug(message);
+            }
+            throw new UserStoreException(message);
+        }
+        map.put(XMLConfigurationConstants.LOCAL_NAME_CLASS, userStoreClass);
         Iterator<?> ite = rootElement.getChildrenWithName(new QName(
                 XMLConfigurationConstants.LOCAL_NAME_PROPERTY));
         while (ite.hasNext()) {
@@ -86,12 +119,20 @@ class UserStoreConfigurationXMLProcessor {
     }
 
 
-    private OMElement getConfigElement() throws XMLStreamException, IOException, UserStoreException {
+    /**
+     * @return - the <Configuration> element of the userstore-mgt.xml file.
+     * @throws XMLStreamException - if an error occurs in building the XML configurations.
+     * @throws IOException - if the file does not exist, is a directory rather than a regular file,
+     * or for some other reason cannot be opened for reading.
+     * @throws UserStoreException - if the inputStream is null or cannot validate the XML file.
+     */
+    private OMElement getRootElement() throws XMLStreamException, IOException, UserStoreException {
         OMXMLParserWrapper builder;
 
         File profileConfigXml = new File(System.getProperty(CommonConstants.CARBON_HOME),
                 CONF_DIR + File.separator + USERSTORE_CONFIG_FILE);
         if (profileConfigXml.exists()) {
+
             inStream = new FileInputStream(profileConfigXml);
         }
 
@@ -107,16 +148,16 @@ class UserStoreConfigurationXMLProcessor {
         } catch (XMLException e) {
             throw new UserStoreException(e.getMessage(), e);
         }
+
         builder = new StAXOMBuilder(inStream);
         OMElement rootElement = builder.getDocumentElement();
-
         setSecretResolver(rootElement);
-
-
-        return rootElement.getFirstChildWithName(new QName(
-                XMLConfigurationConstants.LOCAL_NAME_CONFIGURATION));
+        return rootElement;
     }
 
+    /**
+     * @param rootElement - The root OMElement of the XML file
+     */
     private void setSecretResolver(OMElement rootElement) {
         secretResolver = SecretResolverFactory.create(rootElement, true);
     }

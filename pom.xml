@@ -137,7 +137,7 @@
     </build>
 
     <properties>
-        <microservice.mainClass>Application</microservice.mainClass>
+        <microservice.mainClass>org.wso2.carbon.identity.agent.onprem.userstore.Application</microservice.mainClass>
         <org.json.version>20160810</org.json.version>
         <commons.codec.version>1.9</commons.codec.version>
         <commons.axiom.impl.version>1.2.11-wso2v11</commons.axiom.impl.version>

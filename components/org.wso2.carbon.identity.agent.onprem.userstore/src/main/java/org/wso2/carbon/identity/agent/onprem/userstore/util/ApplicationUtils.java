@@ -17,9 +17,9 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.util;
 
 /**
- *
+ *  Used to get Application properties.
  */
-public class UserStoreUtils {
+public class ApplicationUtils {
     public static String getProductHomePath() {
         return System.getProperty("user.dir");
     }

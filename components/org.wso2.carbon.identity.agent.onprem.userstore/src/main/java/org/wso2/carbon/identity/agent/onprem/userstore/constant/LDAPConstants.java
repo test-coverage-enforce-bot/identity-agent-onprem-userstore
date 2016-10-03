@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
 /**
- *
+ * Constants specific to LDAP Userstores.
  */
 public class LDAPConstants {
     public static final String CONNECTION_URL = "ConnectionURL";

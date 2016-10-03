@@ -17,10 +17,11 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
 /**
- *
+ * Constants used when reading XML files.
  */
 public class XMLConfigurationConstants {
     public static final String LOCAL_NAME_PROPERTY = "Property";
+    public static final String LOCAL_NAME_CLASS = "class";
     public static final String ATTR_NAME_PROP_NAME = "name";
     public static final String LOCAL_NAME_CONFIGURATION = "Configuration";
 }

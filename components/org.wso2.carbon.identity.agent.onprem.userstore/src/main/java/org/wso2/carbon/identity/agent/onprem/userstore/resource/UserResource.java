@@ -20,11 +20,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfiguration;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
-import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
+import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
 import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,14 +34,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-/**.
- *  users REST endpoint
+/**
+ *  Users REST endpoint.
  */
 
 @Path("/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
+    /**
+     * @param username - username of the user whose attributes are required.
+     * @param attributes - required attribute list separated by commas, as a QueryParam.
+     * @return - Map with the requested attribute names mapped to their values.
+     */
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -54,9 +58,9 @@ public class UserResource {
                         entity("Required User Attributes are not Specified!").build();
             }
             String[] attributeArray = attributes.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
-            UserStoreManager ldapUserStoreManager =
-                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            Map<String, String> propertyMap = ldapUserStoreManager.getUserPropertyValues(username, attributeArray);
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+
+            Map<String, String> propertyMap = userStoreManager.getUserPropertyValues(username, attributeArray);
             JSONObject returnObject = new JSONObject(propertyMap);
             return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
         } catch (UserStoreException e) {
@@ -65,6 +69,10 @@ public class UserResource {
         }
     }
 
+    /**
+     * @param limit - maximum number of usernames required. Deafult value will be taken if not specified.
+     * @return - the list of usernames up to the given limit.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllUserNames(@QueryParam("limit") String limit) {
@@ -72,9 +80,9 @@ public class UserResource {
             if (limit == null || limit.isEmpty()) {
                 limit = String.valueOf(CommonConstants.MAX_USER_LIST);
             }
-            UserStoreManager ldapUserStoreManager =
-                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            String[] usernames = ldapUserStoreManager.
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+
+            String[] usernames = userStoreManager.
                     doListUsers(CommonConstants.WILD_CARD_FILTER, Integer.parseInt(limit));
             JSONObject jsonObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
@@ -91,14 +99,17 @@ public class UserResource {
         }
     }
 
+    /**
+     * @param username - username of the user whose role names are required.
+     * @return - the list of role names of the given user.
+     */
     @GET
     @Path("{username}/groups")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserRoles(@PathParam("username") String username) {
         try {
-            UserStoreManager ldapUserStoreManager =
-                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            String[]  roles = ldapUserStoreManager.doGetExternalRoleListOfUser(username);
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            String[]  roles = userStoreManager.doGetExternalRoleListOfUser(username);
             JSONObject jsonObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(roles);
             jsonObject.put("groups", usernameArray);

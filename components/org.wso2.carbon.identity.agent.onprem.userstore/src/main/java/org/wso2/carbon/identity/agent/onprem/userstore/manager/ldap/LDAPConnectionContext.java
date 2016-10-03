@@ -32,7 +32,9 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
 
-
+/**
+ *  Connection for LDAP user stores.
+ */
 class LDAPConnectionContext {
 
     private static Log log = LogFactory.getLog(LDAPConnectionContext.class);
@@ -97,6 +99,10 @@ class LDAPConnectionContext {
         }
     }
 
+    /**
+     * @return - connection context of the LDAP userstore.
+     * @throws UserStoreException - if an error occurs while connecting to th userstore.
+     */
     DirContext getContext() throws UserStoreException {
         DirContext context;
         try {
@@ -117,8 +123,14 @@ class LDAPConnectionContext {
         return (context);
     }
 
+    /**
+     * @param userDN - Distinguished name of the user to be authenticated
+     * @param password - password of the user to be authenticated
+     * @return - the LDAP connection context with logged in as the given user.
+     * @throws NamingException - if the user cannot be authenticated or connection issue occurs.
+     */
     LdapContext getContextWithCredentials(String userDN, String password)
-            throws UserStoreException, NamingException {
+            throws NamingException {
         LdapContext context;
 
         //create a temp env for this particular authentication session by copying the original env

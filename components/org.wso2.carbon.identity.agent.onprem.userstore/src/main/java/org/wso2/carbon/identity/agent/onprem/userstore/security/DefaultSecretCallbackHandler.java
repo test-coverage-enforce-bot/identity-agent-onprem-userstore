@@ -53,6 +53,9 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     private static String privateKeyPassWord;
     private static File keyDataFile;
 
+    /**
+     * {@inheritDoc}
+     */
     public void handleSingleSecretCallback(SingleSecretCallback singleSecretCallback) {
 
         if (keyStorePassWord == null && privateKeyPassWord == null) {
@@ -93,6 +96,11 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     }
 
 
+    /**
+     * reads the file which contains the keystore password and retrieve the password.
+     * @param file - the file which contains the keystore password.
+     * @return - the lines of password file as an array.
+     */
     private String[] readPassword(File file) {
 
         String stringLines[] = new String[2];
@@ -120,6 +128,10 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         return stringLines;
     }
 
+    /**
+     * @return true if the file containing the keystore password is successfully deleted,
+     * -false otherwise.
+     */
     private boolean deleteConfigFile() {
         FileOutputStream outputStream = null;
         BufferedWriter bufferedWriter = null;
@@ -145,11 +157,18 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         return keyDataFile.exists() && keyDataFile.delete();
     }
 
+    /**
+     * @param msg - error message of the exception.
+     * @param e - thrown exception.
+     */
     private static void handleException(String msg, Exception e) {
         log.error(msg, e);
         throw new SecretCallbackHandlerException(msg, e);
     }
 
+    /**
+     * @param msg - error message of the exception.
+     */
     private static void handleException(String msg) {
         log.error(msg);
         throw new SecretCallbackHandlerException(msg);

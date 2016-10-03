@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.agent.onprem.userstore.constant;
 
 /**
- *
+ * Constants common to all userstores.
  */
 public class CommonConstants {
     public static final String PROPERTY_REPLACE_ESCAPE_CHARACTERS_AT_USER_LOGIN = "ReplaceEscapeCharactersAtUserLogin";

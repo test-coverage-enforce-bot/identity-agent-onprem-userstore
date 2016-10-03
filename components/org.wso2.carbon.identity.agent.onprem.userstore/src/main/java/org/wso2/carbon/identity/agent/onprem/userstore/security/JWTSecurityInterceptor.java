@@ -144,19 +144,23 @@ public class JWTSecurityInterceptor implements Interceptor {
 
         String signatureAlgorithm = (String) jsonHeaderObject.get("alg");
 
-        switch (signatureAlgorithm){
-            case "RS256":
-                signatureAlgorithm = "SHA256withRSA";
-            case "RS515":
-                signatureAlgorithm = "SHA512withRSA";
-            case "RS384":
-                signatureAlgorithm = "SHA384withRSA";
-            case "RS512":
-                signatureAlgorithm = "SHA512withRSA";
-            default:
-                signatureAlgorithm = "SHA256withRSA";
+        switch (signatureAlgorithm) {
+        case "RS256":
+            signatureAlgorithm = "SHA256withRSA";
+            break;
+        case "RS515":
+            signatureAlgorithm = "SHA512withRSA";
+            break;
+        case "RS384":
+            signatureAlgorithm = "SHA384withRSA";
+            break;
+        case "RS512":
+            signatureAlgorithm = "SHA512withRSA";
+            break;
+        default:
+            signatureAlgorithm = "SHA256withRSA";
         }
-       return signatureAlgorithm;
+        return signatureAlgorithm;
     }
 
     @Override

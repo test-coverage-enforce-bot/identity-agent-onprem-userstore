@@ -29,7 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- *  connection health check endpoint.
+ *  Connection health check endpoint.
  */
 @Path("/status")
 public class Status {

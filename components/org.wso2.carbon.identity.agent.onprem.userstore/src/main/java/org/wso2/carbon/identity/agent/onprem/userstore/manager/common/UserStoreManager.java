@@ -22,7 +22,7 @@ import java.util.Map;
 
 
 /**
- * base userstore manager.
+ * Base userstore manager.
  */
 public interface UserStoreManager {
 

@@ -35,7 +35,7 @@ import javax.ws.rs.core.Response;
 
 
 /**
- *  users REST endpoint.
+ *  Users REST endpoint.
  */
 
 @Path("/users")

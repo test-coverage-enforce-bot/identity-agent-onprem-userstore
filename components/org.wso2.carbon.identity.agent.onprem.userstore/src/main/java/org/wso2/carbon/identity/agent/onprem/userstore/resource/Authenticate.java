@@ -35,7 +35,7 @@ import javax.ws.rs.core.Response;
 
 
 /**
- * REST endpoint fro authentication.
+ * REST endpoint for authentication.
  */
 @Path("/authenticate")
 public class Authenticate {

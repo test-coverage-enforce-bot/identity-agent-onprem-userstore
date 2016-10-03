@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreExcept
 import java.util.Map;
 
 /**
- *  singleton to get the user store properties from userstore-mgt.xml.
+ *  Singleton to get the user store properties from userstore-mgt.xml.
  */
 public class UserStoreConfiguration {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);

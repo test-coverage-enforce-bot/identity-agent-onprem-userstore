@@ -40,7 +40,7 @@ import javax.xml.stream.XMLStreamException;
 
 
 /**
- *  Preocess XML files and retrieve properties.
+ *  Process XML files and retrieve properties.
  */
 class UserStoreConfigurationXMLProcessor {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);

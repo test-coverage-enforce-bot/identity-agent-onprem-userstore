@@ -71,4 +71,6 @@ public interface UserStoreManager {
      * -false otherwise.
      */
     boolean getConnectionStatus();
+
+    void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException;
 }

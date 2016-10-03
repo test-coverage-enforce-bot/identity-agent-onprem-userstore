@@ -19,10 +19,9 @@ package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfiguration;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
-import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
+import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -44,9 +43,8 @@ public class Status {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkConnectionStatus() {
         try {
-            UserStoreManager ldapUserStoreManager =
-                    new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-            if (!ldapUserStoreManager.getConnectionStatus()) {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            if (!userStoreManager.getConnectionStatus()) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Response.Status.OK).build();

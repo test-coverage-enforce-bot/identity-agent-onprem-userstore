@@ -19,10 +19,9 @@ package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.onprem.userstore.config.UserStoreConfiguration;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
-import org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager;
+import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
 import org.wso2.carbon.identity.agent.onprem.userstore.model.User;
 
 import java.util.HashMap;
@@ -54,9 +53,8 @@ public class Authenticate {
             try {
                 Boolean isAuthenticated;
                 Map<String , Boolean> returnMap = new HashMap<>();
-                UserStoreManager ldapUserStoreManager =
-                        new LDAPUserStoreManager(UserStoreConfiguration.getConfiguration().getUserStoreProperties());
-                isAuthenticated = ldapUserStoreManager.doAuthenticate(user.getUsername(), user.getPassword());
+                UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+                isAuthenticated = userStoreManager.doAuthenticate(user.getUsername(), user.getPassword());
                 returnMap.put("authenticated", isAuthenticated);
                 return Response.status(Response.Status.OK).entity(new JSONObject(returnMap).toString()).build();
             } catch (UserStoreException e) {

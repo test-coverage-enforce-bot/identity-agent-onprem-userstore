@@ -59,6 +59,9 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private static final String MEMBER_UID = "memberUid";
     private LDAPConnectionContext connectionSource;
 
+    public LDAPUserStoreManager(){
+    }
+
     public LDAPUserStoreManager(Map<String, String> userStoreProperties)
             throws UserStoreException {
         this.userStoreProperties = userStoreProperties;
@@ -1050,6 +1053,18 @@ public class LDAPUserStoreManager implements UserStoreManager {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException {
+        this.userStoreProperties = userStoreProperties;
+        if (userStoreProperties == null) {
+            throw new UserStoreException(
+                    "User Store Properties Could not be found!");
+        }
+        // check if required configurations are in the user-mgt.xml
+        checkRequiredUserStoreConfigurations();
+        this.connectionSource = new LDAPConnectionContext(this.userStoreProperties);
     }
 
 

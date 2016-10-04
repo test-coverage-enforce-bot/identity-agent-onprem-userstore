@@ -40,7 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * JWT security interceptor which validate the signature of each request
+ * JWT security interceptor which validate the signature of each request.
  */
 public class JWTSecurityInterceptor implements Interceptor {
 

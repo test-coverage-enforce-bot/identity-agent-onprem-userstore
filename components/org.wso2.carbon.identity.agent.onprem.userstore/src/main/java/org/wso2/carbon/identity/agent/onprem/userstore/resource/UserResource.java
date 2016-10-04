@@ -16,6 +16,14 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -33,11 +41,18 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 /**
  *  Users REST endpoint.
+ *  This will be available at https://localhost:8888/users
  */
-
+@Api(value = "users")
+@SwaggerDefinition(
+        info = @Info(
+                title = "Users Endpoint Swagger Definition", version = "1.0",
+                description = "The endpoint which is used to manage users.",
+                license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
+        )
+)
 @Path("/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
@@ -50,7 +65,15 @@ public class UserResource {
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserAttributes(@PathParam("username") String username,
+    @ApiOperation(
+            value = "Return the requested attributes of the user. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{att1name:att1val, att2name:att2val, ...}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getUserAttributes(@ApiParam(value = "Username", required = true)
+                                          @PathParam("username") String username,
+                                      @ApiParam(value = "User Attributes", required = true)
                                       @QueryParam("attributes") String attributes) {
         try {
             if (attributes == null || attributes.isEmpty()) {
@@ -75,7 +98,13 @@ public class UserResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllUserNames(@QueryParam("limit") String limit) {
+    @ApiOperation(
+            value = "Return the usernames in the user store up to the limit. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{usernames:[username1, username2, ...]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getAllUserNames(@ApiParam(value = "Limit", required = false) @QueryParam("limit") String limit) {
         try {
             if (limit == null || limit.isEmpty()) {
                 limit = String.valueOf(CommonConstants.MAX_USER_LIST);
@@ -106,7 +135,14 @@ public class UserResource {
     @GET
     @Path("{username}/groups")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserRoles(@PathParam("username") String username) {
+    @ApiOperation(
+            value = "Return the role names of the given user. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{groups:[group1, group2, ...]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getUserRoles(@ApiParam(value = "Username", required = true)
+                                     @PathParam("username") String username) {
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
             String[]  roles = userStoreManager.doGetExternalRoleListOfUser(username);

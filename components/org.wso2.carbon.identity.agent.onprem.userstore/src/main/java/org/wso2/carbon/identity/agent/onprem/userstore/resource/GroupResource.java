@@ -16,6 +16,14 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -34,7 +42,16 @@ import javax.ws.rs.core.Response;
 
 /**
  * REST endpoint for user groups.
+ * This will be available at https://localhost:8888/groups
  */
+@Api(value = "groups")
+@SwaggerDefinition(
+        info = @Info(
+                title = "Groups Endpoint Swagger Definition", version = "1.0",
+                description = "The endpoint which is used to manage user roles.",
+                license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
+        )
+)
 @Path("/groups")
 public class GroupResource {
     private static Logger log = LoggerFactory.getLogger(GroupResource.class);
@@ -45,7 +62,13 @@ public class GroupResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllRoleNames(@QueryParam("limit") String limit) {
+    @ApiOperation(
+            value = "Return the list of roles up to the given limit. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{groups:[group1, group2, ... ]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getAllRoleNames(@ApiParam(value = "Limit", required = false) @QueryParam("limit") String limit) {
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
             if (limit == null || limit.isEmpty()) {
@@ -54,7 +77,7 @@ public class GroupResource {
             String[] usernames = userStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
             JSONObject returnObject = new JSONObject();
             JSONArray usernameArray = new JSONArray(usernames);
-            returnObject.put("roles", usernameArray);
+            returnObject.put("groups", usernameArray);
             return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
         } catch (UserStoreException e) {
             log.error(e.getMessage());

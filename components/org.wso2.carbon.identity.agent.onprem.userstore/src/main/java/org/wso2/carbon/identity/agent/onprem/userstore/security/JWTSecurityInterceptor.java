@@ -24,18 +24,23 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.msf4j.Interceptor;
 import org.wso2.msf4j.Request;
 import org.wso2.msf4j.Response;
 import org.wso2.msf4j.ServiceMethodInfo;
 import org.wso2.msf4j.security.MSF4JSecurityException;
 import org.wso2.msf4j.security.SecurityErrorCode;
+import sun.misc.BASE64Decoder;
 
+import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.Signature;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,8 +52,9 @@ public class JWTSecurityInterceptor implements Interceptor {
     private static final Logger log = LoggerFactory.getLogger(JWTSecurityInterceptor.class);
     private static final String AUTHORIZATION_HTTP_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "bearer";
-    private static final String PUBLIC_KEY_LOCATION = "public.cert";
-    private static final String CERTIFICATE_TYPE = "X509";
+    private static final String PUBLIC_KEY_LOCATION = "conf/security/public.cert";
+
+    //    private static final String CERTIFICATE_TYPE = "X509";
     private static final String STATUS_URI = "/status";
 
     private JSONObject jsonHeaderObject;
@@ -123,11 +129,24 @@ public class JWTSecurityInterceptor implements Interceptor {
         if (jwtAssertion != null && jwtSignature != null) {
 
             try {
-                InputStream inStream = new FileInputStream(PUBLIC_KEY_LOCATION);
-                Certificate certificate = CertificateFactory.getInstance(CERTIFICATE_TYPE)
-                        .generateCertificate(inStream);
+                File publicKeyFile = new File(System.getProperty(CommonConstants.CARBON_HOME),
+                        File.separator + PUBLIC_KEY_LOCATION);
+                InputStream inStream = new FileInputStream(publicKeyFile);
+
+                DataInputStream dis = new DataInputStream(inStream);
+                byte[] keyBytes = new byte[(int) publicKeyFile.length()];
+                dis.readFully(keyBytes);
+                dis.close();
+                String publicKeyPEM = new String(keyBytes);
+                BASE64Decoder b64 = new BASE64Decoder();
+                byte[] decoded = b64.decodeBuffer(publicKeyPEM);
+
+                X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
+                KeyFactory kf = KeyFactory.getInstance("RSA");
+                PublicKey publicKey = kf.generatePublic(spec);
+
                 Signature signature = Signature.getInstance(getSignatureAlgorithm(jsonHeaderObject));
-                signature.initVerify(certificate);
+                signature.initVerify(publicKey);
                 signature.update(jwtAssertion.getBytes());
                 return signature.verify(jwtSignature);
             } catch (Exception e) {

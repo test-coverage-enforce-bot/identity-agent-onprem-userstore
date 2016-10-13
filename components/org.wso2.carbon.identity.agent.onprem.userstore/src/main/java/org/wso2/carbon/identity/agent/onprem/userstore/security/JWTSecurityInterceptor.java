@@ -33,6 +33,7 @@ import org.wso2.msf4j.security.SecurityErrorCode;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -103,12 +104,14 @@ public class JWTSecurityInterceptor implements Interceptor {
         byte[] jwtSignature = null;
 
         if (jwtTokenValues.length > 0) {
-            String value = new String(base64Url.decode(jwtTokenValues[0].getBytes()));
-            JSONParser parser = new JSONParser();
             try {
+                String value = new String(base64Url.decode(jwtTokenValues[0].getBytes("UTF-8")), "UTF-8");
+                JSONParser parser = new JSONParser();
                 jsonHeaderObject = (JSONObject) parser.parse(value);
             } catch (ParseException e) {
                 log.error("Error occurred while parsing JSON header ", e);
+            } catch (UnsupportedEncodingException e) {
+                log.error("Error occurred while decoding JSON header ", e);
             }
         }
 
@@ -117,7 +120,11 @@ public class JWTSecurityInterceptor implements Interceptor {
         }
 
         if (jwtTokenValues.length > 2) {
-            jwtSignature = base64Url.decode(jwtTokenValues[2].getBytes());
+            try {
+                jwtSignature = base64Url.decode(jwtTokenValues[2].getBytes("UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                log.error("Error occurred while decoding JSON header ", e);
+            }
         }
 
         if (jwtAssertion != null && jwtSignature != null) {
@@ -128,7 +135,7 @@ public class JWTSecurityInterceptor implements Interceptor {
                         .generateCertificate(inStream);
                 Signature signature = Signature.getInstance(getSignatureAlgorithm(jsonHeaderObject));
                 signature.initVerify(certificate);
-                signature.update(jwtAssertion.getBytes());
+                signature.update(jwtAssertion.getBytes("UTF-8"));
                 return signature.verify(jwtSignature);
             } catch (Exception e) {
                 log.error("Error occurred while validating signature", e);

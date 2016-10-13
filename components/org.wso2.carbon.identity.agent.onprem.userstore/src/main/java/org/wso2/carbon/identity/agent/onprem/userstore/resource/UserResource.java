@@ -43,9 +43,9 @@ import javax.ws.rs.core.Response;
 
 /**
  *  Users REST endpoint.
- *  This will be available at https://localhost:8888/users
+ *  This will be available at https://localhost:8888/wso2agent/users
  */
-@Api(value = "users")
+@Api(value = CommonConstants.APPLICATION_CONTEXT_PATH + "users")
 @SwaggerDefinition(
         info = @Info(
                 title = "Users Endpoint Swagger Definition", version = "1.0",
@@ -53,7 +53,7 @@ import javax.ws.rs.core.Response;
                 license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
         )
 )
-@Path("/users")
+@Path(CommonConstants.APPLICATION_CONTEXT_PATH + "/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 

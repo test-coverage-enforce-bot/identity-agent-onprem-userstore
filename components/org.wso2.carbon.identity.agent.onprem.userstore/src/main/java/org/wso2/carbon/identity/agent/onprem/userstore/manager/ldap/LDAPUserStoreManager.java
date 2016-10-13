@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.agent.onprem.userstore.constant.LDAPConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.JNDIUtil;
+
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -314,7 +316,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                                         attr = (String) attObject;
                                     } else if (attObject instanceof byte[]) {
                                         //if the attribute type is binary base64 encoded string will be returned
-                                        attr = new String(Base64.encodeBase64((byte[]) attObject));
+                                        attr = new String(Base64.encodeBase64((byte[]) attObject), "UTF-8");
                                     }
 
                                     if (attr != null && attr.trim().length() > 0) {
@@ -345,6 +347,12 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         } catch (NamingException e) {
             String errorMessage = "Error occurred while getting user property values for user : " + userName;
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        } catch (UnsupportedEncodingException e) {
+            String errorMessage = "Error occurred while Base64 encoding property values for user : " + userName;
             if (log.isDebugEnabled()) {
                 log.debug(errorMessage, e);
             }
@@ -1239,17 +1247,17 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
 
         if (replaceEscapeCharacters) {
-            String escapedDN = "";
+            StringBuilder escapedDN = new StringBuilder();
             for (int i = ldn.size() - 1; i > -1; i--) { //escaping the rdns separately and re-constructing the DN
-                escapedDN = escapedDN + escapeSpecialCharactersForFilterWithStarAsRegex(ldn.get(i));
+                escapedDN = escapedDN.append(escapeSpecialCharactersForFilterWithStarAsRegex(ldn.get(i)));
                 if (i != 0) {
-                    escapedDN += ",";
+                    escapedDN.append(",");
                 }
             }
             if (log.isDebugEnabled()) {
                 log.debug("Escaped DN value for filter : " + escapedDN);
             }
-            return escapedDN;
+            return escapedDN.toString();
         } else {
             return ldn.toString();
         }

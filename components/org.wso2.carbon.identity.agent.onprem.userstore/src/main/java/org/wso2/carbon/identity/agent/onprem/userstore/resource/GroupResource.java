@@ -42,9 +42,9 @@ import javax.ws.rs.core.Response;
 
 /**
  * REST endpoint for user groups.
- * This will be available at https://localhost:8888/groups
+ * This will be available at https://localhost:8888/wso2agent/groups
  */
-@Api(value = "groups")
+@Api(value = CommonConstants.APPLICATION_CONTEXT_PATH + "groups")
 @SwaggerDefinition(
         info = @Info(
                 title = "Groups Endpoint Swagger Definition", version = "1.0",
@@ -52,7 +52,7 @@ import javax.ws.rs.core.Response;
                 license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
         )
 )
-@Path("/groups")
+@Path(CommonConstants.APPLICATION_CONTEXT_PATH + "/groups")
 public class GroupResource {
     private static Logger log = LoggerFactory.getLogger(GroupResource.class);
 

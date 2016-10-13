@@ -26,6 +26,7 @@ import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
@@ -37,9 +38,9 @@ import javax.ws.rs.core.Response;
 
 /**
  *  Connection health check endpoint.
- *  This will be available at https://localhost:8888/status
+ *  This will be available at https://localhost:8888/wso2agent/status
  */
-@Api(value = "status")
+@Api(value = CommonConstants.APPLICATION_CONTEXT_PATH + "status")
 @SwaggerDefinition(
         info = @Info(
                 title = "Status Endpoint Swagger Definition", version = "1.0",
@@ -47,7 +48,7 @@ import javax.ws.rs.core.Response;
                 license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
         )
 )
-@Path("/status")
+@Path(CommonConstants.APPLICATION_CONTEXT_PATH + "/status")
 public class Status {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 

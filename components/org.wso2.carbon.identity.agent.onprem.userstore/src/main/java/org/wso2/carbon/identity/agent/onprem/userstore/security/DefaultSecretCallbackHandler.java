@@ -108,7 +108,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         BufferedReader bufferedReader = null;
         try {
             inputStream = new FileInputStream(file);
-            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             stringLines[0] = bufferedReader.readLine();
 
         } catch (Exception e) {
@@ -137,7 +137,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         BufferedWriter bufferedWriter = null;
         try {
             outputStream = new FileOutputStream(keyDataFile);
-            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
             bufferedWriter.write("!@#$%^&*()SDFGHJZXCVBNM!@#$%^&*");
         } catch (Exception e) {
             handleException("Error writing values to text file ", e);

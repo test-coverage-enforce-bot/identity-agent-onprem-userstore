@@ -135,8 +135,8 @@ class LDAPConnectionContext {
 
         //create a temp env for this particular authentication session by copying the original env
         Hashtable<String, String> tempEnv = new Hashtable<>();
-        for (Object key : environment.keySet()) {
-            tempEnv.put((String) key, environment.get(key));
+        for (Map.Entry<String, String> entry : environment.entrySet()) {
+            tempEnv.put(entry.getKey(), entry.getValue());
         }
         //replace connection name and password with the passed credentials to this method
         tempEnv.put(Context.SECURITY_PRINCIPAL, userDN);

@@ -267,13 +267,16 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         NamingEnumeration<?> answer = null;
         NamingEnumeration<?> attrs = null;
+        NamingEnumeration<?> allAttrs = null;
         try {
             if (userDN != null) {
                 SearchControls searchCtls = new SearchControls();
                 searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-                if (propertyNames != null && propertyNames.length > 0) {
-                    searchCtls.setReturningAttributes(propertyNames);
+                if (propertyNames[0].equals(CommonConstants.WILD_CARD_FILTER)) {
+                    propertyNames = null;
                 }
+                searchCtls.setReturningAttributes(propertyNames);
+
                 try {
                     answer = dirContext.search(escapeDNForSearch(userDN), searchFilter, searchCtls);
                 } catch (PartialResultException e) {
@@ -303,43 +306,41 @@ public class LDAPUserStoreManager implements UserStoreManager {
                 SearchResult sr = (SearchResult) answer.next();
                 Attributes attributes = sr.getAttributes();
                 if (attributes != null) {
-                    assert propertyNames != null;
-                    for (String name : propertyNames) {
-                        if (name != null) {
-                            Attribute attribute = attributes.get(name);
-                            if (attribute != null) {
-                                StringBuilder attrBuffer = new StringBuilder();
-                                for (attrs = attribute.getAll(); attrs.hasMore(); ) {
-                                    Object attObject = attrs.next();
-                                    String attr = null;
-                                    if (attObject instanceof String) {
-                                        attr = (String) attObject;
-                                    } else if (attObject instanceof byte[]) {
-                                        //if the attribute type is binary base64 encoded string will be returned
-                                        attr = new String(Base64.encodeBase64((byte[]) attObject), "UTF-8");
-                                    }
-
-                                    if (attr != null && attr.trim().length() > 0) {
-                                        String attrSeparator = userStoreProperties.get(MULTI_ATTRIBUTE_SEPARATOR);
-                                        if (attrSeparator != null && !attrSeparator.trim().isEmpty()) {
-                                            userAttributeSeparator = attrSeparator;
-                                        }
-                                        attrBuffer.append(attr).append(userAttributeSeparator);
-                                    }
-                                    String value = attrBuffer.toString();
-
-                                /*
-                                 * Length needs to be more than userAttributeSeparator.length() for a valid
-                                 * attribute, since we
-                                 * attach userAttributeSeparator
-                                 */
-                                    if (value.trim().length() > userAttributeSeparator.length()) {
-                                        value = value.substring(0, value.length() - userAttributeSeparator.length());
-                                        values.put(name, value);
-                                    }
-
+                    for (allAttrs = attributes.getAll(); allAttrs.hasMore();) {
+                        Attribute attribute = (Attribute) allAttrs.next();
+                        if (attribute != null) {
+                            StringBuilder attrBuffer = new StringBuilder();
+                            for (attrs = attribute.getAll(); attrs.hasMore(); ) {
+                                Object attObject = attrs.next();
+                                String attr = null;
+                                if (attObject instanceof String) {
+                                    attr = (String) attObject;
+                                } else if (attObject instanceof byte[]) {
+                                    //if the attribute type is binary base64 encoded string will be returned
+                                    attr = new String(Base64.encodeBase64((byte[]) attObject), "UTF-8");
                                 }
+
+                                if (attr != null && attr.trim().length() > 0) {
+                                    String attrSeparator = userStoreProperties.get(MULTI_ATTRIBUTE_SEPARATOR);
+                                    if (attrSeparator != null && !attrSeparator.trim().isEmpty()) {
+                                        userAttributeSeparator = attrSeparator;
+                                    }
+                                    attrBuffer.append(attr).append(userAttributeSeparator);
+                                }
+                                String value = attrBuffer.toString();
+
+                            /*
+                             * Length needs to be more than userAttributeSeparator.length() for a valid
+                             * attribute, since we
+                             * attach userAttributeSeparator
+                             */
+                                if (value.trim().length() > userAttributeSeparator.length()) {
+                                    value = value.substring(0, value.length() - userAttributeSeparator.length());
+                                    values.put(attribute.getID(), value);
+                                }
+
                             }
+
                         }
                     }
                 }
@@ -703,9 +704,10 @@ public class LDAPUserStoreManager implements UserStoreManager {
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         String searchBases = userStoreProperties.get(LDAPConstants.USER_SEARCH_BASE);
-        if (returnedAtts != null && returnedAtts.length > 0) {
-            searchCtls.setReturningAttributes(returnedAtts);
+        if (returnedAtts[0].equals(CommonConstants.WILD_CARD_FILTER)) {
+            returnedAtts = null;
         }
+        searchCtls.setReturningAttributes(returnedAtts);
 
         if (log.isDebugEnabled()) {
             try {

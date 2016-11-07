@@ -58,9 +58,9 @@ public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
     /**
-     * @param username - username of the user whose attributes are required.
-     * @param attributes - required attribute list separated by commas, as a QueryParam.
-     * @return - Map with the requested attribute names mapped to their values.
+     * @param username Username of the user whose attributes are required.
+     * @param attributes Required attribute list separated by commas, as a QueryParam.
+     * @return Map with the requested attribute names mapped to their values.
      */
     @GET
     @Path("{username}")
@@ -93,8 +93,8 @@ public class UserResource {
     }
 
     /**
-     * @param limit - maximum number of usernames required. Deafult value will be taken if not specified.
-     * @return - the list of usernames up to the given limit.
+     * @param limit Maximum number of usernames required. Deafult value will be taken if not specified.
+     * @return The list of usernames up to the given limit.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -129,8 +129,8 @@ public class UserResource {
     }
 
     /**
-     * @param username - username of the user whose role names are required.
-     * @return - the list of role names of the given user.
+     * @param username Username of the user whose role names are required.
+     * @return The list of role names of the given user.
      */
     @GET
     @Path("{username}/groups")

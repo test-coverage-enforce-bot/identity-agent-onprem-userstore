@@ -78,7 +78,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
     /**
      * checks whether all the mandatory properties of user store are set.
-     * @throws UserStoreException -  if any of the mandatory properties are not set in the userstore-mgt.xml.
+     * @throws UserStoreException If any of the mandatory properties are not set in the userstore-mgt.xml.
      */
     private void checkRequiredUserStoreConfigurations() throws UserStoreException {
 
@@ -620,14 +620,14 @@ public class LDAPUserStoreManager implements UserStoreManager {
     /**
      * Returns the list of role names for the given search base and other
      * parameters.
-     * @param searchTime - maximum search time
-     * @param filter - filter for searching role names
-     * @param maxItemLimit - maximum number of roles required
-     * @param searchFilter - group name search filter
-     * @param roleNameProperty - attribute name of the group in LDAP user store.
-     * @param searchBase - group search base.
-     * @return - return the lsi of roles in the given search base.
-     * @throws UserStoreException if an error occurs while retrieving the required information.
+     * @param searchTime Maximum search time
+     * @param filter Filter for searching role names
+     * @param maxItemLimit Maximum number of roles required
+     * @param searchFilter Group name search filter
+     * @param roleNameProperty Attribute name of the group in LDAP user store.
+     * @param searchBase Group search base.
+     * @return The list of roles in the given search base.
+     * @throws UserStoreException If an error occurs while retrieving the required information.
      */
     private List<String> getLDAPRoleNames(int searchTime, String filter, int maxItemLimit,
                                           String searchFilter, String roleNameProperty,
@@ -703,12 +703,11 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param dn - Distinguised name of the user to be used for connecting to the LDAP userstore.
-     * @param credentials - password of the user to be used for connecting to the LDAP userstore.
-     * @return - true if the username and the credentials are valid.
-     * - false otherwise.
-     * @throws NamingException - if there is an issue authenticating the user
-     * @throws UserStoreException - if there is an issue in closing the connection
+     * @param dn Distinguised name of the user to be used for connecting to the LDAP userstore.
+     * @param credentials Password of the user to be used for connecting to the LDAP userstore.
+     * @return true if the username and the credentials are valid. false otherwise.
+     * @throws NamingException If there is an issue authenticating the user
+     * @throws UserStoreException If there is an issue in closing the connection
      */
     private boolean bindAsUser(String dn, String credentials) throws NamingException,
             UserStoreException {
@@ -737,11 +736,11 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param searchFilter - username search filter.
-     * @param returnedAtts - required attribute list of the user
-     * @param dirContext - LDAP connection context.
-     * @return - search results for the given user.
-     * @throws UserStoreException - if an error occurs while searching.
+     * @param searchFilter Username search filter.
+     * @param returnedAtts Required attribute list of the user
+     * @param dirContext LDAP connection context.
+     * @return Search results for the given user.
+     * @throws UserStoreException If an error occurs while searching.
      */
     private NamingEnumeration<SearchResult> searchForUser(String searchFilter,
                                                           String[] returnedAtts,
@@ -802,9 +801,9 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param userName - username of the user.
-     * @return - DN of the user whose username is given.
-     * @throws UserStoreException - if an error occurs while searching for user.
+     * @param userName Username of the user.
+     * @return DN of the user whose username is given.
+     * @throws UserStoreException If an error occurs while searching for user.
      */
     private String getNameInSpaceForUserName(String userName) throws UserStoreException {
         String searchBase;
@@ -830,11 +829,11 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param userName - username of the user.
-     * @param searchBase - searchbase which the user should be searched for.
-     * @param searchFilter - search filter of the username.
-     * @return - DN of the user whose usename is given.
-     * @throws UserStoreException - if an error occurs while connecting to the LDAP userstore.
+     * @param userName Username of the user.
+     * @param searchBase Searchbase which the user should be searched for.
+     * @param searchFilter Search filter of the username.
+     * @return DN of the user whose usename is given.
+     * @throws UserStoreException If an error occurs while connecting to the LDAP userstore.
      */
     private String getNameInSpaceForUserName(String userName, String searchBase, String searchFilter)
             throws UserStoreException {
@@ -885,7 +884,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
     /**
      * @param dnPartial  Partial DN of the user
-     * @return - String with escape characters removed.
+     * @return String with escape characters removed.
      */
     private String escapeSpecialCharactersForFilter(String dnPartial) {
         boolean replaceEscapeCharacters = true;
@@ -934,8 +933,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param text - DN which the escape characters to be removed.
-     * @return - String with escape characters removed.
+     * @param text DN which the escape characters to be removed.
+     * @return String with escape characters removed.
      */
     private String escapeSpecialCharactersForDN(String text) {
         boolean replaceEscapeCharacters = true;
@@ -1003,8 +1002,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param dn userDn or Search base.
-     * @return - string with escape charaters removed.
+     * @param dn UserDn or Search base.
+     * @return String with escape charaters removed.
      */
     private String escapeDNForSearch(String dn) {
         boolean replaceEscapeCharacters = true;
@@ -1028,8 +1027,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param dnPartial - String with * as regex whoes escape characters should be removed.
-     * @return - string with escape characters removed.
+     * @param dnPartial String with * as regex whoes escape characters should be removed.
+     * @return String with escape characters removed.
      */
     private String escapeSpecialCharactersForFilterWithStarAsRegex(String dnPartial) {
         boolean replaceEscapeCharacters = true;
@@ -1079,8 +1078,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @return true- if the Referral in the userstore-mgt.xml is "ignore"
-     * - false otherwise
+     * @return true if the Referral in the userstore-mgt.xml is "ignore". false otherwise.
      */
     private boolean isIgnorePartialResultException() {
 
@@ -1125,10 +1123,10 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
 
     /**
-     * @param userName - username of the user.
-     * @param searchBase - search base group search base.
-     * @return - list of roles of the given user.
-     * @throws UserStoreException - id an error occurs while retrieving data from LDAP userstore.
+     * @param userName Username of the user.
+     * @param searchBase Search base group search base.
+     * @return List of roles of the given user.
+     * @throws UserStoreException If an error occurs while retrieving data from LDAP userstore.
      */
     private String[] getLDAPRoleListOfUser(String userName, String searchBase) throws UserStoreException {
         boolean debug = log.isDebugEnabled();
@@ -1197,12 +1195,12 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param searchBases group search bases.
-     * @param searchFilter search filter for role search with membership value included.
-     * @param searchCtls - search controls with returning attributes set.
-     * @param property - role name attribute name in LDAP userstore.
-     * @return - list of roles according to the given filter.
-     * @throws UserStoreException - if an error occurs while retrieving data from LDAP context.
+     * @param searchBases Group search bases.
+     * @param searchFilter Search filter for role search with membership value included.
+     * @param searchCtls Search controls with returning attributes set.
+     * @param property Role name attribute name in LDAP userstore.
+     * @return List of roles according to the given filter.
+     * @throws UserStoreException If an error occurs while retrieving data from LDAP context.
      */
     private List<String> getListOfNames(String searchBases, String searchFilter,
                                         SearchControls searchCtls, String property)

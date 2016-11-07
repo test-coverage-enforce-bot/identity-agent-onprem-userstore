@@ -59,9 +59,8 @@ public class Authenticate {
     private static Logger log = LoggerFactory.getLogger(Authenticate.class);
 
     /**
-     * @param user - user object with username and password being set.
-     * @return - true if the user is authenticated.
-     * - false otherwise.
+     * @param user User object with username and password being set.
+     * @return true if the user is authenticated. false otherwise.
      */
         @POST
         @Produces(MediaType.APPLICATION_JSON)

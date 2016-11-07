@@ -57,8 +57,8 @@ public class GroupResource {
     private static Logger log = LoggerFactory.getLogger(GroupResource.class);
 
     /**
-     * @param limit - maximum number of the role names that should be returned.
-     * @return - list of the role names in the userstore.
+     * @param limit Maximum number of the role names that should be returned.
+     * @return List of the role names in the userstore.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

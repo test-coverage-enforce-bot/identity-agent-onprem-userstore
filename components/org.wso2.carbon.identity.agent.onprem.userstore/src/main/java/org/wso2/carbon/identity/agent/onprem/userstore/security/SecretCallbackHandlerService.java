@@ -28,14 +28,14 @@ public class SecretCallbackHandlerService {
     private SecretCallbackHandler secretCallbackHandler;
 
     /**
-     * @return - the secret callback handler.
+     * @return The secret callback handler.
      */
     public SecretCallbackHandler getSecretCallbackHandler() {
         return secretCallbackHandler;
     }
 
     /**
-     * @param secretCallbackHandler - the secret callback handler.
+     * @param secretCallbackHandler The secret callback handler.
      */
     public void setSecretCallbackHandler(SecretCallbackHandler secretCallbackHandler) {
         this.secretCallbackHandler = secretCallbackHandler;

@@ -100,8 +100,8 @@ class LDAPConnectionContext {
     }
 
     /**
-     * @return - connection context of the LDAP userstore.
-     * @throws UserStoreException - if an error occurs while connecting to th userstore.
+     * @return Connection context of the LDAP userstore.
+     * @throws UserStoreException If an error occurs while connecting to th userstore.
      */
     DirContext getContext() throws UserStoreException {
         DirContext context;
@@ -124,10 +124,10 @@ class LDAPConnectionContext {
     }
 
     /**
-     * @param userDN - Distinguished name of the user to be authenticated
-     * @param password - password of the user to be authenticated
-     * @return - the LDAP connection context with logged in as the given user.
-     * @throws NamingException - if the user cannot be authenticated or connection issue occurs.
+     * @param userDN Distinguished name of the user to be authenticated
+     * @param password Password of the user to be authenticated
+     * @return The LDAP connection context with logged in as the given user.
+     * @throws NamingException If the user cannot be authenticated or connection issue occurs.
      */
     LdapContext getContextWithCredentials(String userDN, String password)
             throws NamingException {

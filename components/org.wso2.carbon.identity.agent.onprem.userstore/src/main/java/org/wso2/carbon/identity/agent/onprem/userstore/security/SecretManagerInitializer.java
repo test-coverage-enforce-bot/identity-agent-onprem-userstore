@@ -46,7 +46,7 @@ public class SecretManagerInitializer {
     private static final String GLOBAL_PREFIX = "carbon.";
 
     /** initializes the secure vault configurations.
-     * @return - the initialized SecretCallbackHandlerService.
+     * @return The initialized SecretCallbackHandlerService.
      */
     public SecretCallbackHandlerService init() {
         if (System.getProperty(CommonConstants.CARBON_HOME) == null) {
@@ -89,7 +89,7 @@ public class SecretManagerInitializer {
 
 
     /**
-     * @return - the properties of the ciphertool configuration which is stored in the secret-conf.properties file.
+     * @return The properties of the ciphertool configuration which is stored in the secret-conf.properties file.
      */
     private Properties loadProperties() {
         Properties properties = new Properties();

@@ -47,14 +47,14 @@ public class UserStoreConfiguration {
     }
 
     /**
-     * @return instance of UserStoreConfiguration with properties initialized.
+     * @return Instance of UserStoreConfiguration with properties initialized.
      */
     public static UserStoreConfiguration getConfiguration() {
         return instance;
     }
 
     /**
-     * @return the map of userStoreProperties from userstore-mgt.xml.
+     * @return The map of userStoreProperties from userstore-mgt.xml.
      */
     public Map<String, String> getUserStoreProperties() {
         return userStoreProperties;

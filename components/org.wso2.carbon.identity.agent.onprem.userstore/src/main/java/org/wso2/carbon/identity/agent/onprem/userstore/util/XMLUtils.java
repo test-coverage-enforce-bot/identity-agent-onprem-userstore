@@ -47,8 +47,8 @@ public class XMLUtils {
     /**
      *
      * @param xmlConfiguration InputStream that carries xml configuration
-     * @return returns a InputStream that has evaluated system variables in input
-     * @throws XMLException - if an error occurs while validating XML file
+     * @return An InputStream that has evaluated system variables in input
+     * @throws XMLException If an error occurs while validating XML file
      */
     public static InputStream replaceSystemVariablesInXml(InputStream xmlConfiguration) throws XMLException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -127,9 +127,9 @@ public class XMLUtils {
 
     /**
      *
-     * @param doc  the DOM.Document to be converted to InputStream.
-     * @return Returns InputStream.
-     * @throws XMLException if an error occurs while validating XML file.
+     * @param doc The DOM.Document to be converted to InputStream.
+     * @return InputStream.
+     * @throws XMLException If an error occurs while validating XML file.
      */
     private static InputStream toInputStream(Document doc) throws XMLException {
         InputStream in;

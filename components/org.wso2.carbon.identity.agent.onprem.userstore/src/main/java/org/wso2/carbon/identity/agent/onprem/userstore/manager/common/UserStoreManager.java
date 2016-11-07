@@ -72,5 +72,13 @@ public interface UserStoreManager {
      */
     boolean getConnectionStatus();
 
+    /**
+     * @param userName - username of the user whose existence is to be checked.
+     * @return - true if the connection to the userstore is healthy.
+     * -false otherwise.
+     * @throws UserStoreException - if an error occurs while retrieving data.
+     */
+    boolean doCheckExistingUser(String userName) throws UserStoreException;
+
     void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException;
 }

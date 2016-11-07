@@ -232,7 +232,53 @@ public class LDAPUserStoreManager implements UserStoreManager {
 
         return bValue;
     }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean doCheckExistingUser(String userName) throws UserStoreException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Searching for user " + userName);
+        }
+        boolean bFound = false;
+        String userSearchFilter = userStoreProperties.get(LDAPConstants.USER_NAME_SEARCH_FILTER);
+        userSearchFilter = userSearchFilter.replace("?", escapeSpecialCharactersForFilter(userName));
+        try {
+            String searchBase = null;
+            String userDN = null;
+
+            String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
+            if (userDNPattern != null && userDNPattern.trim().length() > 0) {
+                String[] patterns = userDNPattern.split(CommonConstants.XML_PATTERN_SEPERATOR);
+                for (String pattern : patterns) {
+                    searchBase = MessageFormat.format(pattern, escapeSpecialCharactersForDN(userName));
+                    userDN = getNameInSpaceForUserName(userName, searchBase, userSearchFilter);
+                    if (userDN != null && userDN.length() > 0) {
+                        bFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!bFound) {
+                searchBase = userStoreProperties.get(LDAPConstants.USER_SEARCH_BASE);
+                userDN = getNameInSpaceForUserName(userName, searchBase, userSearchFilter);
+                if (userDN != null && userDN.length() > 0) {
+                    bFound = true;
+                }
+            }
+        } catch (Exception e) {
+            String errorMessage = "Error occurred while checking existence of user : " + userName;
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("User: " + userName + " exist: " + bFound);
+        }
+        return bFound;
+    }
 
     /**
      * {@inheritDoc}

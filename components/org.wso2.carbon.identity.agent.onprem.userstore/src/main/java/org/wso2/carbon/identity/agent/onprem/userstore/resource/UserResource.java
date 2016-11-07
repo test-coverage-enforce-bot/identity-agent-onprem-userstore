@@ -155,4 +155,31 @@ public class UserResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
+
+    /**
+     * @return 200 OK if the connection is healthy,
+     * 404 RESOURCE NOT FOUND otherwise.
+     */
+    @GET
+    @Path("{username}/existence")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Return HTTP 200 if the user exists. ",
+            notes = "Returns HTTP 404 if user does not exist.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "No message"),
+            @ApiResponse(code = 404, message = "No message")})
+    public Response checkUserExistence(@ApiParam(value = "Username", required = true)
+                                              @PathParam("username") String username) {
+        try {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            if (!userStoreManager.doCheckExistingUser(username)) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.status(Response.Status.OK).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

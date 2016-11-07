@@ -16,9 +16,17 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
@@ -36,19 +44,34 @@ import javax.ws.rs.core.Response;
 
 /**
  * REST endpoint for authentication.
+ * This will be available at https://localhost:8888/wso2agent/authenticate
  */
-@Path("/authenticate")
+@Api(value = CommonConstants.APPLICATION_CONTEXT_PATH + "authenticate")
+@SwaggerDefinition(
+        info = @Info(
+                title = "Authentication Endpoint Swagger Definition", version = "1.0",
+                description = "The endpoint which is used to authenticate users in on premise userstores.",
+                license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
+                )
+)
+@Path(CommonConstants.APPLICATION_CONTEXT_PATH + "/authenticate")
 public class Authenticate {
     private static Logger log = LoggerFactory.getLogger(Authenticate.class);
 
     /**
-     * @param user - user object with username and password being set.
-     * @return - true if the user is authenticated.
-     * - false otherwise.
+     * @param user User object with username and password being set.
+     * @return true if the user is authenticated. false otherwise.
      */
         @POST
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
+        @ApiOperation(
+                value = "Return whether the user is authenticated or not",
+                notes = "Returns HTTP 500 if an internal error occurs at the server")
+
+        @ApiResponses(value = {
+                @ApiResponse(code = 200, message = "{authenticated:true}"),
+                @ApiResponse(code = 500, message = "Particular exception message")})
         public Response authenticate(User user) {
             try {
                 Boolean isAuthenticated;

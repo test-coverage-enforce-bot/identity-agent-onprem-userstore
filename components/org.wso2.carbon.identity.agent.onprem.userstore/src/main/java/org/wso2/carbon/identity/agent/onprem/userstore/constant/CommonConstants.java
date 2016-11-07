@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.constant;
  * Constants common to all userstores.
  */
 public class CommonConstants {
+    public static final String APPLICATION_CONTEXT_PATH = "/wso2agent";
     public static final String PROPERTY_REPLACE_ESCAPE_CHARACTERS_AT_USER_LOGIN = "ReplaceEscapeCharactersAtUserLogin";
     public static final String PROPERTY_MAX_USER_LIST = "MaxUserNameListLength";
     public static final String PROPERTY_MAX_SEARCH_TIME = "MaxSearchQueryTime";

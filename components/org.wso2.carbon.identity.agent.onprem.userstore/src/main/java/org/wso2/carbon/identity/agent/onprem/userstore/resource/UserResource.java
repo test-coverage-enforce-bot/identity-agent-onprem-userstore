@@ -16,6 +16,14 @@
 
 package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -33,24 +41,39 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 /**
  *  Users REST endpoint.
+ *  This will be available at https://localhost:8888/wso2agent/users
  */
-
-@Path("/users")
+@Api(value = CommonConstants.APPLICATION_CONTEXT_PATH + "users")
+@SwaggerDefinition(
+        info = @Info(
+                title = "Users Endpoint Swagger Definition", version = "1.0",
+                description = "The endpoint which is used to manage users.",
+                license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
+        )
+)
+@Path(CommonConstants.APPLICATION_CONTEXT_PATH + "/users")
 public class UserResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
 
     /**
-     * @param username - username of the user whose attributes are required.
-     * @param attributes - required attribute list separated by commas, as a QueryParam.
-     * @return - Map with the requested attribute names mapped to their values.
+     * @param username Username of the user whose attributes are required.
+     * @param attributes Required attribute list separated by commas, as a QueryParam.
+     * @return Map with the requested attribute names mapped to their values.
      */
     @GET
     @Path("{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserAttributes(@PathParam("username") String username,
+    @ApiOperation(
+            value = "Return the requested attributes of the user. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{att1name:att1val, att2name:att2val, ...}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getUserAttributes(@ApiParam(value = "Username", required = true)
+                                          @PathParam("username") String username,
+                                      @ApiParam(value = "User Attributes", required = true)
                                       @QueryParam("attributes") String attributes) {
         try {
             if (attributes == null || attributes.isEmpty()) {
@@ -70,12 +93,18 @@ public class UserResource {
     }
 
     /**
-     * @param limit - maximum number of usernames required. Deafult value will be taken if not specified.
-     * @return - the list of usernames up to the given limit.
+     * @param limit Maximum number of usernames required. Deafult value will be taken if not specified.
+     * @return The list of usernames up to the given limit.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllUserNames(@QueryParam("limit") String limit) {
+    @ApiOperation(
+            value = "Return the usernames in the user store up to the limit. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{usernames:[username1, username2, ...]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getAllUserNames(@ApiParam(value = "Limit", required = false) @QueryParam("limit") String limit) {
         try {
             if (limit == null || limit.isEmpty()) {
                 limit = String.valueOf(CommonConstants.MAX_USER_LIST);
@@ -100,13 +129,20 @@ public class UserResource {
     }
 
     /**
-     * @param username - username of the user whose role names are required.
-     * @return - the list of role names of the given user.
+     * @param username Username of the user whose role names are required.
+     * @return The list of role names of the given user.
      */
     @GET
     @Path("{username}/groups")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserRoles(@PathParam("username") String username) {
+    @ApiOperation(
+            value = "Return the role names of the given user. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{groups:[group1, group2, ...]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getUserRoles(@ApiParam(value = "Username", required = true)
+                                     @PathParam("username") String username) {
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
             String[]  roles = userStoreManager.doGetExternalRoleListOfUser(username);
@@ -117,6 +153,33 @@ public class UserResource {
         } catch (UserStoreException e) {
             log.error(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    /**
+     * @return 200 OK if the connection is healthy,
+     * 404 RESOURCE NOT FOUND otherwise.
+     */
+    @GET
+    @Path("{username}/existence")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Return HTTP 200 if the user exists. ",
+            notes = "Returns HTTP 404 if user does not exist.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "No message"),
+            @ApiResponse(code = 404, message = "No message")})
+    public Response checkUserExistence(@ApiParam(value = "Username", required = true)
+                                              @PathParam("username") String username) {
+        try {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            if (!userStoreManager.doCheckExistingUser(username)) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.status(Response.Status.OK).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

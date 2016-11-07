@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class UserStoreConfiguration {
     private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);
-    private static Map<String, String> userStoreProperties;
+    private Map<String, String> userStoreProperties;
     private static UserStoreConfiguration instance = new UserStoreConfiguration();
 
     private UserStoreConfiguration() {
@@ -47,14 +47,14 @@ public class UserStoreConfiguration {
     }
 
     /**
-     * @return instance of UserStoreConfiguration with properties initialized.
+     * @return Instance of UserStoreConfiguration with properties initialized.
      */
     public static UserStoreConfiguration getConfiguration() {
         return instance;
     }
 
     /**
-     * @return the map of userStoreProperties from userstore-mgt.xml.
+     * @return The map of userStoreProperties from userstore-mgt.xml.
      */
     public Map<String, String> getUserStoreProperties() {
         return userStoreProperties;

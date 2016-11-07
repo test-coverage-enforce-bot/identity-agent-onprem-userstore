@@ -25,7 +25,7 @@ class SecretCallbackHandlerException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.
      *
-     * @param message the detail message.
+     * @param message The detail message.
      */
     SecretCallbackHandlerException(String message) {
         super(message);
@@ -34,8 +34,8 @@ class SecretCallbackHandlerException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message and cause.
      *
-     * @param message the detail message.
-     * @param cause   the cause of this exception.
+     * @param message The detail message.
+     * @param cause   The cause of this exception.
      */
     SecretCallbackHandlerException(String message, Throwable cause) {
         super(message, cause);

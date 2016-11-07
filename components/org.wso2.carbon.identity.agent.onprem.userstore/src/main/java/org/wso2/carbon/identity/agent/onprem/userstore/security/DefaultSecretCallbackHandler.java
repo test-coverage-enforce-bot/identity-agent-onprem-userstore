@@ -98,8 +98,8 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
 
     /**
      * reads the file which contains the keystore password and retrieve the password.
-     * @param file - the file which contains the keystore password.
-     * @return - the lines of password file as an array.
+     * @param file The file which contains the keystore password.
+     * @return The lines of password file as an array.
      */
     private String[] readPassword(File file) {
 
@@ -108,7 +108,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
         BufferedReader bufferedReader = null;
         try {
             inputStream = new FileInputStream(file);
-            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             stringLines[0] = bufferedReader.readLine();
 
         } catch (Exception e) {
@@ -129,15 +129,14 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     }
 
     /**
-     * @return true if the file containing the keystore password is successfully deleted,
-     * -false otherwise.
+     * @return true if the file containing the keystore password is successfully deleted, false otherwise.
      */
     private boolean deleteConfigFile() {
         FileOutputStream outputStream = null;
         BufferedWriter bufferedWriter = null;
         try {
             outputStream = new FileOutputStream(keyDataFile);
-            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
             bufferedWriter.write("!@#$%^&*()SDFGHJZXCVBNM!@#$%^&*");
         } catch (Exception e) {
             handleException("Error writing values to text file ", e);
@@ -158,8 +157,8 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     }
 
     /**
-     * @param msg - error message of the exception.
-     * @param e - thrown exception.
+     * @param msg Error message of the exception.
+     * @param e Thrown exception.
      */
     private static void handleException(String msg, Exception e) {
         log.error(msg, e);
@@ -167,7 +166,7 @@ public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler 
     }
 
     /**
-     * @param msg - error message of the exception.
+     * @param msg Error message of the exception.
      */
     private static void handleException(String msg) {
         log.error(msg);

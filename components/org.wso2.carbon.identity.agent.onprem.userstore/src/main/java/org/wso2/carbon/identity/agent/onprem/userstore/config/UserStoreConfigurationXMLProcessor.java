@@ -50,7 +50,7 @@ class UserStoreConfigurationXMLProcessor {
     private SecretResolver secretResolver;
 
     /**
-     * @return the Map of user store properties
+     * @return The Map of user store properties
      */
     Map<String, String> buildUserStoreConfigurationFromFile() throws UserStoreException {
         OMElement rootElement;
@@ -85,8 +85,8 @@ class UserStoreConfigurationXMLProcessor {
     }
 
     /**
-     * @param rootElement - The root OMElement of the XML file
-     * @return - the map of user store properties
+     * @param rootElement The root OMElement of the XML file
+     * @return The map of user store properties
      */
     private Map<String, String> buildUserStoreConfiguration(OMElement rootElement) throws UserStoreException {
         String userStoreClass;
@@ -120,11 +120,11 @@ class UserStoreConfigurationXMLProcessor {
 
 
     /**
-     * @return - the <Configuration> element of the userstore-mgt.xml file.
-     * @throws XMLStreamException - if an error occurs in building the XML configurations.
-     * @throws IOException - if the file does not exist, is a directory rather than a regular file,
+     * @return The <Configuration> element of the userstore-mgt.xml file.
+     * @throws XMLStreamException If an error occurs in building the XML configurations.
+     * @throws IOException If the file does not exist, is a directory rather than a regular file,
      * or for some other reason cannot be opened for reading.
-     * @throws UserStoreException - if the inputStream is null or cannot validate the XML file.
+     * @throws UserStoreException If the inputStream is null or cannot validate the XML file.
      */
     private OMElement getRootElement() throws XMLStreamException, IOException, UserStoreException {
         OMXMLParserWrapper builder;
@@ -156,7 +156,7 @@ class UserStoreConfigurationXMLProcessor {
     }
 
     /**
-     * @param rootElement - The root OMElement of the XML file
+     * @param rootElement The root OMElement of the XML file
      */
     private void setSecretResolver(OMElement rootElement) {
         secretResolver = SecretResolverFactory.create(rootElement, true);

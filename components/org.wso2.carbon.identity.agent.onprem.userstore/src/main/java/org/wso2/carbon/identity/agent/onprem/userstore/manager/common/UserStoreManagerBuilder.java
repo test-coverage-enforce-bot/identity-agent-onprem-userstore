@@ -31,8 +31,8 @@ public class UserStoreManagerBuilder {
     private static Logger log = LoggerFactory.getLogger(UserStoreManagerBuilder.class);
 
     /**
-     * @return - an instance of the UserStoreManager mentioned in the userstore-mgt.xml file.
-     * @throws UserStoreException - if an error occurs while loading the class or instantiating it.
+     * @return An instance of the UserStoreManager mentioned in the userstore-mgt.xml file.
+     * @throws UserStoreException If an error occurs while loading the class or instantiating it.
      */
     public static UserStoreManager getUserStoreManager() throws UserStoreException {
         Map<String, String> userStoreProperties = UserStoreConfiguration.getConfiguration().getUserStoreProperties();

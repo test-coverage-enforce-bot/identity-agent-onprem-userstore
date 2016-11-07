@@ -90,6 +90,11 @@
                 <artifactId>json-simple</artifactId>
                 <version>${com.googlecode.json-simple.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.msf4j</groupId>
+                <artifactId>msf4j-swagger</artifactId>
+                <version>${org.wso2.msf4j.swagger.version}}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -145,6 +150,7 @@
         <securevault.version>1.0.0-wso2v2</securevault.version>
         <version.xercesImpl>2.8.1.wso2v2</version.xercesImpl>
         <org.json.wso2.version>2.0.0.wso2v1</org.json.wso2.version>
+        <org.wso2.msf4j.swagger.version>2.0.0</org.wso2.msf4j.swagger.version>
         <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
     </properties>
 

@@ -45,7 +45,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * JWT security interceptor which validate the signature of each request
+ * JWT security interceptor which validate the signature of each request.
  */
 public class JWTSecurityInterceptor implements Interceptor {
 
@@ -164,20 +164,20 @@ public class JWTSecurityInterceptor implements Interceptor {
         String signatureAlgorithm = (String) jsonHeaderObject.get("alg");
 
         switch (signatureAlgorithm) {
-        case "RS256":
-            signatureAlgorithm = "SHA256withRSA";
-            break;
-        case "RS515":
-            signatureAlgorithm = "SHA512withRSA";
-            break;
-        case "RS384":
-            signatureAlgorithm = "SHA384withRSA";
-            break;
-        case "RS512":
-            signatureAlgorithm = "SHA512withRSA";
-            break;
-        default:
-            signatureAlgorithm = "SHA256withRSA";
+            case "RS256":
+                signatureAlgorithm = "SHA256withRSA";
+                break;
+            case "RS515":
+                signatureAlgorithm = "SHA512withRSA";
+                break;
+            case "RS384":
+                signatureAlgorithm = "SHA384withRSA";
+                break;
+            case "RS512":
+                signatureAlgorithm = "SHA512withRSA";
+                break;
+            default:
+                signatureAlgorithm = "SHA256withRSA";
         }
         return signatureAlgorithm;
     }
@@ -186,5 +186,4 @@ public class JWTSecurityInterceptor implements Interceptor {
     public void postCall(Request request, int status, ServiceMethodInfo serviceMethodInfo) {
 
     }
-
 }

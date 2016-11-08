@@ -32,9 +32,9 @@ import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManagerBuilder;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -82,6 +82,35 @@ public class GroupResource {
         } catch (UserStoreException e) {
             log.error(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    /**
+     * @return 200 OK if the user is in role,
+     * 404 RESOURCE NOT FOUND otherwise.
+     */
+    @GET
+    @Path("{rolename}/users/{username}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Return HTTP 200 if the user exists in role. ",
+            notes = "Returns HTTP 404 if user does not exist in role.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "No message"),
+            @ApiResponse(code = 404, message = "No message")})
+    public Response checkIsUserInRole(@ApiParam(value = "Username", required = true)
+                                          @PathParam("username") String username,
+                                      @ApiParam(value = "Rolename", required = true)
+                                          @PathParam("rolename") String rolename) {
+        try {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            if (!userStoreManager.doCheckIsUserInRole(username, rolename)) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.status(Response.Status.OK).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

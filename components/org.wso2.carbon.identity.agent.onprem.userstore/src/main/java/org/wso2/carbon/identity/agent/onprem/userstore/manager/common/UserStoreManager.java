@@ -72,10 +72,18 @@ public interface UserStoreManager {
 
     /**
      * @param userName Username of the user whose existence is to be checked.
-     * @return true if the connection to the userstore is healthy. false otherwise.
+     * @return true if the user existes in userstore. false otherwise.
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     boolean doCheckExistingUser(String userName) throws UserStoreException;
+
+    /**
+     * @param userName Username of the user whose existence in role to be checked.
+     * @param roleName Name of the Role which the user is checked to be in.
+     * @return true if the user is in the role. false otherwise.
+     * @throws UserStoreException If an error occurs while retrieving data.
+     */
+    boolean doCheckIsUserInRole(String userName, String roleName) throws UserStoreException;
 
     void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException;
 }

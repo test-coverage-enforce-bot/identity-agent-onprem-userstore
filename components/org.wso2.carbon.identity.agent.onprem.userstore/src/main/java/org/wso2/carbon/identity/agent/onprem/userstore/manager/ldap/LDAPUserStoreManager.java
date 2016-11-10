@@ -1106,18 +1106,15 @@ public class LDAPUserStoreManager implements UserStoreManager {
         String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-
         // read the roles with this membership property
         String searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
-        String membershipProperty =
-                userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+        String membershipProperty = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
 
         if (membershipProperty == null || membershipProperty.length() < 1) {
             throw new UserStoreException("Please set membership attribute");
         }
 
-        String roleNameProperty =
-                userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+        String roleNameProperty = userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
         String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
         String nameInSpace;
         if (org.apache.commons.lang.StringUtils.isNotEmpty(userDNPattern) &&
@@ -1165,8 +1162,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
                 }
             }
 
-            searchFilter =
-                    "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue +
+            searchFilter = "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue +
                             ") (" + roleNameProperty + "=" + escapeSpecialCharactersForFilter(roleName) + "))";
 
             // handle multiple search bases
@@ -1186,7 +1182,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
                     log.debug("User: " + userName + " NOT in role: " + roleName);
                 }
             }
-
         } catch (NamingException e) {
             if (log.isDebugEnabled()) {
                 log.debug(e.getMessage(), e);
@@ -1195,8 +1190,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
             JNDIUtil.closeNamingEnumeration(answer);
             JNDIUtil.closeContext(dirContext);
         }
-
-
         return false;
     }
 

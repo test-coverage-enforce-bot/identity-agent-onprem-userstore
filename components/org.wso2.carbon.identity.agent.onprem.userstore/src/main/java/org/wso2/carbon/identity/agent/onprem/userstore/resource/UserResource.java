@@ -157,7 +157,7 @@ public class UserResource {
     }
 
     /**
-     * @return 200 OK if the connection is healthy,
+     * @return 200 OK if the user exists in the userstore,
      * 404 RESOURCE NOT FOUND otherwise.
      */
     @GET

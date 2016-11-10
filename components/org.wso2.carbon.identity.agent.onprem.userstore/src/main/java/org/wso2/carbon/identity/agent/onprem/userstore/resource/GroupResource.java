@@ -90,7 +90,7 @@ public class GroupResource {
      * 404 RESOURCE NOT FOUND otherwise.
      */
     @GET
-    @Path("{rolename}/users/{username}")
+    @Path("/{rolename}/userexists")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Return HTTP 200 if the user exists in role. ",
@@ -99,7 +99,7 @@ public class GroupResource {
             @ApiResponse(code = 200, message = "No message"),
             @ApiResponse(code = 404, message = "No message")})
     public Response checkIsUserInRole(@ApiParam(value = "Username", required = true)
-                                          @PathParam("username") String username,
+                                          @QueryParam("username") String username,
                                       @ApiParam(value = "Rolename", required = true)
                                           @PathParam("rolename") String rolename) {
         try {

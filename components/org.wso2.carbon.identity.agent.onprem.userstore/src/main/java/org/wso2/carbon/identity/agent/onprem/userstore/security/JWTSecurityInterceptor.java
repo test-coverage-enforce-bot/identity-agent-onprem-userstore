@@ -55,7 +55,7 @@ public class JWTSecurityInterceptor implements Interceptor {
     private static final String PUBLIC_KEY_LOCATION = "conf/security/public.cert";
 
     //    private static final String CERTIFICATE_TYPE = "X509";
-    private static final String STATUS_URI = "/status";
+    private static final String STATUS_URI = "/wso2agent/status";
 
     private JSONObject jsonHeaderObject;
     private static final Base64 base64Url = new Base64(true);

@@ -42,6 +42,8 @@ import javax.naming.NamingException;
 import javax.naming.PartialResultException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
@@ -60,6 +62,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private static final String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     private static final String PROPERTY_REFERRAL_IGNORE = "ignore";
     private static final String MEMBER_UID = "memberUid";
+    private boolean emptyRolesAllowed = false;
     private LDAPConnectionContext connectionSource;
 
     public LDAPUserStoreManager(){
@@ -138,6 +141,13 @@ public class LDAPUserStoreManager implements UserStoreManager {
                     "Required GroupNameListFilter property is not set at the LDAP configurations");
         }
 
+        String groupNameSearchFilter =
+                userStoreProperties.get(LDAPConstants.ROLE_NAME_FILTER);
+        if (groupNameSearchFilter == null || groupNameSearchFilter.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required GroupNameSearchFilter property is not set at the LDAP configurations");
+        }
+
         String groupNameAttribute =
                 userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
         if (groupNameAttribute == null || groupNameAttribute.trim().length() == 0) {
@@ -150,7 +160,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
             throw new UserStoreException(
                     "Required MembershipAttribute property is not set at the LDAP configurations");
         }
-
+        emptyRolesAllowed = Boolean.parseBoolean(userStoreProperties.get(LDAPConstants.EMPTY_ROLES_ALLOWED));
     }
 
     /**
@@ -935,6 +945,193 @@ public class LDAPUserStoreManager implements UserStoreManager {
      * {@inheritDoc}
      */
     @Override
+    public boolean doCheckExistingRole(String roleName) throws UserStoreException {
+
+        boolean debug = log.isDebugEnabled();
+        boolean isExisting = false;
+
+        if (debug) {
+            log.debug("Searching for role: " + roleName);
+        }
+        String searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
+        String roleNameProperty = userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+        searchFilter = "(&" + searchFilter + "(" + roleNameProperty + "=" +
+                escapeSpecialCharactersForFilter(roleName) + "))";
+        String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+
+        if (debug) {
+            log.debug("Using search filter: " + searchFilter);
+        }
+        SearchControls searchCtls = new SearchControls();
+        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        searchCtls.setReturningAttributes(new String[]{roleNameProperty});
+        NamingEnumeration<SearchResult> answer = null;
+        DirContext dirContext = null;
+
+        try {
+            dirContext = connectionSource.getContext();
+            String[] roleSearchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
+            for (String searchBase : roleSearchBaseArray) {
+                if (debug) {
+                    log.debug("Searching in " + searchBase);
+                }
+                try {
+                    answer = dirContext.search(escapeDNForSearch(searchBase), searchFilter, searchCtls);
+                    if (answer.hasMoreElements()) {
+                        isExisting = true;
+                        break;
+                    }
+                } catch (NamingException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(e);
+                    }
+                }
+            }
+        } finally {
+            JNDIUtil.closeNamingEnumeration(answer);
+            JNDIUtil.closeContext(dirContext);
+        }
+        if (debug) {
+            log.debug("Is role: " + roleName + " exist: " + isExisting);
+        }
+        return isExisting;
+    }
+
+    @Override
+    public void doUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles)
+            throws UserStoreException {
+
+        // get the DN of the user entry
+        String userNameDN = this.getNameInSpaceForUserName(userName);
+        String membershipAttribute =
+                userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+    /*
+     * check deleted roles and delete member entries from relevant groups.
+     */
+        String errorMessage = null;
+        String roleSearchFilter = null;
+
+        DirContext mainDirContext = this.connectionSource.getContext();
+
+        try {
+            if (deletedRoles != null && deletedRoles.length != 0) {
+                // perform validation for empty role occurrences before
+                // updating in LDAP
+                // check whether this is shared roles and where shared roles are
+                // enable
+
+                for (String deletedRole : deletedRoles) {
+                    String searchFilter = userStoreProperties.get(LDAPConstants.ROLE_NAME_FILTER);
+                    roleSearchFilter = searchFilter.replace("?", escapeSpecialCharactersForFilter(deletedRole));
+                    String[] returningAttributes = new String[]{membershipAttribute};
+                    String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+                    NamingEnumeration<SearchResult> groupResults =
+                            searchInGroupBase(roleSearchFilter,
+                                    returningAttributes,
+                                    SearchControls.SUBTREE_SCOPE,
+                                    mainDirContext,
+                                    searchBase);
+                    SearchResult resultedGroup = null;
+                    if (groupResults.hasMore()) {
+                        resultedGroup = groupResults.next();
+                    }
+                    if (resultedGroup != null && isOnlyUserInRole(userNameDN, resultedGroup) &&
+                            !emptyRolesAllowed) {
+                        errorMessage =
+                                userName + " is the only user in the role: " + deletedRole +
+                                        ". Hence can not delete user from role.";
+                        throw new UserStoreException(errorMessage);
+                    }
+
+                    JNDIUtil.closeNamingEnumeration(groupResults);
+                }
+                // if empty role violation does not happen, continue
+                // updating the LDAP.
+                for (String deletedRole : deletedRoles) {
+
+                    String searchFilter = userStoreProperties.get(LDAPConstants.ROLE_NAME_FILTER);
+
+                    if (doCheckExistingRole(deletedRole)) {
+                        roleSearchFilter = searchFilter.replace("?", escapeSpecialCharactersForFilter(deletedRole));
+                        String[] returningAttributes = new String[]{membershipAttribute};
+                        String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+                        NamingEnumeration<SearchResult> groupResults =
+                                searchInGroupBase(roleSearchFilter,
+                                        returningAttributes,
+                                        SearchControls.SUBTREE_SCOPE,
+                                        mainDirContext,
+                                        searchBase);
+                        SearchResult resultedGroup = null;
+                        String groupDN = null;
+                        if (groupResults.hasMore()) {
+                            resultedGroup = groupResults.next();
+                            groupDN = resultedGroup.getName();
+                        }
+                        modifyUserInRole(userNameDN, groupDN, DirContext.REMOVE_ATTRIBUTE, searchBase);
+                        JNDIUtil.closeNamingEnumeration(groupResults);
+                    } else {
+                        errorMessage = "The role: " + deletedRole + " does not exist.";
+                        throw new UserStoreException(errorMessage);
+                    }
+                }
+            }
+            if (newRoles != null && newRoles.length != 0) {
+
+                for (String newRole : newRoles) {
+                    String searchFilter = userStoreProperties.get(LDAPConstants.ROLE_NAME_FILTER);
+
+                    if (doCheckExistingRole(newRole)) {
+                        roleSearchFilter = searchFilter.replace("?", escapeSpecialCharactersForFilter(newRole));
+                        String[] returningAttributes = new String[]{membershipAttribute};
+                        String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+
+                        NamingEnumeration<SearchResult> groupResults =
+                                searchInGroupBase(roleSearchFilter,
+                                        returningAttributes,
+                                        SearchControls.SUBTREE_SCOPE,
+                                        mainDirContext,
+                                        searchBase);
+                        SearchResult resultedGroup = null;
+                        // assume only one group with given group name
+                        String groupDN = null;
+                        if (groupResults.hasMore()) {
+                            resultedGroup = groupResults.next();
+                            groupDN = resultedGroup.getName();
+                        }
+                        if (resultedGroup != null && !isUserInRole(userNameDN, resultedGroup)) {
+                            modifyUserInRole(userNameDN, groupDN, DirContext.ADD_ATTRIBUTE,
+                                    searchBase);
+                        } else {
+                            errorMessage =
+                                    "User: " + userName + " already belongs to role: " +
+                                            groupDN;
+                            throw new UserStoreException(errorMessage);
+                        }
+
+                        JNDIUtil.closeNamingEnumeration(groupResults);
+
+                    } else {
+                        errorMessage = "The role: " + newRole + " does not exist.";
+                        throw new UserStoreException(errorMessage);
+                    }
+                }
+            }
+
+        } catch (NamingException e) {
+            errorMessage = "Error occurred while modifying the role list of user: " + userName;
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        } finally {
+            JNDIUtil.closeContext(mainDirContext);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean getConnectionStatus() {
         try {
             connectionSource.getContext();
@@ -1610,5 +1807,163 @@ public class LDAPUserStoreManager implements UserStoreManager {
         } else {
             return ldn.toString();
         }
+    }
+
+    /**
+     * Reused method to search groups with various filters.
+     *
+     * @param searchFilter Group Search Filter
+     * @param returningAttributes Attributes which the values needed.
+     * @param searchScope Search Scope
+     * @return Group Representation with given returning attributes
+     */
+    protected NamingEnumeration<SearchResult> searchInGroupBase(String searchFilter,
+                                                                String[] returningAttributes,
+                                                                int searchScope,
+                                                                DirContext rootContext,
+                                                                String searchBase)
+                                                                throws UserStoreException {
+        SearchControls userSearchControl = new SearchControls();
+        userSearchControl.setReturningAttributes(returningAttributes);
+        userSearchControl.setSearchScope(searchScope);
+        NamingEnumeration<SearchResult> groupSearchResults = null;
+        try {
+            groupSearchResults = rootContext.search(escapeDNForSearch(searchBase), searchFilter, userSearchControl);
+        } catch (NamingException e) {
+            String errorMessage = "Error occurred while searching in group base.";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        }
+        return groupSearchResults;
+    }
+
+    /**
+     * Check whether this is the last/only user in this group.
+     *
+     * @param userDN DN of the User.
+     * @param groupEntry SearchResult Representing the Group.
+     * @return true if user is the only one in role, false otherwise.
+     */
+    protected boolean isOnlyUserInRole(String userDN, SearchResult groupEntry)
+            throws UserStoreException {
+        boolean isOnlyUserInRole = false;
+        try {
+            Attributes groupAttributes = groupEntry.getAttributes();
+            if (groupAttributes != null) {
+                NamingEnumeration attributes = groupAttributes.getAll();
+                while (attributes.hasMoreElements()) {
+                    Attribute memberAttribute = (Attribute) attributes.next();
+                    String memberAttributeName = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+                    String attributeID = memberAttribute.getID();
+                    if (memberAttributeName.equals(attributeID)) {
+                        if (memberAttribute.size() == 1 && userDN.equals(memberAttribute.get())) {
+                            return true;
+                        }
+                    }
+
+                }
+
+                attributes.close();
+
+            }
+        } catch (NamingException e) {
+            String errorMessage = "Error occurred while looping through attributes set of group: "
+                    + groupEntry.getNameInNamespace();
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        }
+        return isOnlyUserInRole;
+    }
+
+    /**
+     * Either delete or add user from/to group.
+     *
+     * @param userNameDN : distinguish name of user entry.
+     * @param groupRDN   : relative distinguish name of group entry
+     * @param modifyType : modify attribute type in DirCOntext.
+     * @throws UserStoreException If an error occurs while updating.
+     */
+    protected void modifyUserInRole(String userNameDN, String groupRDN, int modifyType, String searchBase)
+            throws UserStoreException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Modifying role: " + groupRDN + " with type: " + modifyType + " user: " + userNameDN
+                    + " in search base: " + searchBase);
+        }
+
+        DirContext mainDirContext = null;
+        DirContext groupContext = null;
+        try {
+            mainDirContext = this.connectionSource.getContext();
+            groupContext = (DirContext) mainDirContext.lookup(searchBase);
+            String memberAttributeName = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+            Attributes modifyingAttributes = new BasicAttributes(true);
+            Attribute memberAttribute = new BasicAttribute(memberAttributeName);
+            memberAttribute.add(userNameDN);
+            modifyingAttributes.put(memberAttribute);
+
+            groupContext.modifyAttributes(groupRDN, modifyType, modifyingAttributes);
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + userNameDN + " was successfully " + "modified in LDAP group: "
+                        + groupRDN);
+            }
+        } catch (NamingException e) {
+            String errorMessage = "Error occurred while modifying user entry: " + userNameDN
+                    + " in LDAP role: " + groupRDN;
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage);
+        } finally {
+            JNDIUtil.closeContext(groupContext);
+            JNDIUtil.closeContext(mainDirContext);
+        }
+    }
+
+    /**
+     * Check whether user is in the group by searching through its member attributes.
+     *
+     * @param userDN DN of the User whose existence in the group is searched.
+     * @param groupEntry SearchResult representation of the Group.
+     * @return true if the user exists in the role, false otherwise.
+     * @throws UserStoreException If an error occurs while retrieving data.
+     */
+    protected boolean isUserInRole(String userDN, SearchResult groupEntry)
+            throws UserStoreException {
+        boolean isUserInRole = false;
+        try {
+            Attributes groupAttributes = groupEntry.getAttributes();
+            if (groupAttributes != null) {
+                // get group's returned attributes
+                NamingEnumeration attributes = groupAttributes.getAll();
+                // loop through attributes
+                while (attributes.hasMoreElements()) {
+                    Attribute memberAttribute = (Attribute) attributes.next();
+                    String memberAttributeName = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+                    if (memberAttributeName.equalsIgnoreCase(memberAttribute.getID())) {
+                        // loop through attribute values
+                        for (int i = 0; i < memberAttribute.size(); i++) {
+                            if (userDN.equalsIgnoreCase((String) memberAttribute.get(i))) {
+                                return true;
+                            }
+                        }
+                    }
+
+                }
+                attributes.close();
+            }
+        } catch (NamingException e) {
+            String errorMessage = "Error occurred while looping through attributes set of group: "
+                    + groupEntry.getNameInNamespace();
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        }
+        return isUserInRole;
     }
 }

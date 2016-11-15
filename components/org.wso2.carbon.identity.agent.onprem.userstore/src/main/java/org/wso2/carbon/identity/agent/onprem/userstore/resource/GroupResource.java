@@ -113,4 +113,38 @@ public class GroupResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * @param limit Maximum number of the usernames that should be returned.
+     * @param rolename Name of the Role which the user list is needed.
+     * @return List of the users in the given role.
+     */
+    @GET
+    @Path("/{rolename}/users")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Return the list of usernames up to the given limit. ",
+            notes = "Returns HTTP 500 if an internal error occurs at the server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "{usernames:[username1, username2, ... ]}"),
+            @ApiResponse(code = 500, message = "Particular exception message")})
+    public Response getUserListOfRole(@ApiParam(value = "Limit", required = false)
+                                      @QueryParam("limit") String limit,
+                                      @ApiParam(value = "Rolename", required = true)
+                                      @PathParam("rolename") String rolename) {
+        try {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            if (limit == null || limit.isEmpty()) {
+                limit = String.valueOf(CommonConstants.MAX_USER_ROLE_LIST);
+            }
+            String[] usernames = userStoreManager.doGetUserListOfRole(rolename, Integer.parseInt(limit));
+            JSONObject returnObject = new JSONObject();
+            JSONArray usernameArray = new JSONArray(usernames);
+            returnObject.put("usernames", usernameArray);
+            return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
 }

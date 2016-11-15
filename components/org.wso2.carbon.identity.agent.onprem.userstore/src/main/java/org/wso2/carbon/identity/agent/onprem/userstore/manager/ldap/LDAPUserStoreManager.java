@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.agent.onprem.userstore.constant.LDAPConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.JNDIUtil;
+import org.wso2.carbon.identity.agent.onprem.userstore.util.UserStoreUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
@@ -414,7 +415,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
         return values;
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -616,6 +616,348 @@ public class LDAPUserStoreManager implements UserStoreManager {
         return externalRoles.toArray(new String[externalRoles.size()]);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException {
+
+        // Get the effective search base
+        String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+        return getLDAPRoleListOfUser(userName, searchBase);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean doCheckIsUserInRole(String userName, String roleName) throws UserStoreException {
+
+        boolean debug = log.isDebugEnabled();
+        String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+        SearchControls searchCtls = new SearchControls();
+        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        // read the roles with this membership property
+        String searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
+        String membershipProperty = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+
+        if (membershipProperty == null || membershipProperty.length() < 1) {
+            throw new UserStoreException("Please set membership attribute");
+        }
+
+        String roleNameProperty = userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+        String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
+        String nameInSpace;
+        if (org.apache.commons.lang.StringUtils.isNotEmpty(userDNPattern) &&
+                !userDNPattern.contains(CommonConstants.XML_PATTERN_SEPERATOR)) {
+            nameInSpace = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
+        } else {
+            nameInSpace = this.getNameInSpaceForUserName(userName);
+        }
+
+        String membershipValue;
+        if (nameInSpace != null) {
+            try {
+                LdapName ldn = new LdapName(nameInSpace);
+                membershipValue = escapeLdapNameForFilter(ldn);
+            } catch (InvalidNameException e) {
+                log.error("Error while creating LDAP name from: " + nameInSpace);
+                throw new UserStoreException("Invalid naming exception for : " + nameInSpace, e);
+            }
+        } else {
+            return false;
+        }
+
+        searchFilter = "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue + "))";
+        String returnedAtts[] = {roleNameProperty};
+        searchCtls.setReturningAttributes(returnedAtts);
+
+        if (debug) {
+            log.debug("Do check whether the user : " + userName + " is in role: " + roleName);
+            log.debug("Search filter : " + searchFilter);
+            for (String retAttrib : returnedAtts) {
+                log.debug("Requesting attribute: " + retAttrib);
+            }
+        }
+
+        DirContext dirContext = null;
+        NamingEnumeration<SearchResult> answer = null;
+        try {
+            dirContext = connectionSource.getContext();
+
+            if (debug) {
+                log.debug("Do check whether the user: " + userName + " is in role: " + roleName);
+                log.debug("Search filter: " + searchFilter);
+                for (String retAttrib : returnedAtts) {
+                    log.debug("Requesting attribute: " + retAttrib);
+                }
+            }
+
+            searchFilter = "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue +
+                    ") (" + roleNameProperty + "=" + escapeSpecialCharactersForFilter(roleName) + "))";
+
+            // handle multiple search bases
+            String[] searchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
+
+            for (String searchBase : searchBaseArray) {
+                answer = dirContext.search(escapeDNForSearch(searchBase), searchFilter, searchCtls);
+
+                if (answer.hasMoreElements()) {
+                    if (debug) {
+                        log.debug("User: " + userName + " in role: " + roleName);
+                    }
+                    return true;
+                }
+
+                if (debug) {
+                    log.debug("User: " + userName + " NOT in role: " + roleName);
+                }
+            }
+        } catch (NamingException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+        } finally {
+            JNDIUtil.closeNamingEnumeration(answer);
+            JNDIUtil.closeContext(dirContext);
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String[] doGetUserListOfRole(String roleName, int maxItemLimit) throws UserStoreException {
+
+        boolean debug = log.isDebugEnabled();
+        List<String> userList = new ArrayList<String>();
+        String[] names = new String[0];
+        int givenMax = CommonConstants.MAX_USER_ROLE_LIST;
+        int searchTime = CommonConstants.MAX_SEARCH_TIME;
+
+        try {
+            givenMax =
+                    Integer.parseInt(userStoreProperties.get(CommonConstants.PROPERTY_MAX_USER_LIST));
+        } catch (Exception e) {
+            givenMax = CommonConstants.MAX_USER_ROLE_LIST;
+        }
+
+        try {
+            searchTime =
+                    Integer.parseInt(userStoreProperties.get(CommonConstants.PROPERTY_MAX_SEARCH_TIME));
+        } catch (Exception e) {
+            searchTime = CommonConstants.MAX_SEARCH_TIME;
+        }
+
+        if (maxItemLimit <= 0 || maxItemLimit > givenMax) {
+            maxItemLimit = givenMax;
+        }
+
+        DirContext dirContext = null;
+        NamingEnumeration<SearchResult> answer = null;
+        try {
+            SearchControls searchCtls = new SearchControls();
+            searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            searchCtls.setTimeLimit(searchTime);
+            searchCtls.setCountLimit(maxItemLimit);
+
+            String searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
+            String roleNameProperty = userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
+            searchFilter = "(&" + searchFilter + "(" + roleNameProperty + "=" + escapeSpecialCharactersForFilter(
+                    roleName) + "))";
+
+            String membershipProperty = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
+            String returnedAtts[] = {membershipProperty};
+            searchCtls.setReturningAttributes(returnedAtts);
+            List<String> userDNList = new ArrayList<String>();
+
+            SearchResult sr = null;
+            dirContext = connectionSource.getContext();
+
+            // handling multiple search bases
+            String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
+            String[] roleSearchBaseArray = searchBases.split("#");
+            for (String searchBase : roleSearchBaseArray) {
+                if (debug) {
+                    log.debug("Searching role: " + roleName + " SearchBase: "
+                            + searchBase + " SearchFilter: " + searchFilter);
+                }
+                try {
+                    // read the DN of users who are members of the group
+                    answer = dirContext.search(escapeDNForSearch(searchBase), searchFilter, searchCtls);
+                    int count = 0;
+                    if (answer.hasMore()) { // to check if there is a result
+                        while (answer.hasMore()) { // to check if there are more than one group
+                            if (count > 0) {
+                                throw new UserStoreException("More than one group exist with name");
+                            }
+                            sr = answer.next();
+                            count++;
+                        }
+                        break;
+                    }
+                } catch (NamingException e) {
+                    // ignore
+                    if (log.isDebugEnabled()) {
+                        log.debug(e);
+                    }
+                }
+            }
+
+            if (debug) {
+                log.debug("Found role: " + sr.getNameInNamespace());
+            }
+
+            // read the member attribute and get DNs of the users
+            Attributes attributes = sr.getAttributes();
+            if (attributes != null) {
+                NamingEnumeration attributeEntry = null;
+                for (attributeEntry = attributes.getAll(); attributeEntry.hasMore(); ) {
+                    Attribute valAttribute = (Attribute) attributeEntry.next();
+                    if (membershipProperty.equals(valAttribute.getID())) {
+                        NamingEnumeration values = null;
+                        for (values = valAttribute.getAll(); values.hasMore();) {
+                            String value = values.next().toString();
+                            if (userDNList.size() >= maxItemLimit) {
+                                break;
+                            }
+                            userDNList.add(value);
+                            if (debug) {
+                                log.debug("Found attribute: " + membershipProperty + " value: " + value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (MEMBER_UID.equals(userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE))) {
+                /* when the GroupEntryObjectClass is posixGroup, membership attribute is memberUid. We have to
+                   retrieve the DN using the memberUid.
+                   This procedure has to make an extra call to ldap. alternatively this can be done with a single ldap
+                   search using the memberUid and retrieving the display name and username. */
+                List<String> userDNListNew = new ArrayList<>();
+
+                for (String user : userDNList) {
+                    String userDN = getNameInSpaceForUserName(user);
+                    userDNListNew.add(userDN);
+                }
+                userDNList = userDNListNew;
+            }
+
+            // iterate over users' DN list and get userName and display name
+            // attribute values
+            String userNameProperty = userStoreProperties.get(LDAPConstants.USER_NAME_ATTRIBUTE);
+            String displayNameAttribute = userStoreProperties.get(LDAPConstants.DISPLAY_NAME_ATTRIBUTE);
+            String[] returnedAttributes = {userNameProperty, displayNameAttribute};
+
+            for (String user : userDNList) {
+                if (debug) {
+                    log.debug("Getting name attributes of: " + user);
+                }
+                Attributes userAttributes;
+                try {
+                    // '\' and '"' characters need another level of escaping before searching
+                    userAttributes = dirContext.getAttributes(escapeDNForSearch(user), returnedAttributes);
+
+                    String displayName = null;
+                    String userName = null;
+                    if (userAttributes != null) {
+                        Attribute userNameAttribute = userAttributes.get(userNameProperty);
+                        if (userNameAttribute != null) {
+                            userName = (String) userNameAttribute.get();
+                            if (debug) {
+                                log.debug("UserName: " + userName);
+                            }
+                        }
+                        if (org.apache.commons.lang.StringUtils.isNotEmpty(displayNameAttribute)) {
+                            Attribute displayAttribute = userAttributes.get(displayNameAttribute);
+                            if (displayAttribute != null) {
+                                displayName = (String) displayAttribute.get();
+                            }
+                            if (debug) {
+                                log.debug("DisplayName: " + displayName);
+                            }
+                        }
+                    }
+
+                    // Username will be null in the special case where the
+                    // username attribute has changed to another
+                    // and having different userNameProperty than the current
+                    // user-mgt.xml
+                    if (userName != null) {
+                        user = UserStoreUtils.getCombinedName(userName, displayName);
+                        userList.add(user);
+                        if (debug) {
+                            log.debug(user + " is added to the result list");
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User " + user + " doesn't have the user name property : " +
+                                    userNameProperty);
+                        }
+                    }
+
+                } catch (NamingException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error in reading user information in the user store for the user " +
+                                user + e.getMessage(), e);
+                    }
+                }
+
+            }
+            names = userList.toArray(new String[userList.size()]);
+
+        } catch (PartialResultException e) {
+            // can be due to referrals in AD. so just ignore error
+            String errorMessage = "Error in reading user information in the user store";
+            if (isIgnorePartialResultException()) {
+                if (log.isDebugEnabled()) {
+                    log.debug(errorMessage, e);
+                }
+            } else {
+                throw new UserStoreException(errorMessage, e);
+            }
+        } catch (NamingException e) {
+            String errorMessage = "Error in reading user information in the user store";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMessage, e);
+            }
+            throw new UserStoreException(errorMessage, e);
+        } finally {
+            JNDIUtil.closeNamingEnumeration(answer);
+            JNDIUtil.closeContext(dirContext);
+        }
+        return names;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getConnectionStatus() {
+        try {
+            connectionSource.getContext();
+        } catch (UserStoreException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException {
+        this.userStoreProperties = userStoreProperties;
+        if (userStoreProperties == null) {
+            throw new UserStoreException(
+                    "User Store Properties Could not be found!");
+        }
+        // check if required configurations are in the user-mgt.xml
+        checkRequiredUserStoreConfigurations();
+        this.connectionSource = new LDAPConnectionContext(this.userStoreProperties);
+    }
 
     /**
      * Returns the list of role names for the given search base and other
@@ -881,7 +1223,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
         return userDN;
     }
 
-
     /**
      * @param dnPartial  Partial DN of the user
      * @return String with escape characters removed.
@@ -1086,140 +1427,6 @@ public class LDAPUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException {
-
-        // Get the effective search base
-        String searchBase = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
-        return getLDAPRoleListOfUser(userName, searchBase);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean doCheckIsUserInRole(String userName, String roleName) throws UserStoreException {
-
-        boolean debug = log.isDebugEnabled();
-        String searchBases = userStoreProperties.get(LDAPConstants.GROUP_SEARCH_BASE);
-        SearchControls searchCtls = new SearchControls();
-        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-        // read the roles with this membership property
-        String searchFilter = userStoreProperties.get(LDAPConstants.GROUP_NAME_LIST_FILTER);
-        String membershipProperty = userStoreProperties.get(LDAPConstants.MEMBERSHIP_ATTRIBUTE);
-
-        if (membershipProperty == null || membershipProperty.length() < 1) {
-            throw new UserStoreException("Please set membership attribute");
-        }
-
-        String roleNameProperty = userStoreProperties.get(LDAPConstants.GROUP_NAME_ATTRIBUTE);
-        String userDNPattern = userStoreProperties.get(LDAPConstants.USER_DN_PATTERN);
-        String nameInSpace;
-        if (org.apache.commons.lang.StringUtils.isNotEmpty(userDNPattern) &&
-                !userDNPattern.contains(CommonConstants.XML_PATTERN_SEPERATOR)) {
-            nameInSpace = MessageFormat.format(userDNPattern, escapeSpecialCharactersForDN(userName));
-        } else {
-            nameInSpace = this.getNameInSpaceForUserName(userName);
-        }
-
-        String membershipValue;
-        if (nameInSpace != null) {
-            try {
-                LdapName ldn = new LdapName(nameInSpace);
-                membershipValue = escapeLdapNameForFilter(ldn);
-            } catch (InvalidNameException e) {
-                log.error("Error while creating LDAP name from: " + nameInSpace);
-                throw new UserStoreException("Invalid naming exception for : " + nameInSpace, e);
-            }
-        } else {
-            return false;
-        }
-
-        searchFilter = "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue + "))";
-        String returnedAtts[] = {roleNameProperty};
-        searchCtls.setReturningAttributes(returnedAtts);
-
-        if (debug) {
-            log.debug("Do check whether the user : " + userName + " is in role: " + roleName);
-            log.debug("Search filter : " + searchFilter);
-            for (String retAttrib : returnedAtts) {
-                log.debug("Requesting attribute: " + retAttrib);
-            }
-        }
-
-        DirContext dirContext = null;
-        NamingEnumeration<SearchResult> answer = null;
-        try {
-            dirContext = connectionSource.getContext();
-
-            if (debug) {
-                log.debug("Do check whether the user: " + userName + " is in role: " + roleName);
-                log.debug("Search filter: " + searchFilter);
-                for (String retAttrib : returnedAtts) {
-                    log.debug("Requesting attribute: " + retAttrib);
-                }
-            }
-
-            searchFilter = "(&" + searchFilter + "(" + membershipProperty + "=" + membershipValue +
-                            ") (" + roleNameProperty + "=" + escapeSpecialCharactersForFilter(roleName) + "))";
-
-            // handle multiple search bases
-            String[] searchBaseArray = searchBases.split(CommonConstants.XML_PATTERN_SEPERATOR);
-
-            for (String searchBase : searchBaseArray) {
-                answer = dirContext.search(escapeDNForSearch(searchBase), searchFilter, searchCtls);
-
-                if (answer.hasMoreElements()) {
-                    if (debug) {
-                        log.debug("User: " + userName + " in role: " + roleName);
-                    }
-                    return true;
-                }
-
-                if (debug) {
-                    log.debug("User: " + userName + " NOT in role: " + roleName);
-                }
-            }
-        } catch (NamingException e) {
-            if (log.isDebugEnabled()) {
-                log.debug(e.getMessage(), e);
-            }
-        } finally {
-            JNDIUtil.closeNamingEnumeration(answer);
-            JNDIUtil.closeContext(dirContext);
-        }
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean getConnectionStatus() {
-        try {
-            connectionSource.getContext();
-        } catch (UserStoreException e) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException {
-        this.userStoreProperties = userStoreProperties;
-        if (userStoreProperties == null) {
-            throw new UserStoreException(
-                    "User Store Properties Could not be found!");
-        }
-        // check if required configurations are in the user-mgt.xml
-        checkRequiredUserStoreConfigurations();
-        this.connectionSource = new LDAPConnectionContext(this.userStoreProperties);
-    }
-
-
-    /**
      * @param userName Username of the user.
      * @param searchBase Search base group search base.
      * @return List of roles of the given user.
@@ -1359,10 +1566,9 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
     }
 
-
-    /*
+    /**
      * This method escapes the special characters in a LdapName
-     * according to the ldap filter escaping standards
+     * according to the ldap filter escaping standards.
      * @param ldn LDAP name which the special characters should be escaped.
      * @return - LDAP name with special characters removed.
      */
@@ -1405,5 +1611,4 @@ public class LDAPUserStoreManager implements UserStoreManager {
             return ldn.toString();
         }
     }
-
 }

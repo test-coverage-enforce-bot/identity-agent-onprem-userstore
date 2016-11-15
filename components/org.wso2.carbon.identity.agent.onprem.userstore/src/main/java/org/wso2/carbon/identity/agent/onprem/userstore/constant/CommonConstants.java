@@ -31,4 +31,6 @@ public class CommonConstants {
     public static final String CARBON_HOME = "carbon.home";
     public static final int MAX_USER_LIST = 100;
     public static final int MAX_SEARCH_TIME = 10000;   // ms
+    public static final int MAX_USER_ROLE_LIST = 100;
+    public static final String NAME_COMBINER = "|";
 }

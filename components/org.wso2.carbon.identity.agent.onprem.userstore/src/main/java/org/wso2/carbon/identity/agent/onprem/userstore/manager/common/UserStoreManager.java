@@ -85,5 +85,31 @@ public interface UserStoreManager {
      */
     boolean doCheckIsUserInRole(String userName, String roleName) throws UserStoreException;
 
+    /**
+     * @param roleName Name of the Role which users in the list should belong.
+     * @return Array of usernames of the Users in given role.
+     * @throws UserStoreException If an error occurs while retrieving data.
+     */
+    String[] doGetUserListOfRole(String roleName, int maxItemLimit) throws UserStoreException;
+
+    /**
+     * @param roleName Name of the Role which the existance is checked.
+     * @return true if a role exists in given name. false otherwise.
+     * @throws UserStoreException If an error occurs while retrieving data.
+     */
+    boolean doCheckExistingRole(String roleName) throws UserStoreException;
+
+    /**
+     * @param userName Username of the user whose role list is updated.
+     * @param deletedRoles List of names of roles that the user is removed from.
+     * @param newRoles List of names of new roles that the user is added to.
+     * @throws UserStoreException If an error occurs while updting the role list.
+     */
+    void doUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles) throws UserStoreException;
+
+    /**
+     * @param userStoreProperties Properties read from the userstore-mgt.xml file.
+     * @throws UserStoreException If a required attribute of the UserStoreManager is missing.
+     */
     void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException;
 }

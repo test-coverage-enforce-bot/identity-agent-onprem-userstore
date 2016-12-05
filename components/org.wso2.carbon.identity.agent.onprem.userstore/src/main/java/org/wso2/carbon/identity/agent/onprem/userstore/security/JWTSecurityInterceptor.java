@@ -56,7 +56,6 @@ public class JWTSecurityInterceptor implements Interceptor {
 
     //    private static final String CERTIFICATE_TYPE = "X509";
     private static final String STATUS_URI = CommonConstants.APPLICATION_CONTEXT_PATH + "/status";
-
     private JSONObject jsonHeaderObject;
     private static final Base64 base64Url = new Base64(true);
 

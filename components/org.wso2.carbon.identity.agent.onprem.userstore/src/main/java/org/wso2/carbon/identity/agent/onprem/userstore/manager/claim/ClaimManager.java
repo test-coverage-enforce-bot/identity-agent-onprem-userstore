@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.agent.onprem.userstore.manager.claim;
 
 import org.wso2.carbon.identity.agent.onprem.userstore.model.Claim;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -44,6 +45,20 @@ public class ClaimManager {
         return null;
     }
 
+    /**
+     * @return The map of claims with attributeIDs.
+     */
+    public Map<String, String> getClaimAttributes() {
+        Map<String, String> claimAttributeMap = new HashMap<>();
+        for (Map.Entry<String, Claim> mapEntry : claimMap.entrySet()) {
+            claimAttributeMap.put(mapEntry.getKey(), mapEntry.getValue().getAttributeID());
+        }
+        return claimAttributeMap;
+    }
+
+    /**
+     * @return The full list of claims configured in claim-config.xml file.
+     */
     public String[] doListClaims() {
         ArrayList<String> claimList = new ArrayList<>();
         for (Map.Entry<String, Claim> mapEntry : claimMap.entrySet()) {

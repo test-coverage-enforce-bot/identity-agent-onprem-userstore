@@ -48,48 +48,53 @@
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/cipher-standalone-config.properties</source>
+            <source>../../conf/conf/cipher-standalone-config.properties</source>
             <outputDirectory>wso2agent-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/claim-config.xml</source>
+            <source>../../conf/conf/claim-config.xml</source>
             <outputDirectory>wso2agent-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/netty-transports.yml</source>
+            <source>../../conf/conf/netty-transports.yml</source>
             <outputDirectory>wso2agent-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/userstore-config.xml</source>
+            <source>../../conf/conf/userstore-config.xml</source>
             <outputDirectory>wso2agent-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/cipher-text.properties</source>
+            <source>../../conf/conf/security/cipher-text.properties</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/cipher-tool.properties</source>
+            <source>../../conf/conf/security/cipher-tool.properties</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/client-truststore.jks</source>
+            <source>../../conf/conf/security/client-truststore.jks</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/secret-conf.properties</source>
+            <source>../../conf/conf/security/secret-conf.properties</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/wso2carbon.jks</source>
+            <source>../../conf/conf/security/wso2carbon.jks</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../../conf/lib/org.wso2.ciphertool-1.0.0-wso2v3.jar</source>
+            <outputDirectory>wso2agent-${pom.version}/lib</outputDirectory>
             <fileMode>644</fileMode>
         </file>
         <file>

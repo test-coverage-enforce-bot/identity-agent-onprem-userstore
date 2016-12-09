@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.agent.onprem.userstore.resource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Info;
@@ -31,10 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.config.ClaimConfiguration;
 import org.wso2.carbon.identity.agent.onprem.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.onprem.userstore.manager.claim.ClaimManager;
+import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -54,28 +53,23 @@ import javax.ws.rs.core.Response;
 public class ClaimResource {
     private static Logger log = LoggerFactory.getLogger(UserResource.class);
     /**
-     * @param uri URI of the Claim whose mapped attributes are required.     *
-     * @return Attribute mapped to the given claimURI.
+     * @return Attributes mapped to their claimURIs.
      */
     @GET
-    @Path("attribute/")
+    @Path("attributes/")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Return the attribute name mapped to the claimURI. ",
-            notes = "Returns HTTP 404 if particular claim mapping not found")
+            value = "Return the attribute names mapped to the claimURIs.",
+            notes = "Returns HTTP 404 if claim mapping not found")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "{ uri_value : attribute_name }"),
+            @ApiResponse(code = 200, message = "{ uri_value1 : attribute_name1, uri_value2 : attribute_name2, ... }"),
             @ApiResponse(code = 404, message = "None")})
-    public Response getClaimAttribute(@ApiParam(value = "uri", required = true)
-                                      @QueryParam("uri") String uri) {
+    public Response getClaimAttributes() {
 
-        String attributeID = null;
         ClaimManager claimManager = new ClaimManager(ClaimConfiguration.getConfiguration().getClaimMap());
-        attributeID = claimManager.getClaimAttribute(uri);
-        if (attributeID != null) {
-            JSONObject returnObject = new JSONObject();
-            returnObject.put(uri, attributeID);
-            return Response.status(Response.Status.OK).entity(returnObject.toString()).build();
+        Map<String, String> claimAttributeMap = claimManager.getClaimAttributes();
+        if (!claimAttributeMap.isEmpty()) {
+            return Response.status(Response.Status.OK).entity(claimAttributeMap).build();
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }

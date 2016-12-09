@@ -23,8 +23,6 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.onprem.userstore.config.ClaimConfiguration;
@@ -73,25 +71,4 @@ public class ClaimResource {
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
-
-    /**
-     * @return The list of enabled claim URIs.
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-            value = "Return the list of enabled claim URIs. ")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "{urilist:[uri1, uri2, ...]}")
-    })
-    public Response getAllUserNames() {
-        ClaimManager claimManager = new ClaimManager(ClaimConfiguration.getConfiguration().getClaimMap());
-        String[] uris = claimManager.
-                doListClaims();
-        JSONObject jsonObject = new JSONObject();
-        JSONArray uriArray = new JSONArray(uris);
-        jsonObject.put("urilist", uriArray);
-        return Response.status(Response.Status.OK).entity(jsonObject.toString()).build();
-    }
-
 }

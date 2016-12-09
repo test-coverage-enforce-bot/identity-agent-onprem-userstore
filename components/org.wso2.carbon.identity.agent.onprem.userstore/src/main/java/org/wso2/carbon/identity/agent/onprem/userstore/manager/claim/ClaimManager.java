@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.agent.onprem.userstore.manager.claim;
 
 
 import org.wso2.carbon.identity.agent.onprem.userstore.model.Claim;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,18 +33,6 @@ public class ClaimManager {
     }
 
     /**
-     * @param claimURI URI of the claim whose attribute name needed.
-     * @return Name of the attribute mapped to the given claimURI
-     */
-    public String getClaimAttribute(String claimURI) {
-        Claim claim = claimMap.get(claimURI);
-        if (claim != null) {
-            return claim.getAttributeID();
-        }
-        return null;
-    }
-
-    /**
      * @return The map of claims with attributeIDs.
      */
     public Map<String, String> getClaimAttributes() {
@@ -54,18 +41,5 @@ public class ClaimManager {
             claimAttributeMap.put(mapEntry.getKey(), mapEntry.getValue().getAttributeID());
         }
         return claimAttributeMap;
-    }
-
-    /**
-     * @return The full list of claims configured in claim-config.xml file.
-     */
-    public String[] doListClaims() {
-        ArrayList<String> claimList = new ArrayList<>();
-        for (Map.Entry<String, Claim> mapEntry : claimMap.entrySet()) {
-            if (mapEntry.getValue().isEnabled()) {
-                claimList.add(mapEntry.getKey());
-            }
-        }
-        return claimList.toArray(new String[0]);
     }
 }

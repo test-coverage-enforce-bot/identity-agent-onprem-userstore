@@ -105,45 +105,6 @@ public class ClaimConfigurationXMLProcessor {
                 String attributeID = attributeIDElement.getText();
                 claim.setAttributeID(attributeID);
             }
-            OMElement displayNameElement =
-                    claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_DISPLAY_NAME));
-            if (displayNameElement != null) {
-                String displayName = displayNameElement.getText();
-                claim.setDisplayName(displayName);
-            }
-            OMElement descriptionElement =
-                    claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_DESCRIPTION));
-            if (descriptionElement != null) {
-                String description = descriptionElement.getText();
-                claim.setDescription(description);
-            }
-            OMElement enabledElement =
-                    claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_ENABLED));
-            if (enabledElement != null) {
-                boolean enabled = Boolean.valueOf(enabledElement.getText());
-                claim.setEnabled(enabled);
-            }
-            OMElement requiredElement =
-                    claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_REQIRED));
-            if (requiredElement != null) {
-                boolean required = Boolean.valueOf(requiredElement.getText());
-                claim.setRequired(required);
-            }
-            OMElement displayOrderElement =
-                    claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_DISPLAY_ORDER));
-            if (displayOrderElement != null) {
-                try {
-                    int displayOrder = Integer.parseInt(displayOrderElement.getText());
-                    claim.setDisplayOrder(displayOrder);
-                } catch (NumberFormatException e) { }
-            }
-            OMElement supportedByDefaultElement =
-                    claimElement.getFirstChildWithName(
-                            new QName(XMLConfigurationConstants.LOCAL_NAME_SUPPORTED_BY_DEFAULT));
-            if (supportedByDefaultElement != null) {
-                boolean supportedByDefault = Boolean.valueOf(supportedByDefaultElement.getText());
-                claim.setSupportedByDefault(supportedByDefault);
-            }
             map.put(claimURI, claim);
         }
         return map;

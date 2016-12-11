@@ -1,0 +1,329 @@
+<!--
+  ~ Copyright WSO2, Inc. (http://wso2.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<ClaimConfig>	
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/givenname</ClaimURI>
+		<AttributeID>givenName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/lastname</ClaimURI>
+		<AttributeID>sn</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/organization</ClaimURI>
+		<AttributeID>organizationName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
+		<AttributeID>streetAddress</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/country</ClaimURI>
+		<AttributeID>country</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/emailaddress</ClaimURI>
+		<AttributeID>mail</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/telephone</ClaimURI>
+		<AttributeID>telephoneNumber</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/mobile</ClaimURI>
+		<AttributeID>mobile</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/im</ClaimURI>
+		<AttributeID>im</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/url</ClaimURI>
+		<AttributeID>url</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/gender</ClaimURI>
+		<AttributeID>gender</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/title</ClaimURI>
+		<AttributeID>title</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/role</ClaimURI>
+		<AttributeID>role</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/postalcode</ClaimURI>
+		<AttributeID>postalcode</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/locality</ClaimURI>
+		<AttributeID>localityName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/region</ClaimURI>
+		<AttributeID>region</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/dob</ClaimURI>
+		<AttributeID>dateOfBirth</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/nickname</ClaimURI>
+		<AttributeID>nickName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/stateorprovince</ClaimURI>
+		<AttributeID>stateOrProvinceName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/otherphone</ClaimURI>
+		<AttributeID>otherPhone</AttributeID>
+	</Claim>
+    <Claim>
+		<ClaimURI>http://wso2.org/claims/fullname</ClaimURI>
+		<AttributeID>cn</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/username</ClaimURI>
+		<AttributeID>uid</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/userid</ClaimURI>
+		<AttributeID>scimId</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/externalid</ClaimURI>
+		<AttributeID>externalId</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/created</ClaimURI>
+		<AttributeID>createdDate</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/modified</ClaimURI>
+		<AttributeID>lastModifiedDate</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/location</ClaimURI>
+		<AttributeID>location</AttributeID>
+	</Claim>
+
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/formattedName</ClaimURI>
+		<AttributeID>formattedName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/middleName</ClaimURI>
+		<AttributeID>middleName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/honorificPrefix</ClaimURI>
+		<AttributeID>honoricPrefix</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/honorificSuffix</ClaimURI>
+		<AttributeID>honoricSuffix</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/userType</ClaimURI>
+		<AttributeID>userType</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/preferredLanguage</ClaimURI>
+		<AttributeID>preferredLanguage</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/local</ClaimURI>
+		<AttributeID>local</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/timeZone</ClaimURI>
+		<AttributeID>timeZone</AttributeID>
+	</Claim>
+
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/emails.work</ClaimURI>
+		<AttributeID>workEmail</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/emails.home</ClaimURI>
+		<AttributeID>homeEmail</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/emails.other</ClaimURI>
+		<AttributeID>otherEmail</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers</ClaimURI>
+		<AttributeID>phoneNumbers</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers.home</ClaimURI>
+		<AttributeID>homePhone</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers.work</ClaimURI>
+		<AttributeID>workPhone</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers.fax</ClaimURI>
+		<AttributeID>fax</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers.pager</ClaimURI>
+		<AttributeID>pager</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/phoneNumbers.other</ClaimURI>
+		<AttributeID>otherPhoneNumber</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/gtalk</ClaimURI>
+		<AttributeID>imGtalk</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/skype</ClaimURI>
+		<AttributeID>imSkype</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/photos</ClaimURI>
+		<AttributeID>photos</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/photourl</ClaimURI>
+		<AttributeID>photoUrl</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
+		<AttributeID>thumbnail</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/addresses</ClaimURI>
+		<AttributeID>addresses</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/addresses.formatted</ClaimURI>
+		<AttributeID>formattedAddress</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
+		<AttributeID>streetAddress</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/addresses.locality</ClaimURI>
+		<AttributeID>localityAddress</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/groups</ClaimURI>
+		<AttributeID>groups</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/entitlements</ClaimURI>
+		<AttributeID>entitlements</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>urn:scim:schemas:core:1.0:roles</ClaimURI>
+		<AttributeID>roles</AttributeID>
+		<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/x509Certificates</ClaimURI>
+		<AttributeID>x509Certificates</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</ClaimURI>
+		<AttributeID>postalCode</AttributeID>
+	</Claim>
+
+
+    <Claim>
+		<ClaimURI>http://wso2.org/claims/primaryChallengeQuestion</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>title</AttributeID>
+	</Claim>
+    <Claim>
+		<ClaimURI>http://wso2.org/claims/challengeQuestionUris</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>stateOrProvinceName</AttributeID>
+	</Claim>
+
+    <Claim>
+		<ClaimURI>http://wso2.org/claims/oneTimePassword</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>oneTimePassword</AttributeID>
+	</Claim>
+    <Claim>
+		<ClaimURI>http://wso2.org/claims/identity/accountLocked</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>accountLock</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>postalAddress</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>ref</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/failedLoginAttempts</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>failedLoginAttempts</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>employeeNumber</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/unlockTime</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>unlockTime</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/lastLogonTime</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>carLicense</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/identity/lastPasswordUpdateTime</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>businessCategory</AttributeID>
+	</Claim>
+     <Claim>
+		<ClaimURI>http://wso2.org/claims/challengeQuestion1</ClaimURI>
+		 <!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>firstChallenge</AttributeID>
+
+	 </Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/challengeQuestion2</ClaimURI>
+		<!-- Proper attribute Id in your user store must be configured for this -->
+		<AttributeID>secondChallenge</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/displayName</ClaimURI>
+		<AttributeID>displayName</AttributeID>
+	</Claim>
+	<Claim>
+		<ClaimURI>http://wso2.org/claims/active</ClaimURI>
+		<AttributeID>active</AttributeID>
+	</Claim>
+</ClaimConfig>

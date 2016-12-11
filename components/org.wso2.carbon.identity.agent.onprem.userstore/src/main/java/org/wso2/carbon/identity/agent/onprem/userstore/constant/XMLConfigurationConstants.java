@@ -21,7 +21,15 @@ package org.wso2.carbon.identity.agent.onprem.userstore.constant;
  */
 public class XMLConfigurationConstants {
     public static final String LOCAL_NAME_PROPERTY = "Property";
+    public static final String LOCAL_NAME_CLAIM = "Claim";
+    public static final String LOCAL_NAME_CLAIM_URI = "ClaimURI";
+    public static final String LOCAL_NAME_ATTRIBUTE_ID = "AttributeID";
+    public static final String LOCAL_NAME_DISPLAY_NAME = "DisplayName";
+    public static final String LOCAL_NAME_DESCRIPTION = "Description";
+    public static final String LOCAL_NAME_ENABLED = "Enabled";
+    public static final String LOCAL_NAME_REQIRED = "Required";
+    public static final String LOCAL_NAME_DISPLAY_ORDER = "DisplayOrder";
+    public static final String LOCAL_NAME_SUPPORTED_BY_DEFAULT = "SupportedByDefault";
     public static final String LOCAL_NAME_CLASS = "class";
     public static final String ATTR_NAME_PROP_NAME = "name";
-    public static final String LOCAL_NAME_CONFIGURATION = "Configuration";
 }

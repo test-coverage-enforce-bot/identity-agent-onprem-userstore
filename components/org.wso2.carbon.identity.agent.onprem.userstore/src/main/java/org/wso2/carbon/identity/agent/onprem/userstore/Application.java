@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.agent.onprem.userstore;
 
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.Authenticate;
+import org.wso2.carbon.identity.agent.onprem.userstore.resource.ClaimResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.GroupResource;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.Status;
 import org.wso2.carbon.identity.agent.onprem.userstore.resource.UserResource;
@@ -36,7 +37,7 @@ public class Application {
         new SecretManagerInitializer().init();
         new MicroservicesRunner()
                 .addInterceptor(new JWTSecurityInterceptor())
-                .deploy(new UserResource(), new Authenticate(), new GroupResource(), new Status())
+                .deploy(new UserResource(), new Authenticate(), new GroupResource(), new Status(), new ClaimResource())
                 .start();
         }
 }

@@ -17,9 +17,7 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.msf4j</groupId>
         <artifactId>msf4j-service</artifactId>
@@ -30,7 +28,7 @@
 
     <groupId>org.wso2.carbon.identity.agent.onprem.userstore.java</groupId>
     <artifactId>identity-agent-onprem-userstore</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <modules>
         <module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>
     </modules>

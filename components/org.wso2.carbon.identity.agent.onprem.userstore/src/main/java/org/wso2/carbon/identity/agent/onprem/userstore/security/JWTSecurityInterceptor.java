@@ -63,26 +63,38 @@ public class JWTSecurityInterceptor implements Interceptor {
     public boolean preCall(Request request, Response responder, ServiceMethodInfo serviceMethodInfo)
             throws Exception {
 
-        try {
-            //No need to check security for status endpoint
-            if (request.getUri().startsWith(STATUS_URI)) {
-                return true;
-            }
+        String requestURI = request.getUri();
 
-            Map<String, String> headers = request.getHeaders();
-
-            if (headers != null && headers.containsKey(AUTHORIZATION_HTTP_HEADER)) {
-                String authHeader = headers.get(AUTHORIZATION_HTTP_HEADER);
-                String token = extractAccessToken(authHeader);
-                return isValid(token);
-            } else {
-                throw new MSF4JSecurityException(SecurityErrorCode.AUTHENTICATION_FAILURE,
-                        "Missing Authorization header is the request.");
-            }
-        } catch (MSF4JSecurityException e) {
-            log.error(e.getMessage() + " Requested Path: " + request.getUri());
+        //No need to check security for status endpoint
+        if (requestURI.startsWith(STATUS_URI)) {
+            log.debug(String.format("Skipping '%s' as it is an open resource.", STATUS_URI));
+            return true;
         }
-        return false;
+
+        Map<String, String> headers = request.getHeaders();
+
+        if (headers != null && headers.containsKey(AUTHORIZATION_HTTP_HEADER)) {
+            String authHeader = headers.get(AUTHORIZATION_HTTP_HEADER);
+            String token = extractAccessToken(authHeader);
+
+            if (isValid(token)) {
+                return true;
+            } else {
+                log.debug(String.format("Can't allow accessing '%s' since the JWT is not valid.", requestURI));
+                respondWith401(responder);
+                return false;
+            }
+        } else {
+            log.error(String.format("Authorization header is missing in the request for '%s'.", requestURI));
+            respondWith401(responder);
+            return false;
+        }
+
+    }
+
+    private void respondWith401(Response responder) {
+        responder.setStatus(401);
+        responder.send();
     }
 
     /**

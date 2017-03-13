@@ -33,6 +33,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>
+        <module>components/org.wso2.carbon.identity.agent.outbound</module>
     </modules>
     <name>WSO2 Carbon - On Premise Userstore Agent Parent</name>
     <description>

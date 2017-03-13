@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<UserStoreManager class="org.wso2.carbon.identity.agent.onprem.userstore.manager.ldap.LDAPUserStoreManager">
+<UserStoreManager class="org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.outbound.manager.ldap.LDAPUserStoreManager">
 		<Property name="ConnectionURL">ldap://localhost:10389</Property>
 		<Property name="ConnectionName">uid=admin,ou=system</Property>
 		<Property name="ConnectionPassword">admin</Property>

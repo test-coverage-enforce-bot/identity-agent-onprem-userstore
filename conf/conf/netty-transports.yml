@@ -8,6 +8,6 @@ listenerConfigurations:
   bossThreadPoolSize: 2
   workerThreadPoolSize: 250
   scheme: https
-  keyStoreFile: "conf/security/wso2carbon.jks"
+  keyStoreFile: "conf/org.wso2.carbon.identity.agent.outbound.security/wso2carbon.jks"
   keyStorePass: wso2carbon
   certPass: wso2carbon

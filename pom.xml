@@ -96,6 +96,12 @@
                 <artifactId>msf4j-swagger</artifactId>
                 <version>${org.wso2.msf4j.swagger.version}}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.transport</groupId>
+                <artifactId>org.wso2.carbon.transport.http.netty</artifactId>
+                <version>4.2.7-SNAPSHOT</version>
+                <!--TODO - change version -->
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -143,7 +149,7 @@
     </build>
 
     <properties>
-        <microservice.mainClass>org.wso2.carbon.identity.agent.onprem.userstore.Application</microservice.mainClass>
+        <microservice.mainClass>org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.outbound.Application</microservice.mainClass>
         <org.json.version>20160810</org.json.version>
         <commons.codec.version>1.9</commons.codec.version>
         <commons.axiom.impl.version>1.2.11-wso2v11</commons.axiom.impl.version>

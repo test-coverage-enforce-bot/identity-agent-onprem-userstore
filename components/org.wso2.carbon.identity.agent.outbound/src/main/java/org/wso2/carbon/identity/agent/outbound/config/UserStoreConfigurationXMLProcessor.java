@@ -45,7 +45,7 @@ import javax.xml.stream.XMLStreamException;
 class UserStoreConfigurationXMLProcessor {
 
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
-    private static final String USERSTORE_CONFIG_FILE = "userstore-org.wso2.carbon.identity.agent.outbound.config.xml";
+    private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
     private static final String CONF_DIR = "conf";
     private InputStream inStream = null;
     private SecretResolver secretResolver;

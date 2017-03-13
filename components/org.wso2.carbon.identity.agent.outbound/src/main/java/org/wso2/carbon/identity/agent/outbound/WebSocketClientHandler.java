@@ -89,9 +89,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 try {
                     logger.info("Starting Authentication.");
                     JSONObject requestObj = resultObj.getJSONObject("requestData");
+                    logger.info("Starting Authentication 1.");
                     UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+                    logger.info("Starting Authentication 2.");
                     boolean isAuthenticated = userStoreManager
                             .doAuthenticate(requestObj.getString("username"), requestObj.getString("password"));
+                    logger.info("Starting Authentication 3.");
                     logger.info("Authentication result : " + isAuthenticated);
                     ch.writeAndFlush(new TextWebSocketFrame(
                             String.format("{correlationId : '%s', responseData: '%s'}",

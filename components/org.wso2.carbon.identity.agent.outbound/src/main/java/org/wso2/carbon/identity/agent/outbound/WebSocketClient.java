@@ -93,7 +93,7 @@ public class WebSocketClient {
                     new WebSocketClientHandler(
                             WebSocketClientHandshakerFactory.newHandshaker(
                                     uri, WebSocketVersion.V13, null,
-                                    true, new DefaultHttpHeaders()));
+                                    true, new DefaultHttpHeaders()), this);
 
             Bootstrap b = new Bootstrap();
             b.group(group)

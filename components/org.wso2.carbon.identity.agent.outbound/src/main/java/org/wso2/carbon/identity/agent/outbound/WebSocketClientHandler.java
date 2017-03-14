@@ -21,8 +21,10 @@ import org.wso2.carbon.identity.agent.outbound.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.outbound.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.outbound.manager.common.UserStoreManagerBuilder;
 
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import javax.net.ssl.SSLException;
 
 /**
  * WebSocket Client Handler for Testing.
@@ -36,9 +38,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;
+    private WebSocketClient client;
 
-    public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
+    public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketClient client) {
         this.handshaker = handshaker;
+        this.client = client;
     }
 
     public ChannelFuture handshakeFuture() {
@@ -57,7 +61,28 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+
         logger.info("WebSocket Client disconnected!");
+
+        while (true) {
+
+            boolean result = false;
+            try {
+                logger.info("Trying to reconnect the server...");
+                result = client.handhshake();
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            } catch (URISyntaxException e) {
+                logger.error(e.getMessage());
+            } catch (SSLException e) {
+                logger.error(e.getMessage());
+            }
+            if (result) {
+                break;
+            }
+        }
+
     }
 
     @Override
@@ -87,15 +112,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
             if ("authenticate".equals((String) resultObj.get("requestType"))) {
                 try {
-                    logger.info("Starting Authentication.");
                     JSONObject requestObj = resultObj.getJSONObject("requestData");
-                    logger.info("Starting Authentication 1.");
                     UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-                    logger.info("Starting Authentication 2.");
                     boolean isAuthenticated = userStoreManager
                             .doAuthenticate(requestObj.getString("username"), requestObj.getString("password"));
-                    logger.info("Starting Authentication 3.");
-                    logger.info("Authentication result : " + isAuthenticated);
                     ch.writeAndFlush(new TextWebSocketFrame(
                             String.format("{correlationId : '%s', responseData: '%s'}",
                                     (String) resultObj.get("correlationId"),

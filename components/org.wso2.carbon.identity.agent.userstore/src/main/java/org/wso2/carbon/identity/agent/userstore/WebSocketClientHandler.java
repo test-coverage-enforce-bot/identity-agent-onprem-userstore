@@ -32,7 +32,7 @@ import javax.net.ssl.SSLException;
  */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
@@ -64,21 +64,21 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
 
-        logger.info("Socket Client disconnected!");
+        LOGGER.info("Socket Client disconnected!");
 
         while (true) {
 
             boolean result = false;
             try {
-                logger.info("Trying to reconnect the server...");
+                LOGGER.info("Trying to reconnect the server...");
                 result = client.handhshake();
                 Thread.sleep(SOCKET_RETRY_INTERVAL);
             } catch (InterruptedException e) {
-                logger.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to socket server", e);
             } catch (URISyntaxException e) {
-                logger.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to socket server", e);
             } catch (SSLException e) {
-                logger.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to socket server", e);
             }
             if (result) {
                 break;
@@ -87,71 +87,85 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     }
 
-    private void processUserOperationRequest(Channel ch, JSONObject resultObj) throws UserStoreException {
-        if (OperationConstants.UM_OPERATION_TYPE_AUTHENTICATE.equals((String) resultObj.get("requestType"))) {
+    private void writeResponse(Channel ch, String correlationId, String result) {
+        ch.writeAndFlush(new TextWebSocketFrame(
+                String.format("{correlationId : '%s', responseData: '%s'}", correlationId, result)));
+    }
 
-            JSONObject requestObj = resultObj.getJSONObject("requestData");
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-            boolean isAuthenticated = userStoreManager
-                    .doAuthenticate(requestObj.getString("username"), requestObj.getString("password"));
-            String authenticationResult = OperationConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
-            if (isAuthenticated) {
-                authenticationResult = OperationConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
-            }
-            ch.writeAndFlush(new TextWebSocketFrame(
-                    String.format("{correlationId : '%s', responseData: '%s'}",
-                            (String) resultObj.get("correlationId"), authenticationResult)));
+    private void processAuthenticationRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+        JSONObject requestData = requestObj.getJSONObject("requestData");
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+        boolean isAuthenticated = userStoreManager.doAuthenticate(requestData.getString("username"),
+                requestData.getString("password"));
+        String authenticationResult = OperationConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
+        if (isAuthenticated) {
+            authenticationResult = OperationConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
+        }
+        writeResponse(ch, (String) requestObj.get("correlationId"), authenticationResult);
+    }
 
-        } else if (OperationConstants.UM_OPERATION_TYPE_GET_CLAIMS.equals((String) resultObj.get("requestType"))) {
+    private void processGetClaimsRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+        JSONObject requestData = requestObj.getJSONObject("requestData");
+        String username = requestData.getString("username");
+        String attributes = requestData.getString("attributes");
+        String[] attributeArray = attributes.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
-            JSONObject requestObj = resultObj.getJSONObject("requestData");
-            String username = requestObj.getString("username");
-            String attributes = requestObj.getString("attributes");
-            String[] attributeArray = attributes.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+        Map<String, String> propertyMap = userStoreManager.getUserPropertyValues(username, attributeArray);
+        JSONObject returnObject = new JSONObject(propertyMap);
 
-            Map<String, String> propertyMap = userStoreManager.getUserPropertyValues(username, attributeArray);
-            JSONObject returnObject = new JSONObject(propertyMap);
+        writeResponse(ch, (String) requestObj.get("correlationId"), returnObject.toString());
+    }
 
-            logger.info("User Claim values: " + returnObject.toString());
-            ch.writeAndFlush(new TextWebSocketFrame(
-                    String.format("{correlationId : '%s', responseData: '%s'}",
-                            (String) resultObj.get("correlationId"),
-                            returnObject.toString())));
-        } else if (OperationConstants.UM_OPERATION_TYPE_GET_USER_ROLES
-                .equals((String) resultObj.get("requestType"))) {
+    private void processGetUserRolesRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+        JSONObject requestData = requestObj.getJSONObject("requestData");
+        String username = requestData.getString("username");
 
-            JSONObject requestObj = resultObj.getJSONObject("requestData");
-            String username = requestObj.getString("username");
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+        String[] roles = userStoreManager.doGetExternalRoleListOfUser(username);
+        JSONObject jsonObject = new JSONObject();
+        JSONArray usernameArray = new JSONArray(roles);
+        jsonObject.put("groups", usernameArray);
 
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-            String[] roles = userStoreManager.doGetExternalRoleListOfUser(username);
-            JSONObject jsonObject = new JSONObject();
-            JSONArray usernameArray = new JSONArray(roles);
-            jsonObject.put("groups", usernameArray);
-            ch.writeAndFlush(new TextWebSocketFrame(
-                    String.format("{correlationId : '%s', responseData: '%s'}",
-                            (String) resultObj.get("correlationId"),
-                            jsonObject.toString())));
-        } else if (OperationConstants.UM_OPERATION_TYPE_GET_ROLES.equals((String) resultObj.get("requestType"))) {
+        writeResponse(ch, (String) requestObj.get("correlationId"), jsonObject.toString());
+    }
 
-            JSONObject requestObj = resultObj.getJSONObject("requestData");
-            String limit = requestObj.getString("limit");
+    private void processGetRolesRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+        JSONObject requestData = requestObj.getJSONObject("requestData");
+        String limit = requestData.getString("limit");
 
-            if (limit == null || limit.isEmpty()) {
-                limit = String.valueOf(CommonConstants.MAX_USER_LIST);
-            }
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-            String[] roleNames = userStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
-            JSONObject returnObject = new JSONObject();
-            JSONArray usernameArray = new JSONArray(roleNames);
-            returnObject.put("groups", usernameArray);
+        if (limit == null || limit.isEmpty()) {
+            limit = String.valueOf(CommonConstants.MAX_USER_LIST);
+        }
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+        String[] roleNames = userStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
+        JSONObject returnObject = new JSONObject();
+        JSONArray usernameArray = new JSONArray(roleNames);
+        returnObject.put("groups", usernameArray);
 
-            logger.info("User Claim values: " + returnObject.toString());
-            ch.writeAndFlush(new TextWebSocketFrame(
-                    String.format("{correlationId : '%s', responseData: '%s'}",
-                            (String) resultObj.get("correlationId"),
-                            returnObject.toString())));
+        writeResponse(ch, (String) requestObj.get("correlationId"), returnObject.toString());
+    }
+
+    private void processUserOperationRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+
+        String type = (String) requestObj.get("requestType");
+
+        switch (type) {
+        case OperationConstants.UM_OPERATION_TYPE_AUTHENTICATE:
+            processAuthenticationRequest(ch, requestObj);
+            break;
+        case OperationConstants.UM_OPERATION_TYPE_GET_CLAIMS:
+            processGetClaimsRequest(ch, requestObj);
+            break;
+        case OperationConstants.UM_OPERATION_TYPE_GET_USER_ROLES:
+            processGetUserRolesRequest(ch, requestObj);
+            break;
+        case OperationConstants.UM_OPERATION_TYPE_GET_ROLES:
+            processGetRolesRequest(ch, requestObj);
+            break;
+        default:
+            LOGGER.error("Invalid user operation request type : " + type + " received.");
+            break;
         }
     }
 
@@ -160,7 +174,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-            logger.info("WebSocket Client connected!");
+            LOGGER.info("WebSocket Client connected!");
             handshakeFuture.setSuccess();
             return;
         }
@@ -177,7 +191,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
             JSONObject requestObj = new JSONObject(textFrame.text());
 
-            logger.info("WebSocket Client received text message: " + textFrame.text());
+            LOGGER.info("WebSocket Client received text message: " + textFrame.text());
             textReceived = textFrame.text();
 
             processUserOperationRequest(ch, requestObj);
@@ -185,13 +199,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         } else if (frame instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
             bufferReceived = binaryFrame.content().nioBuffer();
-            logger.info("WebSocket Client received  binary message: " + bufferReceived.toString());
+            LOGGER.info("WebSocket Client received  binary message: " + bufferReceived.toString());
         } else if (frame instanceof PongWebSocketFrame) {
-            logger.info("WebSocket Client received pong");
+            LOGGER.info("WebSocket Client received pong");
             PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
             bufferReceived = pongFrame.content().nioBuffer();
         } else if (frame instanceof CloseWebSocketFrame) {
-            logger.info("WebSocket Client received closing");
+            LOGGER.info("WebSocket Client received closing");
             ch.close();
         }
     }
@@ -213,7 +227,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (!handshakeFuture.isDone()) {
-            logger.error("Handshake failed : " + cause.getMessage(), cause);
+            LOGGER.error("Handshake failed : " + cause.getMessage(), cause);
             handshakeFuture.setFailure(cause);
         }
         ctx.close();

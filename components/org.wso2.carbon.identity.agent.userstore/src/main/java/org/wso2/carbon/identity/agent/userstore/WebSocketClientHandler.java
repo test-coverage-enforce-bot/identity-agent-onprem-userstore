@@ -87,12 +87,24 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     }
 
-    private void writeResponse(Channel ch, String correlationId, String result) {
-        ch.writeAndFlush(new TextWebSocketFrame(
+    /**
+     * Write response to server socket with correlationId
+     * @param channel
+     * @param correlationId
+     * @param result
+     */
+    private void writeResponse(Channel channel, String correlationId, String result) {
+        channel.writeAndFlush(new TextWebSocketFrame(
                 String.format("{correlationId : '%s', responseData: '%s'}", correlationId, result)));
     }
 
-    private void processAuthenticationRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+    /**
+     * Process authentication request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processAuthenticationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
@@ -103,11 +115,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (isAuthenticated) {
             authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
         }
-        writeResponse(ch, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 authenticationResult);
     }
 
-    private void processGetClaimsRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+    /**
+     * Process Get claims request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processGetClaimsRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         String username = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
@@ -118,11 +136,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         Map<String, String> propertyMap = userStoreManager.getUserPropertyValues(username, attributeArray);
         JSONObject returnObject = new JSONObject(propertyMap);
 
-        writeResponse(ch, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
-    private void processGetUserRolesRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+    /**
+     * Process get user roles request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processGetUserRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
         JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         String username = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
 
@@ -132,11 +156,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         JSONArray usernameArray = new JSONArray(roles);
         jsonObject.put("groups", usernameArray);
 
-        writeResponse(ch, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 jsonObject.toString());
     }
 
-    private void processGetRolesRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+    /**
+     * Process get roles request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processGetRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
         JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         String limit = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_GET_ROLE_LIMIT);
 
@@ -149,26 +179,32 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         JSONArray usernameArray = new JSONArray(roleNames);
         returnObject.put("groups", usernameArray);
 
-        writeResponse(ch, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
-    private void processUserOperationRequest(Channel ch, JSONObject requestObj) throws UserStoreException {
+    /**
+     * Process user operation request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processUserOperationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         String type = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
 
         switch (type) {
         case UserAgentConstants.UM_OPERATION_TYPE_AUTHENTICATE:
-            processAuthenticationRequest(ch, requestObj);
+            processAuthenticationRequest(channel, requestObj);
             break;
         case UserAgentConstants.UM_OPERATION_TYPE_GET_CLAIMS:
-            processGetClaimsRequest(ch, requestObj);
+            processGetClaimsRequest(channel, requestObj);
             break;
         case UserAgentConstants.UM_OPERATION_TYPE_GET_USER_ROLES:
-            processGetUserRolesRequest(ch, requestObj);
+            processGetUserRolesRequest(channel, requestObj);
             break;
         case UserAgentConstants.UM_OPERATION_TYPE_GET_ROLES:
-            processGetRolesRequest(ch, requestObj);
+            processGetRolesRequest(channel, requestObj);
             break;
         default:
             LOGGER.error("Invalid user operation request type : " + type + " received.");

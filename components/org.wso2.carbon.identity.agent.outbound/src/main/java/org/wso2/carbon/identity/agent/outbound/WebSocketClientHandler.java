@@ -139,7 +139,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                         String.format("{correlationId : '%s', responseData: '%s'}",
                                 (String) resultObj.get("correlationId"),
                                 returnObject.toString())));
-            } else if ("getroles".equals((String) resultObj.get("requestType"))) {
+            } else if ("getuserroles".equals((String) resultObj.get("requestType"))) {
 
                 JSONObject requestObj = resultObj.getJSONObject("requestData");
                 String username = requestObj.getString("username");
@@ -155,6 +155,25 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                         String.format("{correlationId : '%s', responseData: '%s'}",
                                 (String) resultObj.get("correlationId"),
                                 jsonObject.toString())));
+            } else if ("getroles".equals((String) resultObj.get("requestType"))) {
+
+                JSONObject requestObj = resultObj.getJSONObject("requestData");
+                String limit = requestObj.getString("limit");
+
+                if (limit == null || limit.isEmpty()) {
+                    limit = String.valueOf(CommonConstants.MAX_USER_LIST);
+                }
+                UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+                String[] roleNames = userStoreManager.doGetRoleNames("*", Integer.parseInt(limit));
+                JSONObject returnObject = new JSONObject();
+                JSONArray usernameArray = new JSONArray(roleNames);
+                returnObject.put("groups", usernameArray);
+
+                logger.info("User Claim values: " + returnObject.toString());
+                ch.writeAndFlush(new TextWebSocketFrame(
+                        String.format("{correlationId : '%s', responseData: '%s'}",
+                                (String) resultObj.get("correlationId"),
+                                returnObject.toString())));
             }
 
         } else if (frame instanceof BinaryWebSocketFrame) {

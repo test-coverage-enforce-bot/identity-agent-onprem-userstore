@@ -132,7 +132,7 @@ public class WebSocketClient {
             channel = b.connect(uri.getHost(), port).sync().channel();
             isDone = handler.handshakeFuture().sync().isSuccess();
         } catch (Exception e) {
-            logger.error("Handshake unsuccessful : " + e.getMessage(), e);
+            logger.error("Handshake unsuccessful" , e);
             return false;
         }
 

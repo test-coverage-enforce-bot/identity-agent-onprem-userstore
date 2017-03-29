@@ -36,6 +36,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
+    private final static int SOCKET_RETRY_INTERVAL = 2000; //Two seconds
 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;
@@ -71,11 +72,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             try {
                 logger.info("Trying to reconnect the server...");
                 result = client.handhshake();
-                Thread.sleep(2000);
+                Thread.sleep(SOCKET_RETRY_INTERVAL);
             } catch (InterruptedException e) {
                 logger.error("Error occurred while reconnecting to socket server", e);
             } catch (URISyntaxException e) {
-                logger.error("Error occurred while reconnecting to socket server", e);;
+                logger.error("Error occurred while reconnecting to socket server", e);
             } catch (SSLException e) {
                 logger.error("Error occurred while reconnecting to socket server", e);
             }

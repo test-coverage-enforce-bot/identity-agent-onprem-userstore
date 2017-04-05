@@ -17,15 +17,24 @@
 */
 package org.wso2.carbon.identity.agent.userstore;
 
-
+/**
+ * User agent constants
+ */
 public class UserAgentConstants {
 
-    public final static String UM_OPERATION_TYPE_AUTHENTICATE = "authenticate";
-    public final static String UM_OPERATION_TYPE_GET_CLAIMS = "getclaims";
-    public final static String UM_OPERATION_TYPE_GET_USER_ROLES = "getuserroles";
-    public final static String UM_OPERATION_TYPE_GET_ROLES = "getroles";
+    public static final String UM_OPERATION_TYPE_AUTHENTICATE = "authenticate";
+    public static final String UM_OPERATION_TYPE_GET_CLAIMS = "getclaims";
+    public static final String UM_OPERATION_TYPE_GET_USER_ROLES = "getuserroles";
+    public static final String UM_OPERATION_TYPE_GET_ROLES = "getroles";
 
-    public final static String UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS = "SUCCESS";
-    public final static String UM_OPERATION_AUTHENTICATE_RESULT_FAIL = "FAIL";
+    public static final String UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS = "SUCCESS";
+    public static final String UM_OPERATION_AUTHENTICATE_RESULT_FAIL = "FAIL";
 
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA = "requestData";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_TYPE = "requestType";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_ROLE_LIMIT = "limit";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_ATTRIBUTES = "attributes";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME = "username";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD = "password";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
 }

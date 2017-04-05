@@ -155,5 +155,5 @@ if [ "$CMD" = "--debug" ]; then
   echo "Please start the remote debugging client to continue..."
 fi
 # ----- Execute The Requested Command -----------------------------------------
-$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/org.wso2.carbon.identity.agent.outbound.security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.outbound.Application $*
+$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/org.wso2.carbon.identity.agent.outbound.security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.userstore.Application $*
 

@@ -23,17 +23,18 @@
     <parent>
         <groupId>org.wso2.msf4j</groupId>
         <artifactId>msf4j-service</artifactId>
-        <version>2.0.0</version>
+        <version>2.3.0-SNAPSHOT</version>
     </parent>
+
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.wso2.carbon.identity.agent.onprem.userstore.java</groupId>
+    <groupId>org.wso2.carbon.identity.agent.onprem.userstore</groupId>
     <artifactId>identity-agent-onprem-userstore</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>
-        <module>components/org.wso2.carbon.identity.agent.outbound</module>
+        <!--<module>components/org.wso2.carbon.identity.agent.onprem.userstore</module>-->
+        <module>components/org.wso2.carbon.identity.agent.userstore</module>
     </modules>
     <name>WSO2 Carbon - On Premise Userstore Agent Parent</name>
     <description>
@@ -95,12 +96,6 @@
                 <groupId>org.wso2.msf4j</groupId>
                 <artifactId>msf4j-swagger</artifactId>
                 <version>${org.wso2.msf4j.swagger.version}}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.transport</groupId>
-                <artifactId>org.wso2.carbon.transport.http.netty</artifactId>
-                <version>4.2.7-SNAPSHOT</version>
-                <!--TODO - change version -->
             </dependency>
         </dependencies>
     </dependencyManagement>

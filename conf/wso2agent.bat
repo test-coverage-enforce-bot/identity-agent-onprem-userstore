@@ -78,7 +78,7 @@ echo Using CARBON_HOME:   %CARBON_HOME%
 echo Using JAVA_HOME:    %JAVA_HOME%
 set _RUNJAVA="%JAVA_HOME%\bin\java"
 
-%_RUNJAVA% %JAVA_OPTS% -Dtransports.netty.conf="%CARBON_HOME%"\conf\netty-transports.yml -Dcarbon.home="%CARBON_HOME%" -Djavax.net.ssl.trustStore="$CARBON_HOME"\conf\org.wso2.carbon.identity.agent.outbound.security\client-truststore.jks -cp "%CARBON_CLASSPATH%" org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.outbound.Application %*
+%_RUNJAVA% %JAVA_OPTS% -Dtransports.netty.conf="%CARBON_HOME%"\conf\netty-transports.yml -Dcarbon.home="%CARBON_HOME%" -Djavax.net.ssl.trustStore="$CARBON_HOME"\conf\org.wso2.carbon.identity.agent.outbound.security\client-truststore.jks -cp "%CARBON_CLASSPATH%" org.wso2.carbon.identity.agent.userstore.Application %*
 endlocal
 :end
 PAUSE

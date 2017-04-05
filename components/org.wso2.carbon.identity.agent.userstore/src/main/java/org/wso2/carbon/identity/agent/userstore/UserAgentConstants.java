@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.agent.userstore;
 
 
-public class OperationConstants {
+public class UserAgentConstants {
 
     public final static String UM_OPERATION_TYPE_AUTHENTICATE = "authenticate";
     public final static String UM_OPERATION_TYPE_GET_CLAIMS = "getclaims";

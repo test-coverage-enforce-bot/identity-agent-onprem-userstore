@@ -36,7 +36,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
-    private final static int SOCKET_RETRY_INTERVAL = 2000; //Two seconds TODO : have to configure this ?
+    private static final int SOCKET_RETRY_INTERVAL = 2000; //Two seconds TODO : have to configure this ?
 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;
@@ -234,7 +234,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
             JSONObject requestObj = new JSONObject(textFrame.text());
 
-            LOGGER.info("WebSocket Client received text message: " + textFrame.text());
             textReceived = textFrame.text();
 
             processUserOperationRequest(ch, requestObj);

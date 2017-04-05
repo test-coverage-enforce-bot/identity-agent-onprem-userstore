@@ -1,6 +1,6 @@
 
 listenerConfigurations:
- 
+
  -
   id: "msf4j-https"
   host: "127.0.0.1"
@@ -8,6 +8,6 @@ listenerConfigurations:
   bossThreadPoolSize: 2
   workerThreadPoolSize: 250
   scheme: https
-  keyStoreFile: "conf/org.wso2.carbon.identity.agent.outbound.security/wso2carbon.jks"
+  keyStoreFile: "conf/security/wso2carbon.jks"
   keyStorePass: wso2carbon
   certPass: wso2carbon

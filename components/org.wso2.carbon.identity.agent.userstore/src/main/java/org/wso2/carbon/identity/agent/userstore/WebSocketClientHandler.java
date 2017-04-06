@@ -36,7 +36,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
-    private static final int SOCKET_RETRY_INTERVAL = 2000; //Two seconds TODO : have to configure this ?
+    private static final int SOCKET_RETRY_INTERVAL = 3000;
 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;

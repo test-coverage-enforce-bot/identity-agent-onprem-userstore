@@ -32,15 +32,54 @@ import javax.net.ssl.SSLException;
 public class Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
+    private Thread shutdownHook;
 
     public static void main(String[] args) throws InterruptedException, SSLException, URISyntaxException {
+
+        Application application = new Application();
+        application.startAgent();
+    }
+
+    private void startAgent() throws InterruptedException, SSLException, URISyntaxException {
         new SecretManagerInitializer().init();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter Access token: ");
         String accessToken = scanner.next();
-
-        WebSocketClient echoClient = new WebSocketClient("ws://localhost:8080/server/" + accessToken);
+        System.out.print("Enter Node (1, 2) : ");
+        String node = scanner.next();
+        WebSocketClient echoClient = new WebSocketClient("ws://localhost:8080/server/" + accessToken + "/" + node);
         //TODO configure URL
         echoClient.handhshake();
+        LOGGER.info("############ echoClient 1 : " + echoClient);
+        Application app = new Application();
+        app.addShutdownHook(echoClient);
+        LOGGER.info("############ echoClient 3 : " + echoClient);
+    }
+
+    private void addShutdownHook(WebSocketClient echoClient) {
+        LOGGER.info("############ echoClient 2 : " + echoClient);
+        if (shutdownHook != null) {
+            return;
+        }
+        LOGGER.info("############ echoClient 3 : " + echoClient);
+        shutdownHook = new Thread() {
+
+            public void run() {
+                LOGGER.info("############ echoClient 4 : " + echoClient);
+                LOGGER.info("Shutdown hook triggered....");
+                shutdownGracefully(echoClient);
+            }
+        };
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+
+    private void shutdownGracefully(WebSocketClient echoClient) {
+        try {
+            LOGGER.info("############ echoClient 5 : " + echoClient);
+            echoClient.shutDown();
+        } catch (InterruptedException e) {
+            LOGGER.error("Error occurred while sending shutdown signal.");
+        }
+        LOGGER.info("Shutdown hook triggered....");
     }
 }

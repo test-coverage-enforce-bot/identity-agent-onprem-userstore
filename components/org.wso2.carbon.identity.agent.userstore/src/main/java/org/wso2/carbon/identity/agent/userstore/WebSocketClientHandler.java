@@ -70,9 +70,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
             boolean result = false;
             try {
+                Thread.sleep(SOCKET_RETRY_INTERVAL);
                 LOGGER.info("Trying to reconnect the server...");
                 result = client.handhshake();
-                Thread.sleep(SOCKET_RETRY_INTERVAL);
             } catch (InterruptedException e) {
                 LOGGER.error("Error occurred while reconnecting to socket server", e);
             } catch (URISyntaxException e) {
@@ -206,10 +206,18 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         case UserAgentConstants.UM_OPERATION_TYPE_GET_ROLES:
             processGetRolesRequest(channel, requestObj);
             break;
+        case UserAgentConstants.UM_OPERATION_TYPE_ERROR:
+            logError(requestObj);
+            break;
         default:
             LOGGER.error("Invalid user operation request type : " + type + " received.");
             break;
         }
+    }
+
+    private void logError(JSONObject requestObj) {
+        String message = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        LOGGER.error(message);
     }
 
     @Override

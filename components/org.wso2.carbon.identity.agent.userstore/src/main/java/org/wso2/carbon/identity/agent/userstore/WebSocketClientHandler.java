@@ -208,6 +208,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             break;
         case UserAgentConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);
+            System.exit(0);
             break;
         default:
             LOGGER.error("Invalid user operation request type : " + type + " received.");

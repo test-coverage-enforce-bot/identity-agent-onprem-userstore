@@ -1,0 +1,5 @@
+
+brokerConfigurations:
+ 
+ -
+  url: "tcp://localhost:61616"

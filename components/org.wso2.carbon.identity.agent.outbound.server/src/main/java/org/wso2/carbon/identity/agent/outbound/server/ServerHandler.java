@@ -17,8 +17,12 @@
  */
 package org.wso2.carbon.identity.agent.outbound.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.websocket.Session;
@@ -29,6 +33,7 @@ import javax.websocket.Session;
 public class ServerHandler {
 
     //    private Map<String, Session> sessions = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
     private Map<String, Integer> counter = new HashMap<>();
     private Map<String, List<Session>> sessions = new HashMap<>();
 
@@ -42,18 +47,40 @@ public class ServerHandler {
             tenantSessions.add(session);
             sessions.put(tenant, tenantSessions);
         }
+        LOGGER.info("############# addSession sessions : " + sessions);
     }
 
+    /**
+     * Get client session as round robin to send message
+     * @param tenant
+     * @return
+     */
     public Session getSession(String tenant) {
-
-        return sessions.get(tenant).get(0); //TODO get should not 0
+        LOGGER.info("############# getSessions sessions : " + sessions);
+        if (counter.containsKey(tenant)) {
+            int lastcounter = counter.get(tenant);
+            int index = 0;
+            if (lastcounter < (sessions.get(tenant).size() - 1)) {
+                index = ++lastcounter;
+            }
+            counter.put(tenant, index);
+            return sessions.get(tenant).get(index);
+        } else {
+            counter.put(tenant, 0);
+            return sessions.get(tenant).get(0);
+        }
     }
 
-    public void removeSession(Session session) {
-        sessions.remove(session);
-    }
+    public void removeSession(String tenant, Session session) {
 
-    public void removeSession(String tenant) {
-        sessions.remove(tenant);
+        Iterator<Session> iterator = sessions.get(tenant).iterator();
+        while (iterator.hasNext()) {
+            Session tmpSession = iterator.next();
+
+            if (tmpSession.getId().equals(session.getId())) {
+                sessions.get(tenant).remove(tmpSession);
+                break;
+            }
+        }
     }
 }

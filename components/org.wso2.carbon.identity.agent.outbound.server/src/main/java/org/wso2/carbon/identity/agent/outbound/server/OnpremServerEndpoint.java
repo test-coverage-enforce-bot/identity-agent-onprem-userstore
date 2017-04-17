@@ -77,6 +77,7 @@ public class OnpremServerEndpoint {
         tokenMgtDao.closeAllConnection(serverNode);
     }
 
+    //TODO improve this
     private void initNodeList() {
         NODES_LIST.add("1");
         NODES_LIST.add("2");
@@ -88,7 +89,7 @@ public class OnpremServerEndpoint {
     }
 
     private void removeSession(String tenant, Session session) {
-        serverHandler.removeSession(tenant);
+        serverHandler.removeSession(tenant, session);
     }
 
     //TODO consider concurrency
@@ -239,11 +240,11 @@ public class OnpremServerEndpoint {
     }
 
     @OnMessage
-    public void onTextMessage(@PathParam("token") String tenant, String text, Session session) throws IOException {
+    public void onTextMessage(@PathParam("token") String token, String text, Session session) throws IOException {
         Thread loop = new Thread(new Runnable() {
 
             public void run() {
-                processResponse(tenant, text);
+                processResponse(token, text);
             }
         });
         loop.start();
@@ -258,12 +259,14 @@ public class OnpremServerEndpoint {
     @OnClose
     public void onClose(@PathParam("token") String token, @PathParam("node") String node, CloseReason closeReason,
             Session session) {
-        log.info("########### Client disconnected token : " + token + " Node : " + node);
         log.info("Connection is closed with status code : " + closeReason.getCloseCode().getCode()
                 + " On reason " + closeReason.getReasonPhrase());
-        serverHandler.removeSession(session);
-
+        AccessToken accessToken = validateAccessToken(token);
+        log.info("########## onClose 1");
+        removeSession(accessToken.getTenant(), session);
+        log.info("########## onClose 2");
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
+        log.info("########## onClose 3");
         tokenMgtDao.updateConnection(token, node, serverNode, ServerConstants.CLIENT_CONNECTION_STATUS_CLOSED);
     }
 

@@ -22,13 +22,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSConnectionException;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSConnectionFactory;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.MessageBrokerConfigUtil;
 import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConstants;
-import org.wso2.carbon.identity.dao.TokenMgtDao;
 import org.wso2.carbon.identity.user.store.outbound.model.AccessToken;
 import org.wso2.carbon.identity.user.store.outbound.model.UserOperation;
 
@@ -48,9 +48,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-
-//import org.wso2.carbon.identity.user.store.outbound.model.AccessToken;
-//import org.wso2.carbon.identity.user.store.outbound.model.UserOperation;
 
 /**
  * Server endpoint

@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.identity.dao;
+package org.wso2.carbon.identity.agent.outbound.server.dao;
 
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;

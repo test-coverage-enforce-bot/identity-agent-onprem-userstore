@@ -20,8 +20,15 @@ package org.wso2.carbon.identity.agent.outbound.server.messaging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.introspector.BeanAccess;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -30,26 +37,23 @@ import java.nio.file.Paths;
  */
 public class MessageBrokerConfigUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageBrokerConfigUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBrokerConfigUtil.class);
     private static final String FILE_NAME = "message-broker.yml";
 
     public static MessageBrokerConfig build() {
         Path path = Paths.get("conf" + File.separator + FILE_NAME);
         MessageBrokerConfig config = null;
-        //TODO
-        //        if (Files.exists(path)) {
-        //            try {
-        //                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
-        //                Yaml yaml = new Yaml();
-        //                yaml.setBeanAccess(BeanAccess.FIELD);
-        //                config = yaml.loadAs(in, MessageBrokerConfig.class);
-        //            } catch (IOException e) {
-        //                String errorMessage = "Error occurred while loading the " + FILE_NAME + " yaml file, ";
-        //                logger.error(errorMessage, e);
-        //            }
-        //        }
-        config = new MessageBrokerConfig();
-        config.setUrl("tcp://localhost:61616");
+        if (Files.exists(path)) {
+            try {
+                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
+                Yaml yaml = new Yaml();
+                yaml.setBeanAccess(BeanAccess.FIELD);
+                config = yaml.loadAs(in, MessageBrokerConfig.class);
+            } catch (IOException e) {
+                String errorMessage = "Error occurred while loading the " + FILE_NAME + " yaml file, ";
+                LOGGER.error(errorMessage, e);
+            }
+        }
         return config;
     }
 }

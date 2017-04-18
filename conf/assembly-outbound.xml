@@ -68,6 +68,11 @@
             <fileMode>644</fileMode>
         </file>
         <file>
+            <source>../../conf/conf/agent-config.yml</source>
+            <outputDirectory>wso2agent-${pom.version}/conf</outputDirectory>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
             <source>../../conf/conf/security/cipher-text.properties</source>
             <outputDirectory>wso2agent-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>

@@ -17,6 +17,7 @@ package org.wso2.carbon.identity.agent.userstore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
 
 import java.net.URISyntaxException;
@@ -47,7 +48,8 @@ public class Application {
         String accessToken = scanner.next();
         System.out.print("Enter Node (1, 2) : ");
         String node = scanner.next();
-        WebSocketClient echoClient = new WebSocketClient("ws://localhost:8080/server/" + accessToken + "/" + node);
+        WebSocketClient echoClient = new WebSocketClient(
+                AgentConfigUtil.build().getServerUrl() + accessToken + "/" + node);
         //TODO configure URL
         echoClient.handhshake();
         LOGGER.info("############ echoClient 1 : " + echoClient);

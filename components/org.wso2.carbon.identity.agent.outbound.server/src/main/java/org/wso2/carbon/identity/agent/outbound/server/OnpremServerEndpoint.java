@@ -57,6 +57,7 @@ public class OnpremServerEndpoint {
 
     private static final Logger log = LoggerFactory.getLogger(OnpremServerEndpoint.class);
     private static final String QUEUE_NAME_RESPONSE = "responseQueue";
+    private static final long QUEUE_MESSAGE_LIFETIME = 5 * 60 * 1000;
     private static final ArrayList<String> NODES_LIST = new ArrayList();
     private ServerHandler serverHandler;
     private String serverNode;
@@ -141,6 +142,7 @@ public class OnpremServerEndpoint {
 
             ObjectMessage requestMessage = session.createObjectMessage();
             requestMessage.setObject(requestOperation);
+            requestMessage.setJMSExpiration(QUEUE_MESSAGE_LIFETIME);
             requestMessage.setJMSCorrelationID(correlationId);
             producer.send(requestMessage);
 
@@ -207,12 +209,12 @@ public class OnpremServerEndpoint {
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         if (tokenMgtDao.isConnectionExist(accessToken, node)) {
             tokenMgtDao.updateConnection(accessToken.getAccessToken(), node, serverNode,
-                    ServerConstants.CLIENT_CONNECTION_STATUS_ACTIVE);
+                    ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
         } else {
             log.info("############### addConnection serverNode :  " + serverNode);
             AgentConnection connection = new AgentConnection();
             connection.setAccessToken(accessToken.getAccessToken());
-            connection.setStatus(ServerConstants.CLIENT_CONNECTION_STATUS_ACTIVE);
+            connection.setStatus(ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             connection.setNode(node);
             connection.setServerNode(serverNode);
             tokenMgtDao.addAgentConnection(connection);
@@ -264,7 +266,8 @@ public class OnpremServerEndpoint {
         log.info("########## onClose 2");
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         log.info("########## onClose 3");
-        tokenMgtDao.updateConnection(token, node, serverNode, ServerConstants.CLIENT_CONNECTION_STATUS_CLOSED);
+        tokenMgtDao
+                .updateConnection(token, node, serverNode, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
     }
 
     @OnError

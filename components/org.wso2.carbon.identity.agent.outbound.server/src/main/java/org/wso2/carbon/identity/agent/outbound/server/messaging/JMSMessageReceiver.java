@@ -61,6 +61,12 @@ public class JMSMessageReceiver implements MessageListener {
     public void onMessage(Message message) {
         try {
             log.info("Message received : " + message.getJMSCorrelationID());
+            if (((ObjectMessage) message).getObject() instanceof UserOperation) {
+                log.info("@@@@@@@@@@@@@Message received UserOperation");
+            } else {
+                log.info("@@@@@@@@@@@@@Message received Not UserOperation");
+            }
+
             UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
             processOperation(userOperation);
         } catch (JMSException e) {
@@ -79,7 +85,7 @@ public class JMSMessageReceiver implements MessageListener {
     public void processOperation(UserOperation userOperation) {
         Thread loop = new Thread(() -> {
             try {
-                serverHandler.getSession(userOperation.getTenant()).getBasicRemote()
+                serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain()).getBasicRemote()
                         .sendText(convertToJson(userOperation));
             } catch (IOException ex) {
                 log.error("Error occurred while sending messaging to client", ex);

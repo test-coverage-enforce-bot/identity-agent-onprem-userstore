@@ -82,32 +82,12 @@ public class OnpremServerEndpoint {
     }
 
     //TODO consider concurrency
-    private void addSession(String tenant, Session session) {
-        serverHandler.addSession(tenant, session);
+    private void addSession(String tenantDomain, String userstoreDomain, Session session) {
+        serverHandler.addSession(tenantDomain, userstoreDomain, session);
     }
 
-    private void removeSession(String tenant, Session session) {
-        serverHandler.removeSession(tenant, session);
-    }
-
-    //TODO consider concurrency
-    private Session getSession(String tenant) {
-        return serverHandler.getSession(tenant);
-    }
-
-    public void processOperation(UserOperation userOperation) {
-        Thread loop = new Thread(new Runnable() {
-
-            public void run() {
-                try {
-                    getSession(userOperation.getTenant()).getBasicRemote()
-                            .sendText(convertToJson(userOperation));
-                } catch (IOException ex) {
-                    log.error("Error occurred while sending messaging to client", ex);
-                }
-            }
-        });
-        loop.start();
+    private void removeSession(String tenantDomain, String userstoreDomain, Session session) {
+        serverHandler.removeSession(tenantDomain, userstoreDomain, session);
     }
 
     private String convertToJson(UserOperation userOperation) {
@@ -180,14 +160,6 @@ public class OnpremServerEndpoint {
             } catch (IOException e) {
                 log.error("Error occurred while closing session.");
             }
-        } else if (!isValidNode(node)) {
-            try {
-                String message = "Closing session due to invalid node.";
-                log.error(message);
-                sendErrorMessage(session, message);
-            } catch (IOException e) {
-                log.error("Error occurred while closing session.");
-            }
         } else if (isNodeConnected(accessToken, node)) {
             try {
                 String message = "Node " + node + " already connected";
@@ -199,7 +171,7 @@ public class OnpremServerEndpoint {
         } else {
             log.info("############### serverNode :  " + serverNode);
             addConnection(accessToken, node);
-            addSession(accessToken.getTenant(), session);
+            addSession(accessToken.getTenant(), accessToken.getDomain(), session);
             String msg = accessToken.getTenant() + " connected to server";
             log.info(msg);
         }
@@ -207,13 +179,13 @@ public class OnpremServerEndpoint {
 
     private void addConnection(AccessToken accessToken, String node) {
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        if (tokenMgtDao.isConnectionExist(accessToken, node)) {
-            tokenMgtDao.updateConnection(accessToken.getAccessToken(), node, serverNode,
+        if (tokenMgtDao.isConnectionExist(accessToken.getId(), node)) {
+            tokenMgtDao.updateConnection(accessToken.getId(), node, serverNode,
                     ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
         } else {
             log.info("############### addConnection serverNode :  " + serverNode);
             AgentConnection connection = new AgentConnection();
-            connection.setAccessToken(accessToken.getAccessToken());
+            connection.setAccessTokenId(accessToken.getId());
             connection.setStatus(ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             connection.setNode(node);
             connection.setServerNode(serverNode);
@@ -223,7 +195,7 @@ public class OnpremServerEndpoint {
 
     private boolean isNodeConnected(AccessToken accessToken, String node) {
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        return tokenMgtDao.isNodeConnected(accessToken, node);
+        return tokenMgtDao.isNodeConnected(accessToken.getId(), node);
     }
 
     private boolean isValidNode(String node) {
@@ -262,12 +234,12 @@ public class OnpremServerEndpoint {
                 + " On reason " + closeReason.getReasonPhrase());
         AccessToken accessToken = validateAccessToken(token);
         log.info("########## onClose 1");
-        removeSession(accessToken.getTenant(), session);
+        removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
         log.info("########## onClose 2");
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         log.info("########## onClose 3");
-        tokenMgtDao
-                .updateConnection(token, node, serverNode, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+        tokenMgtDao.updateConnection(accessToken.getId(), node, serverNode,
+                ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
     }
 
     @OnError

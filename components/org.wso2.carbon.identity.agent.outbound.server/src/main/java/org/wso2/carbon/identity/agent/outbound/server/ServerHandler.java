@@ -37,48 +37,52 @@ public class ServerHandler {
     private Map<String, Integer> counter = new HashMap<>();
     private Map<String, List<Session>> sessions = new HashMap<>();
 
-    public void addSession(String tenant, Session session) {
-        if (sessions.containsKey(tenant)) {
-            List<Session> tenantSessions = sessions.get(tenant);
+    private String getKey(String tenantDomain, String userstoreDomain) {
+        return userstoreDomain + tenantDomain;
+    }
+
+    public void addSession(String tenantDomain, String userstoreDomain, Session session) {
+        if (sessions.containsKey(getKey(tenantDomain, userstoreDomain))) {
+            List<Session> tenantSessions = sessions.get(getKey(tenantDomain, userstoreDomain));
             tenantSessions.add(session);
-            sessions.put(tenant, tenantSessions);
+            sessions.put(getKey(tenantDomain, userstoreDomain), tenantSessions);
         } else {
             List<Session> tenantSessions = new ArrayList<>();
             tenantSessions.add(session);
-            sessions.put(tenant, tenantSessions);
+            sessions.put(getKey(tenantDomain, userstoreDomain), tenantSessions);
         }
         LOGGER.info("############# addSession sessions : " + sessions);
     }
 
     /**
      * Get client session as round robin to send message
-     * @param tenant
+     * @param userstoreDomain
      * @return
      */
-    public Session getSession(String tenant) {
+    public Session getSession(String tenantDomain, String userstoreDomain) {
         LOGGER.info("############# getSessions sessions : " + sessions);
-        if (counter.containsKey(tenant)) {
-            int lastcounter = counter.get(tenant);
+        if (counter.containsKey(getKey(tenantDomain, userstoreDomain))) {
+            int lastcounter = counter.get(getKey(tenantDomain, userstoreDomain));
             int index = 0;
-            if (lastcounter < (sessions.get(tenant).size() - 1)) {
+            if (lastcounter < (sessions.get(getKey(tenantDomain, userstoreDomain)).size() - 1)) {
                 index = ++lastcounter;
             }
-            counter.put(tenant, index);
-            return sessions.get(tenant).get(index);
+            counter.put(getKey(tenantDomain, userstoreDomain), index);
+            return sessions.get(getKey(tenantDomain, userstoreDomain)).get(index);
         } else {
-            counter.put(tenant, 0);
-            return sessions.get(tenant).get(0);
+            counter.put(getKey(tenantDomain, userstoreDomain), 0);
+            return sessions.get(getKey(tenantDomain, userstoreDomain)).get(0);
         }
     }
 
-    public void removeSession(String tenant, Session session) {
+    public void removeSession(String tenantDomain, String userstoreDomain, Session session) {
 
-        Iterator<Session> iterator = sessions.get(tenant).iterator();
+        Iterator<Session> iterator = sessions.get(getKey(tenantDomain, userstoreDomain)).iterator();
         while (iterator.hasNext()) {
             Session tmpSession = iterator.next();
 
             if (tmpSession.getId().equals(session.getId())) {
-                sessions.get(tenant).remove(tmpSession);
+                sessions.get(getKey(tenantDomain, userstoreDomain)).remove(tmpSession);
                 break;
             }
         }

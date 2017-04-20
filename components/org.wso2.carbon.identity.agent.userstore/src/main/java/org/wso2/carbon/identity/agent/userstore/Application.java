@@ -20,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
 
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 import javax.net.ssl.SSLException;
 
@@ -35,21 +37,21 @@ public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
     private Thread shutdownHook;
 
-    public static void main(String[] args) throws InterruptedException, SSLException, URISyntaxException {
+    public static void main(String[] args)
+            throws InterruptedException, SSLException, URISyntaxException, UnknownHostException {
 
         Application application = new Application();
         application.startAgent();
     }
 
-    private void startAgent() throws InterruptedException, SSLException, URISyntaxException {
+    private void startAgent() throws InterruptedException, SSLException, URISyntaxException, UnknownHostException {
         new SecretManagerInitializer().init();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter Access token: ");
         String accessToken = scanner.next();
-        System.out.print("Enter Node (1, 2) : ");
-        String node = scanner.next();
+        String hostname = InetAddress.getLocalHost().getHostName();
         WebSocketClient echoClient = new WebSocketClient(
-                AgentConfigUtil.build().getServerUrl() + accessToken + "/" + node);
+                AgentConfigUtil.build().getServerUrl() + accessToken + "/" + hostname);
         //TODO configure URL
         echoClient.handhshake();
         LOGGER.info("############ echoClient 1 : " + echoClient);

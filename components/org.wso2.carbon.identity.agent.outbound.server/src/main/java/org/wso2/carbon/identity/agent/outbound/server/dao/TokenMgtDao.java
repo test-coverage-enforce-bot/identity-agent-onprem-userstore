@@ -46,7 +46,8 @@ public class TokenMgtDao {
         try {
             dbConnection = getDBConnection();
             prepStmt = dbConnection.prepareStatement(
-                    "SELECT UM_TOKEN, UM_TENANT FROM UM_ACCESS_TOKEN WHERE UM_TOKEN = ? AND UM_STATUS = ?");
+                    "SELECT UM_ID,UM_TOKEN,UM_TENANT,UM_DOMAIN FROM UM_ACCESS_TOKEN WHERE UM_TOKEN = ? AND " +
+                            "UM_STATUS = ?");
             prepStmt.setString(1, accessToken);
             prepStmt.setString(2, ServerConstants.ACCESS_TOKEN_STATUS_ACTIVE);
             resultSet = prepStmt.executeQuery();
@@ -55,7 +56,9 @@ public class TokenMgtDao {
                 log.info("########### TokenMgtDao.validateAccessToken true"); //TODO remove log
                 AccessToken token = new AccessToken();
                 token.setAccessToken(resultSet.getString("UM_TOKEN"));
+                token.setId(resultSet.getInt("UM_ID"));
                 token.setTenant(resultSet.getString("UM_TENANT"));
+                token.setDomain(resultSet.getString("UM_DOMAIN"));
                 log.info("########### TokenMgtDao.validateAccessToken token :" + token); //TODO remove log
                 return token;
             }
@@ -68,17 +71,17 @@ public class TokenMgtDao {
         return null;
     }
 
-    public boolean updateConnection(String accessToken, String node, String serverNode, String status) {
+    public boolean updateConnection(int accessTokenId, String node, String serverNode, String status) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         boolean result = true;
         try {
             dbConnection = getDBConnection();
             prepStmt = dbConnection.prepareStatement("UPDATE UM_AGENT_CONNECTIONS SET UM_STATUS=?,UM_SERVER_NODE=? " +
-                    "WHERE UM_ACCESS_TOKEN=? AND UM_NODE=?");
+                    "WHERE UM_ACCESS_TOKEN_ID=? AND UM_NODE=?");
             prepStmt.setString(1, status);
             prepStmt.setString(2, serverNode);
-            prepStmt.setString(3, accessToken);
+            prepStmt.setInt(3, accessTokenId);
             prepStmt.setString(4, node);
             prepStmt.executeUpdate();
             dbConnection.commit();
@@ -114,7 +117,7 @@ public class TokenMgtDao {
         return result;
     }
 
-    public boolean isNodeConnected(AccessToken accessToken, String node) {
+    public boolean isNodeConnected(int accessTokenId, String node) {
         java.sql.Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -122,8 +125,8 @@ public class TokenMgtDao {
         try {
             dbConnection = getDBConnection();
             prepStmt = dbConnection.prepareStatement("SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
-                    "UM_ACCESS_TOKEN = ? AND UM_NODE = ? AND UM_STATUS = ?");
-            prepStmt.setString(1, accessToken.getAccessToken());
+                    "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ? AND UM_STATUS = ?");
+            prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
             prepStmt.setString(3, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             resultSet = prepStmt.executeQuery();
@@ -140,7 +143,7 @@ public class TokenMgtDao {
         return isValid;
     }
 
-    public boolean isConnectionExist(AccessToken accessToken, String node) {
+    public boolean isConnectionExist(int accessTokenId, String node) {
         java.sql.Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -148,8 +151,8 @@ public class TokenMgtDao {
         try {
             dbConnection = getDBConnection();
             prepStmt = dbConnection.prepareStatement("SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
-                    "UM_ACCESS_TOKEN = ? AND UM_NODE = ?");
-            prepStmt.setString(1, accessToken.getAccessToken());
+                    "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ?");
+            prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
             resultSet = prepStmt.executeQuery();
 
@@ -171,9 +174,9 @@ public class TokenMgtDao {
         boolean result = true;
         try {
             dbConnection = getDBConnection();
-            prepStmt = dbConnection.prepareStatement("INSERT INTO UM_AGENT_CONNECTIONS(UM_ACCESS_TOKEN,UM_NODE," +
+            prepStmt = dbConnection.prepareStatement("INSERT INTO UM_AGENT_CONNECTIONS(UM_ACCESS_TOKEN_ID,UM_NODE," +
                     "UM_STATUS,UM_SERVER_NODE)VALUES(?,?,?,?)");
-            prepStmt.setString(1, connection.getAccessToken());
+            prepStmt.setInt(1, connection.getAccessTokenId());
             prepStmt.setString(2, connection.getNode());
             prepStmt.setString(3, connection.getStatus());
             prepStmt.setString(4, connection.getServerNode());

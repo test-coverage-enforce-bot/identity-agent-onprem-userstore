@@ -23,17 +23,18 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
-import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSConnectionException;
-import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSConnectionFactory;
-import org.wso2.carbon.identity.agent.outbound.server.messaging.MessageBrokerConfigUtil;
 import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConstants;
-import org.wso2.carbon.identity.user.store.outbound.model.AccessToken;
-import org.wso2.carbon.identity.user.store.outbound.model.UserOperation;
+import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionException;
+import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionFactory;
+import org.wso2.carbon.identity.user.store.common.model.AccessToken;
+import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -58,14 +59,12 @@ public class OnpremServerEndpoint {
     private static final Logger log = LoggerFactory.getLogger(OnpremServerEndpoint.class);
     private static final String QUEUE_NAME_RESPONSE = "responseQueue";
     private static final long QUEUE_MESSAGE_LIFETIME = 5 * 60 * 1000;
-    private static final ArrayList<String> NODES_LIST = new ArrayList();
     private ServerHandler serverHandler;
     private String serverNode;
 
     public OnpremServerEndpoint(ServerHandler serverHandler, String serverNode) {
         this.serverHandler = serverHandler;
         this.serverNode = serverNode;
-        initNodeList();
         initializeConnections();
         log.info("############## OnPremise managed server started. : " + serverNode);
     }
@@ -73,12 +72,6 @@ public class OnpremServerEndpoint {
     private void initializeConnections() {
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         tokenMgtDao.closeAllConnection(serverNode);
-    }
-
-    //TODO improve this
-    private void initNodeList() {
-        NODES_LIST.add("1");
-        NODES_LIST.add("2");
     }
 
     //TODO consider concurrency
@@ -104,7 +97,7 @@ public class OnpremServerEndpoint {
         Connection connection = null;
         MessageProducer producer;
         try {
-            MessageBrokerConfig conf = MessageBrokerConfigUtil.build();
+            MessageBrokerConfig conf = ServerConfigUtil.build().getMessagebroker();
             connectionFactory.createActiveMQConnectionFactory(conf.getUrl());
             connection = connectionFactory.createConnection();
             connectionFactory.start(connection);
@@ -146,8 +139,23 @@ public class OnpremServerEndpoint {
         return tokenMgtDao.validateAccessToken(accessToken);
     }
 
+    private boolean isConnectionLimitExceed(String tenantDomain, String domain) {
+        TokenMgtDao tokenMgtDao = new TokenMgtDao();
+        List<AgentConnection> agentConnections = tokenMgtDao
+                .getAgentConnections(tenantDomain, domain, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
+        if (agentConnections.size() >= ServerConfigUtil.build().getServer().getConnectionlimit()) {
+            return true;
+        }
+        return false;
+    }
+
     @OnOpen
     public void onOpen(@PathParam("token") String token, @PathParam("node") String node, Session session) {
+
+        handleSession(token, node, session);
+    }
+
+    private void handleSession(String token, String node, Session session) {
 
         log.info("########### Client connected token : " + token + " Node : " + node); //TODO remove log
         AccessToken accessToken = validateAccessToken(token);
@@ -158,11 +166,19 @@ public class OnpremServerEndpoint {
                 log.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                log.error("Error occurred while closing session.");
+                log.error("Error occurred while clolearsing session.");
             }
         } else if (isNodeConnected(accessToken, node)) {
             try {
                 String message = "Node " + node + " already connected";
+                log.error(message);
+                sendErrorMessage(session, message);
+            } catch (IOException e) {
+                log.error("Error occurred while closing session.");
+            }
+        } else if (isConnectionLimitExceed(accessToken.getTenant(), accessToken.getDomain())) {
+            try {
+                String message = "No of agent connections limit exceeded.";
                 log.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
@@ -176,6 +192,7 @@ public class OnpremServerEndpoint {
             log.info(msg);
         }
     }
+
 
     private void addConnection(AccessToken accessToken, String node) {
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
@@ -198,13 +215,9 @@ public class OnpremServerEndpoint {
         return tokenMgtDao.isNodeConnected(accessToken.getId(), node);
     }
 
-    private boolean isValidNode(String node) {
-        return NODES_LIST.contains(node);
-    }
-
     private void sendErrorMessage(Session session, String message) throws IOException {
         UserOperation userOperation = new UserOperation();
-        userOperation.setRequestType("error");
+        userOperation.setRequestType("error"); //TODO constant
         userOperation.setRequestData(message);
         session.getBasicRemote().sendText(convertToJson(userOperation));
         session.close();

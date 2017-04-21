@@ -1132,12 +1132,8 @@ public class LDAPUserStoreManager implements UserStoreManager {
      * {@inheritDoc}
      */
     @Override
-    public boolean getConnectionStatus() {
-        try {
-            connectionSource.getContext();
-        } catch (UserStoreException e) {
-            return false;
-        }
+    public boolean getConnectionStatus() throws UserStoreException {
+        connectionSource.getContext();
         return true;
     }
 

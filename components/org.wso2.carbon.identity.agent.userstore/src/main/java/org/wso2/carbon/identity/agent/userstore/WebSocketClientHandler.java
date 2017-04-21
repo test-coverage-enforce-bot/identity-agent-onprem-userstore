@@ -63,7 +63,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-
         LOGGER.info("Socket Client disconnected!");
 
         while (true) {
@@ -208,6 +207,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             break;
         case UserAgentConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);
+            client.setShutdownFlag(true);
             System.exit(0);
             break;
         default:
@@ -244,7 +244,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             JSONObject requestObj = new JSONObject(textFrame.text());
 
             textReceived = textFrame.text();
-
+            LOGGER.info("Message received : " + textReceived);
             processUserOperationRequest(ch, requestObj);
 
         } else if (frame instanceof BinaryWebSocketFrame) {

@@ -53,6 +53,7 @@ public class WebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
 
     private final String url;
+    private boolean shutdownFlag;
 
     public WebSocketClient(String url) {
         this.url = System.getProperty("url", url);
@@ -195,8 +196,19 @@ public class WebSocketClient {
      * Shutdown the WebSocket Client.
      */
     public void shutDown() throws InterruptedException {
-        channel.writeAndFlush(new CloseWebSocketFrame());
-        channel.closeFuture().sync();
-        group.shutdownGracefully();
+        /**
+         * Checking shutdown flag, when server close the connection channel.closeFuture().sync() hang and need to
+         * check shutdownFlag is false
+         */
+        if (!shutdownFlag) {
+            channel.writeAndFlush(new CloseWebSocketFrame());
+            channel.closeFuture().sync();
+            group.shutdownGracefully();
+        }
     }
+
+    public void setShutdownFlag(boolean shutdownFlag) {
+        this.shutdownFlag = shutdownFlag;
+    }
+
 }

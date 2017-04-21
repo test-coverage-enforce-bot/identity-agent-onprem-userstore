@@ -67,7 +67,7 @@ public interface UserStoreManager {
     /**
      * @return true if the connection to the userstore is healthy. false otherwise.
      */
-    boolean getConnectionStatus();
+    boolean getConnectionStatus() throws UserStoreException;
 
     /**
      * @param userName Username of the user whose existence is to be checked.

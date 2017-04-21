@@ -19,7 +19,10 @@ package org.wso2.carbon.identity.agent.outbound.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
+import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -86,5 +89,26 @@ public class ServerHandler {
                 break;
             }
         }
+    }
+
+    //TODO add this method to utility class
+    private String convertToJson(UserOperation userOperation) {
+
+        return String
+                .format("{correlationId : '%s', requestType : '%s', requestData : %s}",
+                        userOperation.getCorrelationId(),
+                        userOperation.getRequestType(), userOperation.getRequestData());
+    }
+
+    public void removeSessions(String tenantDomain, String userstoreDomain) throws IOException {
+        List<Session> sessionList = sessions.get(getKey(tenantDomain, userstoreDomain));
+        for (Session session : sessionList) {
+            UserOperation userOperation = new UserOperation();
+            userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
+            userOperation.setRequestData("Clossing client connections.");
+            session.getBasicRemote().sendText(convertToJson(userOperation));
+        }
+        sessions.remove(getKey(tenantDomain, userstoreDomain));
+        counter.remove(getKey(tenantDomain, userstoreDomain));
     }
 }

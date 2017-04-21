@@ -4,7 +4,9 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.ServerHandler;
-import org.wso2.carbon.identity.user.store.outbound.model.UserOperation;
+import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
+import org.wso2.carbon.identity.user.store.common.model.ServerOperation;
+import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
 import java.io.IOException;
 import javax.jms.Connection;
@@ -61,19 +63,13 @@ public class JMSMessageReceiver implements MessageListener {
     public void onMessage(Message message) {
         try {
             log.info("Message received : " + message.getJMSCorrelationID());
-            if (((ObjectMessage) message).getObject() instanceof UserOperation) {
-                log.info("@@@@@@@@@@@@@Message received UserOperation");
-            } else {
-                log.info("@@@@@@@@@@@@@Message received Not UserOperation");
-            }
-
-            UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
-            processOperation(userOperation);
+            processOperation(message);
         } catch (JMSException e) {
             log.error("Error occurred while receiving message", e);
         }
     }
 
+    //TODO add this method to utility class
     private String convertToJson(UserOperation userOperation) {
 
         return String
@@ -82,7 +78,30 @@ public class JMSMessageReceiver implements MessageListener {
                         userOperation.getRequestType(), userOperation.getRequestData());
     }
 
-    public void processOperation(UserOperation userOperation) {
+    public void processOperation(Message message) throws JMSException {
+        if (((ObjectMessage) message).getObject() instanceof UserOperation) {
+            UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
+            processUserOperation(userOperation);
+        } else if (((ObjectMessage) message).getObject() instanceof ServerOperation) {
+            ServerOperation serverOperation = (ServerOperation) ((ObjectMessage) message).getObject();
+            processServerOperation(serverOperation);
+        }
+    }
+
+    public void processServerOperation(ServerOperation serverOperation) {
+        Thread loop = new Thread(() -> {
+            if (serverOperation.getOperationType().equals(UserStoreConstants.SERVER_OPERATION_TYPE_KILL_AGENTS)) {
+                try {
+                    serverHandler.removeSessions(serverOperation.getTenantDomain(), serverOperation.getDomain());
+                } catch (IOException e) {
+                    log.error("Error occurred while closing agent connection", e);
+                }
+            }
+        });
+        loop.start();
+    }
+
+    public void processUserOperation(UserOperation userOperation) {
         Thread loop = new Thread(() -> {
             try {
                 serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain()).getBasicRemote()

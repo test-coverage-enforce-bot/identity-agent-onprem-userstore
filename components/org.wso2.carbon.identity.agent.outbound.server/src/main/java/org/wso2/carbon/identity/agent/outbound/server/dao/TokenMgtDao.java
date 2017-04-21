@@ -21,14 +21,18 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
+import org.wso2.carbon.identity.agent.outbound.server.model.DatabaseConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConstants;
-import org.wso2.carbon.identity.user.store.outbound.model.AccessToken;
+import org.wso2.carbon.identity.user.store.common.model.AccessToken;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.sql.DataSource;
 
 /**
@@ -36,7 +40,7 @@ import javax.sql.DataSource;
  */
 public class TokenMgtDao {
 
-    private static final Logger log = LoggerFactory.getLogger(TokenMgtDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TokenMgtDao.class);
     protected DataSource jdbcds = null;
 
     public AccessToken validateAccessToken(String accessToken) {
@@ -53,18 +57,18 @@ public class TokenMgtDao {
             resultSet = prepStmt.executeQuery();
 
             if (resultSet.next()) {
-                log.info("########### TokenMgtDao.validateAccessToken true"); //TODO remove log
+                LOGGER.info("########### TokenMgtDao.validateAccessToken true"); //TODO remove log
                 AccessToken token = new AccessToken();
                 token.setAccessToken(resultSet.getString("UM_TOKEN"));
                 token.setId(resultSet.getInt("UM_ID"));
                 token.setTenant(resultSet.getString("UM_TENANT"));
                 token.setDomain(resultSet.getString("UM_DOMAIN"));
-                log.info("########### TokenMgtDao.validateAccessToken token :" + token); //TODO remove log
+                LOGGER.info("########### TokenMgtDao.validateAccessToken token :" + token); //TODO remove log
                 return token;
             }
         } catch (SQLException e) {
             String errorMessage = "Error occurred while getting reading data";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -87,7 +91,7 @@ public class TokenMgtDao {
             dbConnection.commit();
         } catch (SQLException e) {
             String errorMessage = "Error occurred while updating connection";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
             result = false;
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, prepStmt);
@@ -109,7 +113,7 @@ public class TokenMgtDao {
             dbConnection.commit();
         } catch (SQLException e) {
             String errorMessage = "Error occurred while updating connection";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
             result = false;
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, prepStmt);
@@ -136,7 +140,7 @@ public class TokenMgtDao {
             }
         } catch (SQLException e) {
             String errorMessage = "Error occurred while getting reading data";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -161,7 +165,7 @@ public class TokenMgtDao {
             }
         } catch (SQLException e) {
             String errorMessage = "Error occurred while getting connection data";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -184,12 +188,42 @@ public class TokenMgtDao {
             dbConnection.commit();
         } catch (SQLException e) {
             String errorMessage = "Error occurred while getting reading data";
-            log.error(errorMessage, e);
+            LOGGER.error(errorMessage, e);
             result = false;
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, prepStmt);
         }
         return result;
+    }
+
+    public List<AgentConnection> getAgentConnections(String tenantDomain, String domain, String status)  {
+        Connection dbConnection = null;
+        PreparedStatement insertTokenPrepStmt = null;
+        ResultSet resultSet = null;
+        List<AgentConnection> agentConnections = new ArrayList<>();
+        try {
+            dbConnection = getDBConnection();
+            insertTokenPrepStmt = dbConnection.prepareStatement("SELECT UM_STATUS,UM_NODE,UM_ACCESS_TOKEN_ID," +
+                    "UM_SERVER_NODE FROM UM_AGENT_CONNECTIONS WHERE UM_STATUS =? AND UM_ACCESS_TOKEN_ID IN " +
+                    "(SELECT A.UM_ID FROM UM_ACCESS_TOKEN A WHERE A.UM_DOMAIN=? AND A.UM_TENANT=?);");
+            insertTokenPrepStmt.setString(1, status);
+            insertTokenPrepStmt.setString(2, domain);
+            insertTokenPrepStmt.setString(3, tenantDomain);
+            resultSet = insertTokenPrepStmt.executeQuery();
+            while (resultSet.next()) {
+                AgentConnection agentConnection = new AgentConnection();
+                agentConnection.setStatus(resultSet.getString("UM_STATUS"));
+                agentConnection.setNode(resultSet.getString("UM_NODE"));
+                agentConnection.setAccessTokenId(resultSet.getInt("UM_ACCESS_TOKEN_ID"));
+                agentConnection.setServerNode(resultSet.getString("UM_SERVER_NODE"));
+                agentConnections.add(agentConnection);
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Error occurred while reading agent information", e);
+        } finally {
+            DatabaseUtil.closeAllConnections(dbConnection, resultSet, insertTokenPrepStmt);
+        }
+        return agentConnections;
     }
 
     protected Connection getDBConnection() throws SQLException {
@@ -209,11 +243,12 @@ public class TokenMgtDao {
     }
 
     private DataSource loadUserStoreSpacificDataSoruce() {
+        DatabaseConfig dbConf = ServerConfigUtil.build().getDatabase();
         PoolProperties poolProperties = new PoolProperties();
-        poolProperties.setDriverClassName("com.mysql.jdbc.Driver");
-        poolProperties.setUrl("jdbc:mysql://localhost:3306/sampleuserstoredb");
-        poolProperties.setUsername("root");
-        poolProperties.setPassword("root");
+        poolProperties.setDriverClassName(dbConf.getDriver());
+        poolProperties.setUrl(dbConf.getUrl());
+        poolProperties.setUsername(dbConf.getUsername());
+        poolProperties.setPassword(dbConf.getPassword());
 
         return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
 

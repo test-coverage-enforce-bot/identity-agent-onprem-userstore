@@ -18,18 +18,35 @@
 package org.wso2.carbon.identity.agent.outbound.server.model;
 
 /**
- * Message broker config
+ * Deployment configurations
  */
-public class MessageBrokerConfig {
+public class DeploymentConfig {
 
-    private String url;
+    private MessageBrokerConfig messagebroker;
+    private DatabaseConfig database;
+    private ServerConfig server;
 
-    public String getUrl() {
-        return url;
+    public MessageBrokerConfig getMessagebroker() {
+        return messagebroker;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setMessagebroker(MessageBrokerConfig messagebroker) {
+        this.messagebroker = messagebroker;
     }
 
+    public DatabaseConfig getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(DatabaseConfig database) {
+        this.database = database;
+    }
+
+    public ServerConfig getServer() {
+        return server;
+    }
+
+    public void setServer(ServerConfig server) {
+        this.server = server;
+    }
 }

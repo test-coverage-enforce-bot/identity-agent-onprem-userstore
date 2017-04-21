@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.identity.agent.outbound.server.messaging;
+package org.wso2.carbon.identity.agent.outbound.server.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +35,9 @@ import java.nio.file.Paths;
 /**
  * Message broker config utility
  */
-public class MessageBrokerConfigUtil {
+public class ServerConfigUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBrokerConfigUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigUtil.class);
     private static final String FILE_NAME = "message-broker.yml";
 
     public static MessageBrokerConfig build() {

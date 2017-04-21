@@ -18,18 +18,18 @@
 package org.wso2.carbon.identity.agent.outbound.server.model;
 
 /**
- * Message broker config
+ * Server configuration
  */
-public class MessageBrokerConfig {
 
-    private String url;
+public class ServerConfig {
 
-    public String getUrl() {
-        return url;
+    private int connectionlimit;
+
+    public int getConnectionlimit() {
+        return connectionlimit;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setConnectionlimit(int connectionlimit) {
+        this.connectionlimit = connectionlimit;
     }
-
 }

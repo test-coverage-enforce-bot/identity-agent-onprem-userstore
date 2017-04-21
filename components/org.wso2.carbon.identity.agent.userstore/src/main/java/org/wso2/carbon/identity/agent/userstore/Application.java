@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.agent.userstore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
+import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
+import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
+import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
 
 import java.net.InetAddress;
@@ -46,6 +49,18 @@ public class Application {
 
     private void startAgent() throws InterruptedException, SSLException, URISyntaxException, UnknownHostException {
         new SecretManagerInitializer().init();
+        try {
+            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            boolean connectionStatus = userStoreManager.getConnectionStatus();
+            if (!connectionStatus) {
+                LOGGER.error("Cannot connect to user store, Please check the user store configurations.");
+                System.exit(0);
+            }
+        } catch (UserStoreException e) {
+            LOGGER.error("Cannot connect to user store, Please check the user store configurations.");
+            System.exit(0);
+        }
+
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter Access token: ");
         String accessToken = scanner.next();
@@ -61,16 +76,16 @@ public class Application {
     }
 
     private void addShutdownHook(WebSocketClient echoClient) {
-        LOGGER.info("############ echoClient 2 : " + echoClient);
+        LOGGER.info("############ addShutdownHook echoClient 2 : " + echoClient);
         if (shutdownHook != null) {
             return;
         }
-        LOGGER.info("############ echoClient 3 : " + echoClient);
+        LOGGER.info("############ addShutdownHook echoClient 3 : " + echoClient);
         shutdownHook = new Thread() {
 
             public void run() {
-                LOGGER.info("############ echoClient 4 : " + echoClient);
-                LOGGER.info("Shutdown hook triggered....");
+                LOGGER.info("############ addShutdownHook echoClient 4 : " + echoClient);
+                LOGGER.info("addShutdownHook Shutdown hook triggered....");
                 shutdownGracefully(echoClient);
             }
         };
@@ -79,11 +94,11 @@ public class Application {
 
     private void shutdownGracefully(WebSocketClient echoClient) {
         try {
-            LOGGER.info("############ echoClient 5 : " + echoClient);
+            LOGGER.info("############ shutdownGracefully echoClient 5 : " + echoClient);
             echoClient.shutDown();
         } catch (InterruptedException e) {
             LOGGER.error("Error occurred while sending shutdown signal.");
         }
-        LOGGER.info("Shutdown hook triggered....");
+        LOGGER.info("shutdownGracefully Shutdown hook triggered....");
     }
 }

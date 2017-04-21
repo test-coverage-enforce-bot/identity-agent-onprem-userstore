@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.agent.outbound.server.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
+import org.wso2.carbon.identity.agent.outbound.server.model.DeploymentConfig;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
@@ -38,20 +38,23 @@ import java.nio.file.Paths;
 public class ServerConfigUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigUtil.class);
-    private static final String FILE_NAME = "message-broker.yml";
+    private static final String FILE_NAME = "deployment.yml";
+    private static DeploymentConfig config = null;
 
-    public static MessageBrokerConfig build() {
+    public static DeploymentConfig build() {
         Path path = Paths.get("conf" + File.separator + FILE_NAME);
-        MessageBrokerConfig config = null;
-        if (Files.exists(path)) {
-            try {
-                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
-                Yaml yaml = new Yaml();
-                yaml.setBeanAccess(BeanAccess.FIELD);
-                config = yaml.loadAs(in, MessageBrokerConfig.class);
-            } catch (IOException e) {
-                String errorMessage = "Error occurred while loading the " + FILE_NAME + " yaml file, ";
-                LOGGER.error(errorMessage, e);
+        if (config == null) {
+            if (Files.exists(path)) {
+                try {
+                    Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
+                    Yaml yaml = new Yaml();
+                    yaml.setBeanAccess(BeanAccess.FIELD);
+                    config = yaml.loadAs(in, DeploymentConfig.class);
+                } catch (IOException e) {
+                    String errorMessage = "Error occurred while loading the " + FILE_NAME + " file.";
+                    LOGGER.error(errorMessage, e);
+                    System.exit(0);
+                }
             }
         }
         return config;

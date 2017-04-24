@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.agent.outbound.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
+import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiver;
 import org.wso2.msf4j.MicroservicesRunner;
 import org.wso2.msf4j.websocket.exception.WebSocketEndpointAnnotationException;
@@ -70,8 +70,8 @@ public class Application {
     }
 
     private void shutdownGracefully(String serverNode) {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        tokenMgtDao.closeAllConnection(serverNode);
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        agentMgtDao.closeAllConnection(serverNode);
         LOGGER.info("Shutting down server node " + serverNode);
     }
 }

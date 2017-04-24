@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
@@ -67,8 +68,8 @@ public class OnpremServerEndpoint {
     }
 
     private void initializeConnections() {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        tokenMgtDao.closeAllConnection(serverNode);
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        agentMgtDao.closeAllConnection(serverNode);
     }
 
     private void addSession(String tenantDomain, String userstoreDomain, Session session) {
@@ -137,8 +138,8 @@ public class OnpremServerEndpoint {
     }
 
     private boolean isConnectionLimitExceed(String tenantDomain, String domain) {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        List<AgentConnection> agentConnections = tokenMgtDao
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        List<AgentConnection> agentConnections = agentMgtDao
                 .getAgentConnections(tenantDomain, domain, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
         if (agentConnections.size() >= ServerConfigUtil.build().getServer().getConnectionlimit()) {
             return true;
@@ -187,9 +188,9 @@ public class OnpremServerEndpoint {
     }
 
     private void addConnection(AccessToken accessToken, String node) {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        if (tokenMgtDao.isConnectionExist(accessToken.getId(), node)) {
-            tokenMgtDao.updateConnection(accessToken.getId(), node, serverNode,
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        if (agentMgtDao.isConnectionExist(accessToken.getId(), node)) {
+            agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
                     UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
         } else {
             AgentConnection connection = new AgentConnection();
@@ -197,13 +198,13 @@ public class OnpremServerEndpoint {
             connection.setStatus(UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             connection.setNode(node);
             connection.setServerNode(serverNode);
-            tokenMgtDao.addAgentConnection(connection);
+            agentMgtDao.addAgentConnection(connection);
         }
     }
 
     private boolean isNodeConnected(AccessToken accessToken, String node) {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        return tokenMgtDao.isNodeConnected(accessToken.getId(), node);
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        return agentMgtDao.isNodeConnected(accessToken.getId(), node);
     }
 
     private void sendErrorMessage(Session session, String message) throws IOException {
@@ -238,8 +239,8 @@ public class OnpremServerEndpoint {
                 + " On reason " + closeReason.getReasonPhrase());
         AccessToken accessToken = validateAccessToken(token);
         removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        tokenMgtDao.updateConnection(accessToken.getId(), node, serverNode,
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
                 UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
     }
 

@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.agent.outbound.server.dao;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
 import org.wso2.carbon.identity.agent.outbound.server.model.DatabaseConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
+import org.wso2.carbon.identity.user.store.common.model.AgentConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

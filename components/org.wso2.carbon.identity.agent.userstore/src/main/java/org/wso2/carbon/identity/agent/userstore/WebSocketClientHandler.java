@@ -227,7 +227,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-            LOGGER.info("Client connection disconnected.");
             handshakeFuture.setSuccess();
             return;
         }

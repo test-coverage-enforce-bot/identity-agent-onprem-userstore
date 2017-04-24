@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.agent.outbound.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
@@ -35,7 +36,6 @@ import javax.websocket.Session;
  */
 public class ServerHandler {
 
-    //    private Map<String, Session> sessions = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
     private Map<String, Integer> counter = new HashMap<>();
     private Map<String, List<Session>> sessions = new HashMap<>();
@@ -54,7 +54,6 @@ public class ServerHandler {
             tenantSessions.add(session);
             sessions.put(getKey(tenantDomain, userstoreDomain), tenantSessions);
         }
-        LOGGER.info("############# addSession sessions : " + sessions);
     }
 
     /**
@@ -63,7 +62,6 @@ public class ServerHandler {
      * @return
      */
     public Session getSession(String tenantDomain, String userstoreDomain) {
-        LOGGER.info("############# getSessions sessions : " + sessions);
         if (counter.containsKey(getKey(tenantDomain, userstoreDomain))) {
             int lastcounter = counter.get(getKey(tenantDomain, userstoreDomain));
             int index = 0;
@@ -91,22 +89,13 @@ public class ServerHandler {
         }
     }
 
-    //TODO add this method to utility class
-    private String convertToJson(UserOperation userOperation) {
-
-        return String
-                .format("{correlationId : '%s', requestType : '%s', requestData : %s}",
-                        userOperation.getCorrelationId(),
-                        userOperation.getRequestType(), userOperation.getRequestData());
-    }
-
     public void removeSessions(String tenantDomain, String userstoreDomain) throws IOException {
         List<Session> sessionList = sessions.get(getKey(tenantDomain, userstoreDomain));
         for (Session session : sessionList) {
             UserOperation userOperation = new UserOperation();
             userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
             userOperation.setRequestData("Clossing client connections.");
-            session.getBasicRemote().sendText(convertToJson(userOperation));
+            session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
         }
         sessions.remove(getKey(tenantDomain, userstoreDomain));
         counter.remove(getKey(tenantDomain, userstoreDomain));

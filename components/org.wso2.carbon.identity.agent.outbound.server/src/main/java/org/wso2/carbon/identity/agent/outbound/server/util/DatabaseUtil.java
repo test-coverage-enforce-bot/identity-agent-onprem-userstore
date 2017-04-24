@@ -52,7 +52,6 @@ public class DatabaseUtil {
                 log.error("Database error. Could not close result set  - " + e.getMessage(), e);
             }
         }
-
     }
 
     private static void closeStatement(PreparedStatement preparedStatement) {
@@ -73,7 +72,6 @@ public class DatabaseUtil {
                 closeStatement(stmt);
             }
         }
-
     }
 
     public static void closeAllConnections(Connection dbConnection, PreparedStatement... prepStmts) {

@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
 import org.wso2.carbon.identity.agent.outbound.server.model.DatabaseConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
-import org.wso2.carbon.identity.agent.outbound.server.util.ServerConstants;
+import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
 
 import java.sql.Connection;
@@ -53,17 +53,15 @@ public class TokenMgtDao {
                     "SELECT UM_ID,UM_TOKEN,UM_TENANT,UM_DOMAIN FROM UM_ACCESS_TOKEN WHERE UM_TOKEN = ? AND " +
                             "UM_STATUS = ?");
             prepStmt.setString(1, accessToken);
-            prepStmt.setString(2, ServerConstants.ACCESS_TOKEN_STATUS_ACTIVE);
+            prepStmt.setString(2, UserStoreConstants.ACCESS_TOKEN_STATUS_ACTIVE);
             resultSet = prepStmt.executeQuery();
 
             if (resultSet.next()) {
-                LOGGER.info("########### TokenMgtDao.validateAccessToken true"); //TODO remove log
                 AccessToken token = new AccessToken();
                 token.setAccessToken(resultSet.getString("UM_TOKEN"));
                 token.setId(resultSet.getInt("UM_ID"));
                 token.setTenant(resultSet.getString("UM_TENANT"));
                 token.setDomain(resultSet.getString("UM_DOMAIN"));
-                LOGGER.info("########### TokenMgtDao.validateAccessToken token :" + token); //TODO remove log
                 return token;
             }
         } catch (SQLException e) {
@@ -107,7 +105,7 @@ public class TokenMgtDao {
             dbConnection = getDBConnection();
             prepStmt = dbConnection
                     .prepareStatement("UPDATE UM_AGENT_CONNECTIONS SET UM_STATUS=? WHERE UM_SERVER_NODE=?");
-            prepStmt.setString(1, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+            prepStmt.setString(1, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
             prepStmt.setString(2, serverNode);
             prepStmt.executeUpdate();
             dbConnection.commit();
@@ -132,7 +130,7 @@ public class TokenMgtDao {
                     "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ? AND UM_STATUS = ?");
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
-            prepStmt.setString(3, ServerConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
+            prepStmt.setString(3, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             resultSet = prepStmt.executeQuery();
 
             if (resultSet.next()) {

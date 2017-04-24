@@ -4,6 +4,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.ServerHandler;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
+import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.ServerOperation;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
@@ -24,7 +26,6 @@ public class JMSMessageReceiver implements MessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(JMSMessageReceiver.class);
     private ServerHandler serverHandler;
-    private static final String QUEUE_NAME_REQUEST = "requestQueue";
     private boolean transacted = false;
     private MessageConsumer requestConsumer;
     private String serverNode;
@@ -38,15 +39,15 @@ public class JMSMessageReceiver implements MessageListener {
 
     public boolean startReceive() {
         boolean started = true;
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+        String messageBrokerURL = ServerConfigUtil.build().getMessagebroker().getUrl();
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(messageBrokerURL);
         Connection connection;
         try {
             connection = connectionFactory.createConnection();
             connection.start();
             javax.jms.Session session = connection.createSession(transacted, javax.jms.Session.AUTO_ACKNOWLEDGE);
-            Destination adminQueue = session.createQueue(QUEUE_NAME_REQUEST);
-
-            String filter = String.format("serverNode='%s'", serverNode);
+            Destination adminQueue = session.createQueue(UserStoreConstants.QUEUE_NAME_REQUEST);
+            String filter = String.format(UserStoreConstants.UM_MESSAGE_SELECTOR_SERVER_NODE + "='%s'", serverNode);
             requestConsumer = session.createConsumer(adminQueue, filter);
             requestConsumer.setMessageListener(this);
             JMSExceptionListener exceptionListener = new JMSExceptionListener(this);
@@ -69,15 +70,11 @@ public class JMSMessageReceiver implements MessageListener {
         }
     }
 
-    //TODO add this method to utility class
-    private String convertToJson(UserOperation userOperation) {
-
-        return String
-                .format("{correlationId : '%s', requestType : '%s', requestData : %s}",
-                        userOperation.getCorrelationId(),
-                        userOperation.getRequestType(), userOperation.getRequestData());
-    }
-
+    /**
+     * Process message
+     * @param message
+     * @throws JMSException
+     */
     public void processOperation(Message message) throws JMSException {
         if (((ObjectMessage) message).getObject() instanceof UserOperation) {
             UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
@@ -88,6 +85,10 @@ public class JMSMessageReceiver implements MessageListener {
         }
     }
 
+    /**
+     * Process user operation
+     * @param serverOperation
+     */
     public void processServerOperation(ServerOperation serverOperation) {
         Thread loop = new Thread(() -> {
             if (serverOperation.getOperationType().equals(UserStoreConstants.SERVER_OPERATION_TYPE_KILL_AGENTS)) {
@@ -101,11 +102,15 @@ public class JMSMessageReceiver implements MessageListener {
         loop.start();
     }
 
+    /**
+     * Process User operation
+     * @param userOperation
+     */
     public void processUserOperation(UserOperation userOperation) {
         Thread loop = new Thread(() -> {
             try {
                 serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain()).getBasicRemote()
-                        .sendText(convertToJson(userOperation));
+                        .sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
             } catch (IOException ex) {
                 log.error("Error occurred while sending messaging to client", ex);
             }

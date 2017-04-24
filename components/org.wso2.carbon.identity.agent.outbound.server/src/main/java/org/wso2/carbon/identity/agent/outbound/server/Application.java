@@ -70,9 +70,8 @@ public class Application {
     }
 
     private void shutdownGracefully(String serverNode) {
-        LOGGER.info("####### serverNode : " + serverNode);
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         tokenMgtDao.closeAllConnection(serverNode);
-        LOGGER.info("Shutdown hook triggered....");
+        LOGGER.info("Shutting down server node " + serverNode);
     }
 }

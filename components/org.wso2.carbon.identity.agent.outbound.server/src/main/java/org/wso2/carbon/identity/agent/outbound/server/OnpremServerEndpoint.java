@@ -23,13 +23,13 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
-import org.wso2.carbon.identity.agent.outbound.server.model.AgentConnection;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionException;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionFactory;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
+import org.wso2.carbon.identity.user.store.common.model.AgentConnection;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
 import java.io.IOException;

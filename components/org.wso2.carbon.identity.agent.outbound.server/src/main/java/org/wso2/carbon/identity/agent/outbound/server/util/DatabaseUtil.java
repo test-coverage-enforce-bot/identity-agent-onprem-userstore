@@ -19,11 +19,14 @@ package org.wso2.carbon.identity.agent.outbound.server.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.wso2.carbon.identity.agent.outbound.server.model.DatabaseConfig;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
 /**
  * Database utility
@@ -31,6 +34,34 @@ import java.sql.SQLException;
 public class DatabaseUtil {
 
     private static Log log = LogFactory.getLog(DatabaseUtil.class);
+    protected static DataSource jdbcds = loadUserStoreSpacificDataSoruce();
+
+    public static Connection getDBConnection() throws SQLException {
+        Connection dbConnection = getJDBCDataSource().getConnection();
+        dbConnection.setAutoCommit(false);
+        if (dbConnection.getTransactionIsolation() != java.sql.Connection.TRANSACTION_READ_COMMITTED) {
+            dbConnection.setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+        }
+        return dbConnection;
+    }
+
+    private static DataSource getJDBCDataSource() {
+        if (jdbcds == null) {
+            jdbcds = loadUserStoreSpacificDataSoruce();
+        }
+        return jdbcds;
+    }
+
+    private static DataSource loadUserStoreSpacificDataSoruce() {
+        DatabaseConfig dbConf = ServerConfigUtil.build().getDatabase();
+        PoolProperties poolProperties = new PoolProperties();
+        poolProperties.setDriverClassName(dbConf.getDriver());
+        poolProperties.setUrl(dbConf.getUrl());
+        poolProperties.setUsername(dbConf.getUsername());
+        poolProperties.setPassword(dbConf.getPassword());
+
+        return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+    }
 
     public static void closeConnection(Connection dbConnection) {
 

@@ -22,12 +22,6 @@ package org.wso2.carbon.identity.agent.userstore;
  */
 public class UserAgentConstants {
 
-    public static final String UM_OPERATION_TYPE_AUTHENTICATE = "authenticate";
-    public static final String UM_OPERATION_TYPE_GET_CLAIMS = "getclaims";
-    public static final String UM_OPERATION_TYPE_GET_USER_ROLES = "getuserroles";
-    public static final String UM_OPERATION_TYPE_GET_ROLES = "getroles";
-    public static final String UM_OPERATION_TYPE_ERROR = "error";
-
     public static final String UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS = "SUCCESS";
     public static final String UM_OPERATION_AUTHENTICATE_RESULT_FAIL = "FAIL";
 

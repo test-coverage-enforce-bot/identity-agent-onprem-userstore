@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -63,7 +64,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        LOGGER.info("Socket Client disconnected!");
+        LOGGER.info("Server connection Client disconnected!");
 
         while (true) {
 
@@ -193,19 +194,19 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         String type = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
 
         switch (type) {
-        case UserAgentConstants.UM_OPERATION_TYPE_AUTHENTICATE:
+        case UserStoreConstants.UM_OPERATION_TYPE_AUTHENTICATE:
             processAuthenticationRequest(channel, requestObj);
             break;
-        case UserAgentConstants.UM_OPERATION_TYPE_GET_CLAIMS:
+        case UserStoreConstants.UM_OPERATION_TYPE_GET_CLAIMS:
             processGetClaimsRequest(channel, requestObj);
             break;
-        case UserAgentConstants.UM_OPERATION_TYPE_GET_USER_ROLES:
+        case UserStoreConstants.UM_OPERATION_TYPE_GET_USER_ROLES:
             processGetUserRolesRequest(channel, requestObj);
             break;
-        case UserAgentConstants.UM_OPERATION_TYPE_GET_ROLES:
+        case UserStoreConstants.UM_OPERATION_TYPE_GET_ROLES:
             processGetRolesRequest(channel, requestObj);
             break;
-        case UserAgentConstants.UM_OPERATION_TYPE_ERROR:
+        case UserStoreConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);
             client.setShutdownFlag(true);
             System.exit(0);
@@ -226,7 +227,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-            LOGGER.info("WebSocket Client connected!");
+            LOGGER.info("Client connection disconnected.");
             handshakeFuture.setSuccess();
             return;
         }
@@ -242,11 +243,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
             JSONObject requestObj = new JSONObject(textFrame.text());
-
             textReceived = textFrame.text();
-            LOGGER.info("Message received : " + textReceived);
             processUserOperationRequest(ch, requestObj);
-
         } else if (frame instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
             bufferReceived = binaryFrame.content().nioBuffer();

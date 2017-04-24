@@ -67,25 +67,18 @@ public class Application {
         String hostname = InetAddress.getLocalHost().getHostName();
         WebSocketClient echoClient = new WebSocketClient(
                 AgentConfigUtil.build().getServerUrl() + accessToken + "/" + hostname);
-        //TODO configure URL
         echoClient.handhshake();
-        LOGGER.info("############ echoClient 1 : " + echoClient);
         Application app = new Application();
         app.addShutdownHook(echoClient);
-        LOGGER.info("############ echoClient 3 : " + echoClient);
     }
 
     private void addShutdownHook(WebSocketClient echoClient) {
-        LOGGER.info("############ addShutdownHook echoClient 2 : " + echoClient);
         if (shutdownHook != null) {
             return;
         }
-        LOGGER.info("############ addShutdownHook echoClient 3 : " + echoClient);
         shutdownHook = new Thread() {
 
             public void run() {
-                LOGGER.info("############ addShutdownHook echoClient 4 : " + echoClient);
-                LOGGER.info("addShutdownHook Shutdown hook triggered....");
                 shutdownGracefully(echoClient);
             }
         };
@@ -94,7 +87,6 @@ public class Application {
 
     private void shutdownGracefully(WebSocketClient echoClient) {
         try {
-            LOGGER.info("############ shutdownGracefully echoClient 5 : " + echoClient);
             echoClient.shutDown();
         } catch (InterruptedException e) {
             LOGGER.error("Error occurred while sending shutdown signal.");

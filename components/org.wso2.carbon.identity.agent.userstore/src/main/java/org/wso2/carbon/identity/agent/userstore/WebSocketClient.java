@@ -137,7 +137,7 @@ public class WebSocketClient {
             return false;
         }
 
-        logger.info("WebSocket Handshake successful : " + isDone);
+        logger.info("Connection established successfully.");
         Thread.sleep(5000);
         return isDone;
     }

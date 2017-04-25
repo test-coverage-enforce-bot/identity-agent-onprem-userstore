@@ -28,11 +28,6 @@
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/wso2agent.bat</source>
-            <outputDirectory>wso2server-${pom.version}</outputDirectory>
-            <fileMode>644</fileMode>
-        </file>
-        <file>
             <source>../../conf/ciphertool.sh</source>
             <outputDirectory>wso2server-${pom.version}</outputDirectory>
             <fileMode>644</fileMode>
@@ -44,6 +39,11 @@
         </file>
         <file>
             <source>../../conf/conf/cipher-standalone-config.properties</source>
+            <outputDirectory>wso2server-${pom.version}/conf</outputDirectory>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../../conf/conf/deployment.yml</source>
             <outputDirectory>wso2server-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>

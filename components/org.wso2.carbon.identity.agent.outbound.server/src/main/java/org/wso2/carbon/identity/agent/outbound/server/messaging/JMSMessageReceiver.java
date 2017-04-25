@@ -66,7 +66,6 @@ public class JMSMessageReceiver implements MessageListener {
     @Override
     public void onMessage(Message message) {
         try {
-            log.info("Message received : " + message.getJMSCorrelationID());
             processOperation(message);
         } catch (JMSException e) {
             log.error("Error occurred while receiving message", e);

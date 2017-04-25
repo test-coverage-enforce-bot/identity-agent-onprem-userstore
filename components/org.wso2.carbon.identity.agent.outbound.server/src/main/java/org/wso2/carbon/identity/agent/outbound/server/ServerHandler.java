@@ -62,6 +62,9 @@ public class ServerHandler {
      * @return
      */
     public Session getSession(String tenantDomain, String userstoreDomain) {
+        if (!sessions.containsKey(getKey(tenantDomain, userstoreDomain))) {
+            return null;
+        }
         if (counter.containsKey(getKey(tenantDomain, userstoreDomain))) {
             int lastcounter = counter.get(getKey(tenantDomain, userstoreDomain));
             int index = 0;

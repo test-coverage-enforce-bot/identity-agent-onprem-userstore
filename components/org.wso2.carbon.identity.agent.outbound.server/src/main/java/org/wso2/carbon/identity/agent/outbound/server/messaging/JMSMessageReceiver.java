@@ -12,12 +12,13 @@ import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
 import java.io.IOException;
 import javax.jms.Connection;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
+import javax.jms.Topic;
+import javax.websocket.Session;
 
 /**
  * JMS Message receiver
@@ -33,6 +34,9 @@ public class JMSMessageReceiver implements MessageListener {
     public JMSMessageReceiver(ServerHandler serverHandler, String serverNode) {
         this.serverHandler = serverHandler;
         this.serverNode = serverNode;
+    }
+
+    public void start() {
         Thread loop = new Thread(() -> startReceive());
         loop.start();
     }
@@ -46,9 +50,8 @@ public class JMSMessageReceiver implements MessageListener {
             connection = connectionFactory.createConnection();
             connection.start();
             javax.jms.Session session = connection.createSession(transacted, javax.jms.Session.AUTO_ACKNOWLEDGE);
-            Destination adminQueue = session.createQueue(UserStoreConstants.QUEUE_NAME_REQUEST);
-            String filter = String.format(UserStoreConstants.UM_MESSAGE_SELECTOR_SERVER_NODE + "='%s'", serverNode);
-            requestConsumer = session.createConsumer(adminQueue, filter);
+            Topic adminQueue = session.createTopic(UserStoreConstants.QUEUE_NAME_REQUEST);
+            requestConsumer = session.createConsumer(adminQueue);
             requestConsumer.setMessageListener(this);
             JMSExceptionListener exceptionListener = new JMSExceptionListener(this);
             connection.setExceptionListener(exceptionListener);
@@ -78,9 +81,12 @@ public class JMSMessageReceiver implements MessageListener {
     public void processOperation(Message message) throws JMSException {
         if (((ObjectMessage) message).getObject() instanceof UserOperation) {
             UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
+            log.info("Message received for user operation : " + userOperation.getRequestType() + " corerelation Id : "
+                    + userOperation.getCorrelationId());
             processUserOperation(userOperation);
         } else if (((ObjectMessage) message).getObject() instanceof ServerOperation) {
             ServerOperation serverOperation = (ServerOperation) ((ObjectMessage) message).getObject();
+            log.info("Message received for server operation : " + serverOperation.getOperationType());
             processServerOperation(serverOperation);
         }
     }
@@ -109,8 +115,10 @@ public class JMSMessageReceiver implements MessageListener {
     public void processUserOperation(UserOperation userOperation) {
         Thread loop = new Thread(() -> {
             try {
-                serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain()).getBasicRemote()
-                        .sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+                Session session = serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain());
+                if (session != null) {
+                    session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+                }
             } catch (IOException ex) {
                 log.error("Error occurred while sending messaging to client", ex);
             }

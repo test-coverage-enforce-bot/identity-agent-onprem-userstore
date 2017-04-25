@@ -97,6 +97,34 @@
                 <artifactId>msf4j-swagger</artifactId>
                 <version>${org.wso2.msf4j.swagger.version}}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat</groupId>
+                <artifactId>tomcat-jdbc</artifactId>
+                <version>${tomcat-jdbc-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-core</artifactId>
+                <version>${activemq-core-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-all</artifactId>
+                <version>${activemq-all-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.userstore.onprem</groupId>
+                <artifactId>org.wso2.carbon.identity.user.store.common</artifactId>
+                <version>${user.store.common.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
@@ -154,6 +182,11 @@
         <org.json.wso2.version>2.0.0.wso2v1</org.json.wso2.version>
         <org.wso2.msf4j.swagger.version>2.0.0</org.wso2.msf4j.swagger.version>
         <com.googlecode.json-simple.wso2.version>1.1.wso2v1</com.googlecode.json-simple.wso2.version>
+        <tomcat-jdbc-version>8.5.11</tomcat-jdbc-version>
+        <mysql-connector-java-version>5.1.6</mysql-connector-java-version>
+        <activemq-core-version>5.7.0</activemq-core-version>
+        <activemq-all-version>5.10.0</activemq-all-version>
+        <user.store.common.version>1.0-SNAPSHOT</user.store.common.version>
     </properties>
 
 </project>

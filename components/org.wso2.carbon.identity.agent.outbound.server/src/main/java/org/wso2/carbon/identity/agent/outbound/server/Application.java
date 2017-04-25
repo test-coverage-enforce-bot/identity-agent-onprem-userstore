@@ -48,7 +48,7 @@ public class Application {
         serverNode = scanner.next();
         ServerHandler serverHandler = new ServerHandler();
         JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler, serverNode);
-        receiver.startReceive();
+        receiver.start();
         Application application = new Application();
         application.addShutdownHook(serverNode);
         new MicroservicesRunner().deployWebSocketEndpoint(new OnpremServerEndpoint(serverHandler, serverNode))

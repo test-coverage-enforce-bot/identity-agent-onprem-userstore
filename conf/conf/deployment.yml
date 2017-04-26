@@ -9,3 +9,4 @@ database:
 
 server:
   connectionlimit: 2
+  node: 1

@@ -182,7 +182,7 @@ public class OnpremServerEndpoint {
         } else {
             addConnection(accessToken, node);
             addSession(accessToken.getTenant(), accessToken.getDomain(), session);
-            String msg = node + " from " + accessToken.getTenant()  + " connected to server";
+            String msg = node + " from " + accessToken.getTenant() + " connected to server";
             log.info(msg);
         }
     }

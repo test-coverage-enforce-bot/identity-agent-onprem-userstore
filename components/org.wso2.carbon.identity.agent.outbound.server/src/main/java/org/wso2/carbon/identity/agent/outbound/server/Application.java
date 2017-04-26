@@ -22,10 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiver;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.msf4j.MicroservicesRunner;
 import org.wso2.msf4j.websocket.exception.WebSocketEndpointAnnotationException;
-
-import java.util.Scanner;
 
 /**
  * This is the runner of the Fatjar. This should be configured as the main class in the pom.xml
@@ -43,9 +42,7 @@ public class Application {
     }
 
     private void startApplication() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter Node (1, 2) : ");
-        serverNode = scanner.next();
+        serverNode = ServerConfigUtil.build().getServer().getNode();
         ServerHandler serverHandler = new ServerHandler();
         JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler, serverNode);
         receiver.start();

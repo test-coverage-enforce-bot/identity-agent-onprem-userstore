@@ -192,7 +192,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private void processUserOperationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         String type = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
-
+        LOGGER.info("Message received for user operation " + type);
         switch (type) {
         case UserStoreConstants.UM_OPERATION_TYPE_AUTHENTICATE:
             processAuthenticationRequest(channel, requestObj);

@@ -21,12 +21,12 @@ import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+import org.wso2.carbon.identity.agent.userstore.security.AccessTokenHandler;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
 
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 import javax.net.ssl.SSLException;
 
 /**
@@ -48,6 +48,7 @@ public class Application {
     }
 
     private void startAgent() throws InterruptedException, SSLException, URISyntaxException, UnknownHostException {
+        String accessToken = new AccessTokenHandler().getAccessToken();
         new SecretManagerInitializer().init();
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
@@ -61,33 +62,30 @@ public class Application {
             System.exit(0);
         }
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter Access token: ");
-        String accessToken = scanner.next();
         String hostname = InetAddress.getLocalHost().getHostName();
-        WebSocketClient echoClient = new WebSocketClient(
+        WebSocketClient webSocketClient = new WebSocketClient(
                 AgentConfigUtil.build().getServerUrl() + accessToken + "/" + hostname);
-        echoClient.handhshake();
+        webSocketClient.handhshake();
         Application app = new Application();
-        app.addShutdownHook(echoClient);
+        app.addShutdownHook(webSocketClient);
     }
 
-    private void addShutdownHook(WebSocketClient echoClient) {
+    private void addShutdownHook(WebSocketClient webSocketClient) {
         if (shutdownHook != null) {
             return;
         }
         shutdownHook = new Thread() {
 
             public void run() {
-                shutdownGracefully(echoClient);
+                shutdownGracefully(webSocketClient);
             }
         };
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
-    private void shutdownGracefully(WebSocketClient echoClient) {
+    private void shutdownGracefully(WebSocketClient webSocketClient) {
         try {
-            echoClient.shutDown();
+            webSocketClient.shutDown();
         } catch (InterruptedException e) {
             LOGGER.error("Error occurred while sending shutdown signal.");
         }

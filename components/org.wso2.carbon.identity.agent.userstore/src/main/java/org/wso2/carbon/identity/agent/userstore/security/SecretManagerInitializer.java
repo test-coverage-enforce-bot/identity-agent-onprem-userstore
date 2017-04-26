@@ -42,7 +42,7 @@ public class SecretManagerInitializer {
     private static final Log log = LogFactory.getLog(SecretManagerInitializer.class);
     private static final String SECRET_CONF = "secret-conf.properties";
     private static final String CONF_DIR = "conf";
-    private static final String SECURITY_DIR = "org/wso2/carbon/identity/agent/userstore/security";
+    private static final String SECURITY_DIR = "security";
     private static final String GLOBAL_PREFIX = "carbon.";
 
     /** initializes the secure vault configurations.
@@ -108,11 +108,9 @@ public class SecretManagerInitializer {
             properties.setProperty("keystore.identity.location", productnHome +
                     File.separator + properties.getProperty("keystore.identity.location"));
             properties.setProperty("keystore.identity.store.secretProvider",
-                    "org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.outbound." +
-                            "security.DefaultSecretCallbackHandler");
+                    "org.wso2.carbon.identity.agent.userstore.security.DefaultSecretCallbackHandler");
             properties.setProperty("keystore.identity.key.secretProvider",
-                    "org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.outbound." +
-                            "security.DefaultSecretCallbackHandler");
+                    "org.wso2.carbon.identity.agent.userstore.security.DefaultSecretCallbackHandler");
         } catch (IOException e) {
             String msg = "Error loading properties from a file at :" + filePath;
             log.warn(msg, e);

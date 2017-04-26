@@ -1,13 +1,26 @@
-
-listenerConfigurations:
-
+transportProperties:
  -
+  name: "latency.metrics.enabled"
+  value: true
+ -
+  name: "server.bootstrap.boss.group.size"
+  value: 4
+ -
+  name: "server.bootstrap.worker.group.size"
+  value: 8
+listenerConfigurations:
+-
+  id: "msf4j-http"
+  host: "0.0.0.0"
+  port: 8080
+-
   id: "msf4j-https"
-  host: "127.0.0.1"
-  port: 8888
-  bossThreadPoolSize: 2
-  workerThreadPoolSize: 250
+  host: "0.0.0.0"
+  port: 8443
   scheme: https
   keyStoreFile: "conf/security/wso2carbon.jks"
   keyStorePass: wso2carbon
   certPass: wso2carbon
+senderConfigurations:
+ -
+  id: "netty-gw"

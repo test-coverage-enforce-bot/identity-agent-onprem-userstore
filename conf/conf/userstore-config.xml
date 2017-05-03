@@ -17,12 +17,12 @@
 		<Property name="ConnectionURL">ldap://localhost:10389</Property>
 		<Property name="ConnectionName">uid=admin,ou=system</Property>
 		<Property name="ConnectionPassword">admin</Property>
-		<Property name="UserSearchBase">ou=Users,dc=wso2,dc=org</Property>
+		<Property name="UserSearchBase">ou=system</Property>
 		<Property name="UserNameAttribute">uid</Property>
 		<Property name="UserNameSearchFilter">(&amp;(objectClass=person)(uid=?))</Property>
 		<Property name="UserNameListFilter">(objectClass=person)</Property>
 		<Property name="GroupNameAttribute">cn</Property>
-		<Property name="GroupSearchBase">ou=Groups,dc=wso2,dc=org</Property>
+		<Property name="GroupSearchBase">ou=system</Property>
 		<Property name="GroupNameListFilter">(objectClass=groupOfNames)</Property>	
 		<Property name="GroupNameSearchFilter">(&amp;(objectClass=groupOfNames)(cn=?))</Property>
 		<Property name="MembershipAttribute">member</Property>

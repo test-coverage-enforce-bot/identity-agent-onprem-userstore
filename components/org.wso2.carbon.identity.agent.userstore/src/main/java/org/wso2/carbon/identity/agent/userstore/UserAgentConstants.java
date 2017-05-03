@@ -32,4 +32,7 @@ public class UserAgentConstants {
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME = "username";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD = "password";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
+
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_LIMIT = "limit";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_FILTER = "filter";
 }

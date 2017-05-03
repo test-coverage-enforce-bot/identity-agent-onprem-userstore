@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import javax.websocket.Session;
 
 /**
@@ -37,7 +38,6 @@ import javax.websocket.Session;
 public class ServerHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
-    private Map<String, Integer> counter = new HashMap<>();
     private Map<String, List<Session>> sessions = new HashMap<>();
 
     private String getKey(String tenantDomain, String userstoreDomain) {
@@ -62,22 +62,23 @@ public class ServerHandler {
      * @return
      */
     public Session getSession(String tenantDomain, String userstoreDomain) {
-        if (!sessions.containsKey(getKey(tenantDomain, userstoreDomain))) {
+
+        String key = getKey(tenantDomain, userstoreDomain);
+        if (!sessions.containsKey(key)) {
             return null;
-        }
-        if (counter.containsKey(getKey(tenantDomain, userstoreDomain))) {
-            int lastcounter = counter.get(getKey(tenantDomain, userstoreDomain));
-            int index = 0;
-            if (lastcounter < (sessions.get(getKey(tenantDomain, userstoreDomain)).size() - 1)) {
-                index = ++lastcounter;
-            }
-            counter.put(getKey(tenantDomain, userstoreDomain), index);
-            return sessions.get(getKey(tenantDomain, userstoreDomain)).get(index);
         } else {
-            counter.put(getKey(tenantDomain, userstoreDomain), 0);
-            return sessions.get(getKey(tenantDomain, userstoreDomain)).get(0);
+            List<Session> sessionList = sessions.get(key);
+            if (!sessionList.isEmpty()) {
+                int noofSessions = sessionList.size();
+                Random random = new Random();
+                int randomIndex = Math.abs(random.nextInt()) % noofSessions;
+                return sessionList.get(randomIndex);
+            }
         }
+        return null;
     }
+
+
 
     public void removeSession(String tenantDomain, String userstoreDomain, Session session) {
 
@@ -101,6 +102,5 @@ public class ServerHandler {
             session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
         }
         sessions.remove(getKey(tenantDomain, userstoreDomain));
-        counter.remove(getKey(tenantDomain, userstoreDomain));
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.agent.userstore;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
@@ -47,25 +48,42 @@ public class Application {
         application.startAgent();
     }
 
-    private void startAgent() throws InterruptedException, SSLException, URISyntaxException, UnknownHostException {
+    private void startAgent() throws UnknownHostException {
         String accessToken = new AccessTokenHandler().getAccessToken();
+        if (StringUtils.isEmpty(accessToken)) {
+            LOGGER.error("Please enter valid access token.");
+            System.exit(0);
+        }
         new SecretManagerInitializer().init();
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+            LOGGER.info("Verifying user store.....");
             boolean connectionStatus = userStoreManager.getConnectionStatus();
             if (!connectionStatus) {
-                LOGGER.error("Cannot connect to user store, Please check the user store configurations.");
+                LOGGER.error("User store verification. Please check the user store configurations.");
                 System.exit(0);
             }
+            LOGGER.info("User store verification completed.");
         } catch (UserStoreException e) {
-            LOGGER.error("Cannot connect to user store, Please check the user store configurations.");
+            LOGGER.error("User store verification failed. Please check the user store configurations.");
             System.exit(0);
         }
 
         String hostname = InetAddress.getLocalHost().getHostName();
         WebSocketClient webSocketClient = new WebSocketClient(
                 AgentConfigUtil.build().getServerUrl() + accessToken + "/" + hostname);
-        webSocketClient.handhshake();
+        try {
+            boolean result = webSocketClient.handhshake();
+            if (result) {
+                LOGGER.info("Agent successfully connected to server.");
+            } else {
+                LOGGER.info("Failed to connect server.");
+                System.exit(0);
+            }
+        } catch (InterruptedException | URISyntaxException | SSLException e) {
+            LOGGER.error("Error while connecting to server.", e);
+        }
+
         Application app = new Application();
         app.addShutdownHook(webSocketClient);
     }
@@ -85,6 +103,7 @@ public class Application {
 
     private void shutdownGracefully(WebSocketClient webSocketClient) {
         try {
+            LOGGER.info("Shutting down agent....");
             webSocketClient.shutDown();
         } catch (InterruptedException e) {
             LOGGER.error("Error occurred while sending shutdown signal.");

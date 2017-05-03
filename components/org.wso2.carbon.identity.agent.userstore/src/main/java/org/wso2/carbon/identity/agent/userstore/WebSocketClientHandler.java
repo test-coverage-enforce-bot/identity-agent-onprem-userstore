@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.wso2.carbon.identity.agent.userstore;
 
 import io.netty.channel.Channel;
@@ -26,6 +41,7 @@ import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Timer;
 import javax.net.ssl.SSLException;
 
 /**
@@ -37,11 +53,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
-    private static final int SOCKET_RETRY_INTERVAL = 3000;
+    private static final int SOCKET_RETRY_INTERVAL = 5000;
 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;
     private WebSocketClient client;
+    private HeatBeatTask heatBeatTask;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketClient client) {
         this.handshaker = handshaker;
@@ -60,14 +77,30 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         handshaker.handshake(ctx.channel());
+        scheduleHeatBeatSendTask(ctx.channel());
+    }
+
+    /**
+     * Schedule a tast to send an ping message in every 30 seconds, otherwise connection get lost.
+     * @param channel
+     */
+    private void scheduleHeatBeatSendTask(Channel channel) {
+        Timer time = new Timer();
+        heatBeatTask = new HeatBeatTask(channel);
+        time.schedule(heatBeatTask, 10 * 1000, 10 * 1000);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.info("Server connection Client disconnected!");
+        if (!WebSocketClient.isRetryStarted) {
+            startRetrying();
+        }
+    }
 
+    private void startRetrying() {
+        WebSocketClient.isRetryStarted = true;
         while (true) {
-
             boolean result = false;
             try {
                 Thread.sleep(SOCKET_RETRY_INTERVAL);
@@ -81,10 +114,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 LOGGER.error("Error occurred while reconnecting to socket server", e);
             }
             if (result) {
+                WebSocketClient.isRetryStarted = false;
+                LOGGER.info("Agent successfully reconnected to server.");
                 break;
             }
         }
-
     }
 
     /**
@@ -108,10 +142,26 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Starting to authenticate user " + requestData
+                    .getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
+        }
+
         boolean isAuthenticated = userStoreManager.doAuthenticate(
                 requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME),
                 requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
         String authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
+
+        LOGGER.info("Authenticating user " + requestData
+                .getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " result "
+                + isAuthenticated);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Authenticating user " + requestData
+                    .getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " result "
+                    + isAuthenticated);
+        }
+
         if (isAuthenticated) {
             authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
         }
@@ -184,6 +234,30 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     /**
+     * Process get roles request
+     * @param channel
+     * @param requestObj
+     * @throws UserStoreException
+     */
+    private void processGetUsersListRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
+        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        String limit = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_LIMIT);
+        String filter = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_FILTER);
+
+        if (limit == null || limit.isEmpty()) {
+            limit = String.valueOf(CommonConstants.MAX_USER_LIST);
+        }
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
+        String[] roleNames = userStoreManager.doListUsers(filter, Integer.parseInt(limit));
+        JSONObject returnObject = new JSONObject();
+        JSONArray usernameArray = new JSONArray(roleNames);
+        returnObject.put("usernames", usernameArray);
+
+        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+                returnObject.toString());
+    }
+
+    /**
      * Process user operation request
      * @param channel
      * @param requestObj
@@ -192,7 +266,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private void processUserOperationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         String type = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
-        LOGGER.info("Message received for user operation " + type);
+        LOGGER.info("Message receive for operation " + type);
         switch (type) {
         case UserStoreConstants.UM_OPERATION_TYPE_AUTHENTICATE:
             processAuthenticationRequest(channel, requestObj);
@@ -205,6 +279,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             break;
         case UserStoreConstants.UM_OPERATION_TYPE_GET_ROLES:
             processGetRolesRequest(channel, requestObj);
+            break;
+        case UserStoreConstants.UM_OPERATION_TYPE_GET_USER_LIST:
+            processGetUsersListRequest(channel, requestObj);
             break;
         case UserStoreConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);

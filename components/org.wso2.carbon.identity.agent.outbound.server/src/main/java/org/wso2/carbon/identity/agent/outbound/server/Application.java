@@ -22,9 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiver;
-import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
 import org.wso2.msf4j.MicroservicesRunner;
 import org.wso2.msf4j.websocket.exception.WebSocketEndpointAnnotationException;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * This is the runner of the Fatjar. This should be configured as the main class in the pom.xml
@@ -33,16 +35,15 @@ public class Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
     private Thread shutdownHook;
-    private String serverNode;
 
-    public static void main(String[] args) throws WebSocketEndpointAnnotationException {
+    public static void main(String[] args) throws WebSocketEndpointAnnotationException, UnknownHostException {
         LOGGER.info("Starting socket server.");
         Application application = new Application();
         application.startApplication();
     }
 
-    private void startApplication() {
-        serverNode = ServerConfigUtil.build().getServer().getNode();
+    private void startApplication() throws UnknownHostException {
+        String serverNode = InetAddress.getLocalHost().getHostAddress();
         ServerHandler serverHandler = new ServerHandler();
         JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler, serverNode);
         receiver.start();

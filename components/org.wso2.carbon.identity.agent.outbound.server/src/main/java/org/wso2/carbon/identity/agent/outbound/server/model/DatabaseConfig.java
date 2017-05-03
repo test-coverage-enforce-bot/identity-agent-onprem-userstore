@@ -26,6 +26,8 @@ public class DatabaseConfig {
     private String url;
     private String username;
     private String password;
+    private String testonborrow;
+    private String validationquery;
 
     public String getDriver() {
         return driver;
@@ -57,5 +59,21 @@ public class DatabaseConfig {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTestonborrow() {
+        return testonborrow;
+    }
+
+    public void setTestonborrow(String testonborrow) {
+        this.testonborrow = testonborrow;
+    }
+
+    public String getValidationquery() {
+        return validationquery;
+    }
+
+    public void setValidationquery(String validationquery) {
+        this.validationquery = validationquery;
     }
 }

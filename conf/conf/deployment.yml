@@ -6,6 +6,8 @@ database:
   url: "jdbc:mysql://localhost:3306/sampleuserstoredb"
   username: "root"
   password: "root"
+  testonborrow: "true"
+  validationquery: "SELECT 1"
 
 server:
   connectionlimit: 2

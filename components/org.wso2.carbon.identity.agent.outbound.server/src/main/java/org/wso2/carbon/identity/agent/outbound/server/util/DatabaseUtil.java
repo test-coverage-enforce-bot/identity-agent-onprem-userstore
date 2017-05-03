@@ -34,7 +34,7 @@ import javax.sql.DataSource;
 public class DatabaseUtil {
 
     private static Log log = LogFactory.getLog(DatabaseUtil.class);
-    protected static DataSource jdbcds = loadUserStoreSpacificDataSoruce();
+    private static DataSource jdbcds = loadUserStoreSpacificDataSoruce();
 
     public static Connection getDBConnection() throws SQLException {
         Connection dbConnection = getJDBCDataSource().getConnection();
@@ -59,6 +59,8 @@ public class DatabaseUtil {
         poolProperties.setUrl(dbConf.getUrl());
         poolProperties.setUsername(dbConf.getUsername());
         poolProperties.setPassword(dbConf.getPassword());
+        poolProperties.setTestOnBorrow(Boolean.parseBoolean(dbConf.getTestonborrow()));
+        poolProperties.setValidationQuery(dbConf.getValidationquery());
 
         return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
     }

@@ -154,6 +154,7 @@ public class OnpremServerEndpoint {
 
     private void handleSession(String token, String node, Session session) {
 
+        log.info("Client " + node + " trying to connect the sever.");
         AccessToken accessToken = validateAccessToken(token);
         if (accessToken == null) {
             try {
@@ -165,7 +166,7 @@ public class OnpremServerEndpoint {
             }
         } else if (isNodeConnected(accessToken, node)) {
             try {
-                String message = "Client " + node + " already connected";
+                String message = "Client " + node + " already connected. Please contact WSO2 cloud";
                 log.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
@@ -217,19 +218,13 @@ public class OnpremServerEndpoint {
 
     @OnMessage
     public void onTextMessage(@PathParam("token") String token, String text, Session session) throws IOException {
-        Thread loop = new Thread(new Runnable() {
-
-            public void run() {
-                processResponse(token, text);
-            }
-        });
+        Thread loop = new Thread(() -> processResponse(token, text));
         loop.start();
     }
 
     @OnMessage
     public void onBinaryMessage(byte[] bytes, Session session) {
         log.info("Reading binary Message");
-        log.info(bytes.toString());
     }
 
     @OnClose

@@ -49,9 +49,9 @@ import java.io.OutputStreamWriter;
 public class DefaultSecretCallbackHandler extends AbstractSecretCallbackHandler {
 
     private static Log log = LogFactory.getLog(DefaultSecretCallbackHandler.class);
-    private static String keyStorePassWord;
-    private static String privateKeyPassWord;
-    private static File keyDataFile;
+    private String keyStorePassWord;
+    private String privateKeyPassWord;
+    private File keyDataFile;
 
     /**
      * {@inheritDoc}

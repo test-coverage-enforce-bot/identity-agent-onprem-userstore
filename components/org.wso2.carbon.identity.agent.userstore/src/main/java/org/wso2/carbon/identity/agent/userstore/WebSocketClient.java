@@ -50,18 +50,18 @@ import javax.net.ssl.SSLException;
  */
 public class WebSocketClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
 
     private final String url;
     private boolean shutdownFlag;
+    private Channel channel = null;
+    private WebSocketClientHandler handler;
+    private EventLoopGroup group;
+    public static boolean isRetryStarted = false;
 
     public WebSocketClient(String url) {
         this.url = System.getProperty("url", url);
     }
-
-    private Channel channel = null;
-    private WebSocketClientHandler handler;
-    EventLoopGroup group;
 
     /**
      * @return true if the handshake is done properly.
@@ -69,7 +69,7 @@ public class WebSocketClient {
      * @throws InterruptedException throws if the connecting the server is interrupted.
      */
     public boolean handhshake() throws InterruptedException, URISyntaxException, SSLException {
-        boolean isDone = false;
+        boolean isDone;
         URI uri = new URI(url);
         String scheme = uri.getScheme() == null ? "ws" : uri.getScheme();
         final String host = uri.getHost() == null ? "127.0.0.1" : uri.getHost();
@@ -87,7 +87,7 @@ public class WebSocketClient {
         }
 
         if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
-            logger.error("Only WS(S) is supported.");
+            LOGGER.error("Only WS(S) is supported.");
             return false;
         }
 
@@ -133,12 +133,14 @@ public class WebSocketClient {
             channel = b.connect(uri.getHost(), port).sync().channel();
             isDone = handler.handshakeFuture().sync().isSuccess();
         } catch (Exception e) {
-            logger.error("Handshake unsuccessful" , e);
+            LOGGER.error("Handshake unsuccessful", e);
             return false;
         }
 
-        logger.info("Connection established successfully.");
-        Thread.sleep(5000);
+        LOGGER.info("Connecting to server....");
+        Thread.sleep(2000);
+        LOGGER.info("Please wait.....");
+        Thread.sleep(3000);
         return isDone;
     }
 
@@ -148,7 +150,7 @@ public class WebSocketClient {
      */
     public void sendText(String text) {
         if (channel == null) {
-            logger.error("Channel is null. Cannot send text.");
+            LOGGER.error("Channel is null. Cannot send text.");
             throw new NullPointerException("Cannot find the channel to write");
         }
         channel.writeAndFlush(new TextWebSocketFrame(text));
@@ -160,7 +162,7 @@ public class WebSocketClient {
      */
     public void sendBinary(ByteBuffer buf) {
         if (channel == null) {
-            logger.error("Channel is null. Cannot send text.");
+            LOGGER.error("Channel is null. Cannot send text.");
             throw new NullPointerException("Cannot find the channel to write");
         }
         channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(buf)));
@@ -172,7 +174,7 @@ public class WebSocketClient {
      */
     public void sendPong(ByteBuffer buf) {
         if (channel == null) {
-            logger.error("Channel is null. Cannot send text.");
+            LOGGER.error("Channel is null. Cannot send text.");
             throw new NullPointerException("Cannot find the channel to write");
         }
         channel.writeAndFlush(new PongWebSocketFrame(Unpooled.wrappedBuffer(buf)));

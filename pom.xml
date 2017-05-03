@@ -69,8 +69,7 @@
             <dependency>
                 <groupId>org.apache.ws.commons.axiom</groupId>
                 <artifactId>axiom-impl</artifactId>
-                <version>${commons.axiom.impl.version}</version>
-                <scope>runtime</scope>
+                <version>${commons.axiom.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.securevault</groupId>
@@ -175,8 +174,8 @@
         <microservice.mainClass>org.wso2.carbon.identity.agent.onprem.userstore.org.wso2.carbon.identity.agent.userstore.Application</microservice.mainClass>
         <org.json.version>20160810</org.json.version>
         <commons.codec.version>1.9</commons.codec.version>
-        <commons.axiom.impl.version>1.2.11-wso2v11</commons.axiom.impl.version>
-        <commons.axiom.api.version>1.2.11-wso2v11</commons.axiom.api.version>
+        <commons.axiom.impl.version>1.2.11-wso2v10</commons.axiom.impl.version>
+        <commons.axiom.api.version>1.2.11-wso2v10</commons.axiom.api.version>
         <securevault.version>1.0.0-wso2v2</securevault.version>
         <version.xercesImpl>2.8.1.wso2v2</version.xercesImpl>
         <org.json.wso2.version>2.0.0.wso2v1</org.json.wso2.version>

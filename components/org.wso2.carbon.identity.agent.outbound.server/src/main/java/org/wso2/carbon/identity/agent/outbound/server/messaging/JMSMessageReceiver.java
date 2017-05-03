@@ -37,7 +37,7 @@ public class JMSMessageReceiver implements MessageListener {
     }
 
     public void start() {
-        Thread loop = new Thread(() -> startReceive());
+        Thread loop = new Thread(this::startReceive);
         loop.start();
     }
 
@@ -112,24 +112,16 @@ public class JMSMessageReceiver implements MessageListener {
      * @param userOperation
      */
     public void processUserOperation(UserOperation userOperation) {
-//        Thread loop = new Thread(() -> {
-//            try {
-//                Session session = serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain());
-//                if (session != null) {
-//                    session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
-//                }
-//            } catch (IOException ex) {
-//                log.error("Error occurred while sending messaging to client", ex);
-//            }
-//        });
-//        loop.start();
-        try {
-            Session session = serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain());
-            if (session != null) {
-                session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+        Thread loop = new Thread(() -> {
+            try {
+                Session session = serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain());
+                if (session != null) {
+                    session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while sending messaging to client", ex);
             }
-        } catch (IOException ex) {
-            log.error("Error occurred while sending messaging to client", ex);
-        }
+        });
+        loop.start();
     }
 }

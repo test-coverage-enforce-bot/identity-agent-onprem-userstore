@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
+import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionException;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionFactory;
@@ -54,14 +55,14 @@ import javax.websocket.server.ServerEndpoint;
  * Server endpoint
  */
 @ServerEndpoint(value = "/server/{token}/{node}")
-public class OnpremServerEndpoint {
+public class UserStoreServerEndpoint {
 
-    private static final Logger log = LoggerFactory.getLogger(OnpremServerEndpoint.class);
+    private static final Logger log = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
     private static final long QUEUE_MESSAGE_LIFETIME = 5 * 60 * 1000;
     private ServerHandler serverHandler;
     private String serverNode;
 
-    public OnpremServerEndpoint(ServerHandler serverHandler, String serverNode) {
+    public UserStoreServerEndpoint(ServerHandler serverHandler, String serverNode) {
         this.serverHandler = serverHandler;
         this.serverNode = serverNode;
         initializeConnections();
@@ -78,14 +79,6 @@ public class OnpremServerEndpoint {
 
     private void removeSession(String tenantDomain, String userstoreDomain, Session session) {
         serverHandler.removeSession(tenantDomain, userstoreDomain, session);
-    }
-
-    private String convertToJson(UserOperation userOperation) {
-
-        return String
-                .format("{correlationId : '%s', requestType : '%s', requestData : %s}",
-                        userOperation.getCorrelationId(),
-                        userOperation.getRequestType(), userOperation.getRequestData());
     }
 
     private void processResponse(String tenant, String message) {
@@ -122,7 +115,7 @@ public class OnpremServerEndpoint {
         } catch (JSONException e) {
             log.error("Error occurred while reading json payload", e);
         } catch (JMSConnectionException e) {
-            log.error("Error occurred while sending message", e);
+            log.error("Error occurred while creating JMS connection", e);
         } finally {
             try {
                 connectionFactory.closeConnection(connection);
@@ -212,7 +205,7 @@ public class OnpremServerEndpoint {
         UserOperation userOperation = new UserOperation();
         userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
         userOperation.setRequestData(message);
-        session.getBasicRemote().sendText(convertToJson(userOperation));
+        session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
         session.close();
     }
 

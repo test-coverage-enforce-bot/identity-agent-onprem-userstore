@@ -33,11 +33,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Message broker config utility
+ * Server configuration builder utility
  */
-public class ServerConfigUtil {
+public class ServerConfigurationBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigurationBuilder.class);
     private static final String FILE_NAME = "deployment.yml";
     private static DeploymentConfig config = null;
 

@@ -35,15 +35,26 @@ import javax.websocket.Session;
 /**
  * Server session handler
  */
-public class ServerHandler {
+public class SessionHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
     private Map<String, List<Session>> sessions = new HashMap<>();
 
+    /**
+     * Get key for session map
+     * @param tenantDomain Tenant domain
+     * @param userstoreDomain User store domain
+     * @return key
+     */
     private String getKey(String tenantDomain, String userstoreDomain) {
         return userstoreDomain + tenantDomain;
     }
 
+    /**
+     * Add session into cache
+     * @param tenantDomain Tenant domain
+     * @param userstoreDomain User store domain
+     * @param session websocket session
+     */
     public void addSession(String tenantDomain, String userstoreDomain, Session session) {
         if (sessions.containsKey(getKey(tenantDomain, userstoreDomain))) {
             List<Session> tenantSessions = sessions.get(getKey(tenantDomain, userstoreDomain));
@@ -58,8 +69,8 @@ public class ServerHandler {
 
     /**
      * Get client session as round robin to send message
-     * @param userstoreDomain
-     * @return
+     * @param userstoreDomain User store domain
+     * @return websocket session
      */
     public Session getSession(String tenantDomain, String userstoreDomain) {
 
@@ -78,14 +89,17 @@ public class ServerHandler {
         return null;
     }
 
-
-
+    /**
+     * Remove session from cache
+     * @param tenantDomain Tenant domain
+     * @param userstoreDomain User store domain
+     * @param session websocket session
+     */
     public void removeSession(String tenantDomain, String userstoreDomain, Session session) {
 
         Iterator<Session> iterator = sessions.get(getKey(tenantDomain, userstoreDomain)).iterator();
         while (iterator.hasNext()) {
             Session tmpSession = iterator.next();
-
             if (tmpSession.getId().equals(session.getId())) {
                 sessions.get(getKey(tenantDomain, userstoreDomain)).remove(tmpSession);
                 break;

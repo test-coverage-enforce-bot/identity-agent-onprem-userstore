@@ -1,1 +1,1 @@
-serverUrl: "ws://identitybroker.cloudstaging.wso2.com:8085/server/"
+serverUrl: "wss://identitybroker.cloudstaging.wso2.com:8443/server"

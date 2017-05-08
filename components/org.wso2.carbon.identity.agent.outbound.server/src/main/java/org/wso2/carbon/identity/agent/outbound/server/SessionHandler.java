@@ -17,8 +17,6 @@
  */
 package org.wso2.carbon.identity.agent.outbound.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
@@ -107,12 +105,18 @@ public class SessionHandler {
         }
     }
 
-    public void removeSessions(String tenantDomain, String userstoreDomain) throws IOException {
+    /**
+     * Remove websocket session from cache and kill sessions
+     * @param tenantDomain Tenant domain
+     * @param userstoreDomain User store domain
+     * @throws IOException
+     */
+    public void removeAndKillSessions(String tenantDomain, String userstoreDomain) throws IOException {
         List<Session> sessionList = sessions.get(getKey(tenantDomain, userstoreDomain));
         for (Session session : sessionList) {
             UserOperation userOperation = new UserOperation();
             userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
-            userOperation.setRequestData("Clossing client connections.");
+            userOperation.setRequestData("Closing client connections from server.");
             session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
         }
         sessions.remove(getKey(tenantDomain, userstoreDomain));

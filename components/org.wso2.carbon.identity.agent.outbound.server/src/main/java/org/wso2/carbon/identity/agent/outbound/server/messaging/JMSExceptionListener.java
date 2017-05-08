@@ -44,7 +44,7 @@ public class JMSExceptionListener implements ExceptionListener {
             try {
                 Thread.sleep(RETRY_TIMEOUT);
             } catch (InterruptedException e) {
-                logger.error("Error while wait for reconnect listener.");
+                logger.error("Error while wait for reconnect listener.", e);
             }
         }
     }

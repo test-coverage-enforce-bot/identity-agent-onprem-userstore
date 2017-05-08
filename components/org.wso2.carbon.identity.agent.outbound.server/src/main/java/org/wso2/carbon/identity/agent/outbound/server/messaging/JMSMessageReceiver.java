@@ -3,8 +3,8 @@ package org.wso2.carbon.identity.agent.outbound.server.messaging;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.outbound.server.ServerHandler;
-import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
+import org.wso2.carbon.identity.agent.outbound.server.SessionHandler;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.ServerOperation;
@@ -26,24 +26,28 @@ import javax.websocket.Session;
 public class JMSMessageReceiver implements MessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(JMSMessageReceiver.class);
-    private ServerHandler serverHandler;
+    private SessionHandler serverHandler;
     private boolean transacted = false;
-    private MessageConsumer requestConsumer;
-    private String serverNode;
 
-    public JMSMessageReceiver(ServerHandler serverHandler, String serverNode) {
+    public JMSMessageReceiver(SessionHandler serverHandler) {
         this.serverHandler = serverHandler;
-        this.serverNode = serverNode;
     }
 
+    /**
+     * Start JMS listening in a separate thread.
+     */
     public void start() {
         Thread loop = new Thread(this::startReceive);
         loop.start();
     }
 
+    /**
+     * Start receiving message from request topic.
+     * @return result of the operation
+     */
     public boolean startReceive() {
         boolean started = true;
-        String messageBrokerURL = ServerConfigUtil.build().getMessagebroker().getUrl();
+        String messageBrokerURL = ServerConfigurationBuilder.build().getMessagebroker().getUrl();
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(messageBrokerURL);
         Connection connection;
         try {
@@ -51,7 +55,7 @@ public class JMSMessageReceiver implements MessageListener {
             connection.start();
             javax.jms.Session session = connection.createSession(transacted, javax.jms.Session.AUTO_ACKNOWLEDGE);
             Topic adminQueue = session.createTopic(UserStoreConstants.QUEUE_NAME_REQUEST);
-            requestConsumer = session.createConsumer(adminQueue);
+            MessageConsumer requestConsumer = session.createConsumer(adminQueue);
             requestConsumer.setMessageListener(this);
             JMSExceptionListener exceptionListener = new JMSExceptionListener(this);
             connection.setExceptionListener(exceptionListener);
@@ -74,7 +78,7 @@ public class JMSMessageReceiver implements MessageListener {
 
     /**
      * Process message
-     * @param message
+     * @param message JMS Message
      * @throws JMSException
      */
     public void processOperation(Message message) throws JMSException {
@@ -91,16 +95,16 @@ public class JMSMessageReceiver implements MessageListener {
     }
 
     /**
-     * Process user operation
-     * @param serverOperation
+     * Process user operation in a separate thread.
+     * @param serverOperation Server operation message
      */
     public void processServerOperation(ServerOperation serverOperation) {
         Thread loop = new Thread(() -> {
             if (serverOperation.getOperationType().equals(UserStoreConstants.SERVER_OPERATION_TYPE_KILL_AGENTS)) {
                 try {
-                    serverHandler.removeSessions(serverOperation.getTenantDomain(), serverOperation.getDomain());
+                    serverHandler.removeAndKillSessions(serverOperation.getTenantDomain(), serverOperation.getDomain());
                 } catch (IOException e) {
-                    log.error("Error occurred while closing agent connection", e);
+                    log.error("Error occurred while removing agent connection", e);
                 }
             }
         });
@@ -108,8 +112,8 @@ public class JMSMessageReceiver implements MessageListener {
     }
 
     /**
-     * Process User operation
-     * @param userOperation
+     * Process User operation in a separate thread
+     * @param userOperation User operation message
      */
     public void processUserOperation(UserOperation userOperation) {
         Thread loop = new Thread(() -> {

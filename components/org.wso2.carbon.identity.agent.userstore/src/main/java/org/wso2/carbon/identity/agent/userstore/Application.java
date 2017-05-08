@@ -33,9 +33,7 @@ import javax.net.ssl.SSLException;
 /**
  * org.wso2.carbon.identity.agent.outbound.Application entry point.
  *
- * @since 0.1
  */
-
 public class Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
@@ -71,7 +69,7 @@ public class Application {
 
         String hostname = InetAddress.getLocalHost().getHostName();
         WebSocketClient webSocketClient = new WebSocketClient(
-                AgentConfigUtil.build().getServerUrl() + accessToken + "/" + hostname);
+                AgentConfigUtil.build().getServerUrl() + "/" + hostname, accessToken);
         try {
             boolean result = webSocketClient.handhshake();
             if (result) {

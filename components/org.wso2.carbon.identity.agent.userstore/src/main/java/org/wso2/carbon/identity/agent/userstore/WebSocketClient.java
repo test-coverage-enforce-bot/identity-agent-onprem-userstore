@@ -16,7 +16,6 @@
 package org.wso2.carbon.identity.agent.userstore;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -27,10 +26,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler;
@@ -51,16 +47,27 @@ import javax.net.ssl.SSLException;
 public class WebSocketClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
+    private static boolean isRetryStarted = false;
 
     private final String url;
     private boolean shutdownFlag;
     private Channel channel = null;
     private WebSocketClientHandler handler;
     private EventLoopGroup group;
-    public static boolean isRetryStarted = false;
+    private String accessToken;
+    private static final String ACCESS_TOKEN_HEADER = "accesstoken";
 
-    public WebSocketClient(String url) {
+    public WebSocketClient(String url, String accessToken) {
         this.url = System.getProperty("url", url);
+        this.accessToken = accessToken;
+    }
+
+    public static boolean isRetryStarted() {
+        return isRetryStarted;
+    }
+
+    public static void setIsRetryStarted(boolean isRetryStartedFlag) {
+        isRetryStarted = isRetryStartedFlag;
     }
 
     /**
@@ -109,7 +116,7 @@ public class WebSocketClient {
                     new WebSocketClientHandler(
                             WebSocketClientHandshakerFactory.newHandshaker(
                                     uri, WebSocketVersion.V13, null,
-                                    true, new DefaultHttpHeaders()), this);
+                                    true, new DefaultHttpHeaders().add(ACCESS_TOKEN_HEADER, accessToken)), this);
 
             Bootstrap b = new Bootstrap();
             b.group(group)
@@ -144,41 +151,6 @@ public class WebSocketClient {
         return isDone;
     }
 
-    /**
-     * Send text to the server.
-     * @param text text need to be sent.
-     */
-    public void sendText(String text) {
-        if (channel == null) {
-            LOGGER.error("Channel is null. Cannot send text.");
-            throw new NullPointerException("Cannot find the channel to write");
-        }
-        channel.writeAndFlush(new TextWebSocketFrame(text));
-    }
-
-    /**
-     * Send binary data to server.
-     * @param buf buffer containing the data need to be sent.
-     */
-    public void sendBinary(ByteBuffer buf) {
-        if (channel == null) {
-            LOGGER.error("Channel is null. Cannot send text.");
-            throw new NullPointerException("Cannot find the channel to write");
-        }
-        channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(buf)));
-    }
-
-    /**
-     * Send a pong message to the server.
-     * @param buf content of the pong message to be sent.
-     */
-    public void sendPong(ByteBuffer buf) {
-        if (channel == null) {
-            LOGGER.error("Channel is null. Cannot send text.");
-            throw new NullPointerException("Cannot find the channel to write");
-        }
-        channel.writeAndFlush(new PongWebSocketFrame(Unpooled.wrappedBuffer(buf)));
-    }
 
     /**
      * @return the text received from the server.
@@ -195,7 +167,7 @@ public class WebSocketClient {
     }
 
     /**
-     * Shutdown the WebSocket Client.
+     * Shutdown the WebSocke Client.
      */
     public void shutDown() throws InterruptedException {
         /**

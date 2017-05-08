@@ -36,6 +36,11 @@ public class DatabaseUtil {
     private static Log log = LogFactory.getLog(DatabaseUtil.class);
     private static DataSource jdbcds = loadUserStoreSpacificDataSoruce();
 
+    /**
+     * Get database connection.
+     * @return SQL connection
+     * @throws SQLException
+     */
     public static Connection getDBConnection() throws SQLException {
         Connection dbConnection = getJDBCDataSource().getConnection();
         dbConnection.setAutoCommit(false);
@@ -45,6 +50,10 @@ public class DatabaseUtil {
         return dbConnection;
     }
 
+    /**
+     * Get JDBC data source.
+     * @return datasource
+     */
     private static DataSource getJDBCDataSource() {
         if (jdbcds == null) {
             jdbcds = loadUserStoreSpacificDataSoruce();
@@ -52,8 +61,12 @@ public class DatabaseUtil {
         return jdbcds;
     }
 
+    /**
+     * Load user store properties from config and create datasource.
+     * @return datasource
+     */
     private static DataSource loadUserStoreSpacificDataSoruce() {
-        DatabaseConfig dbConf = ServerConfigUtil.build().getDatabase();
+        DatabaseConfig dbConf = ServerConfigurationBuilder.build().getDatabase();
         PoolProperties poolProperties = new PoolProperties();
         poolProperties.setDriverClassName(dbConf.getDriver());
         poolProperties.setUrl(dbConf.getUrl());
@@ -65,6 +78,10 @@ public class DatabaseUtil {
         return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
     }
 
+    /**
+     * Close DB connection
+     * @param dbConnection sql connection
+     */
     public static void closeConnection(Connection dbConnection) {
 
         if (dbConnection != null) {
@@ -76,6 +93,10 @@ public class DatabaseUtil {
         }
     }
 
+    /**
+     * Close resultset.
+     * @param rs SQL resultset
+     */
     private static void closeResultSet(ResultSet rs) {
 
         if (rs != null) {
@@ -87,6 +108,10 @@ public class DatabaseUtil {
         }
     }
 
+    /**
+     * Close prepaedstatement.
+     * @param preparedStatement SQL preparedstatememt
+     */
     private static void closeStatement(PreparedStatement preparedStatement) {
 
         if (preparedStatement != null) {
@@ -98,6 +123,10 @@ public class DatabaseUtil {
         }
     }
 
+    /**
+     * Close number of prepared statement.
+     * @param prepStmts all prepaired statements
+     */
     private static void closeStatements(PreparedStatement... prepStmts) {
 
         if (prepStmts != null && prepStmts.length > 0) {
@@ -107,12 +136,23 @@ public class DatabaseUtil {
         }
     }
 
+    /**
+     * Close all sql connections and prepared statements
+     * @param dbConnection sql connection
+     * @param prepStmts prepairedstatements
+     */
     public static void closeAllConnections(Connection dbConnection, PreparedStatement... prepStmts) {
 
         closeStatements(prepStmts);
         closeConnection(dbConnection);
     }
 
+    /**
+     * Close all sql connections, resultset and prepared statements
+     * @param dbConnection sql connection
+     * @param rs resultset
+     * @param prepStmts all prepaired statements
+     */
     public static void closeAllConnections(Connection dbConnection, ResultSet rs, PreparedStatement... prepStmts) {
 
         closeResultSet(rs);

@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.agent.outbound.server.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.outbound.server.SQLQueries;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
@@ -29,21 +30,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Token data access object
+ * Token management data access object
  */
 public class TokenMgtDao {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TokenMgtDao.class);
 
+    /**
+     * Validate access token is an active one.
+     * @param accessToken Access token
+     * @return Access token model
+     */
     public AccessToken validateAccessToken(String accessToken) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection.prepareStatement(
-                    "SELECT UM_ID,UM_TOKEN,UM_TENANT,UM_DOMAIN FROM UM_ACCESS_TOKEN WHERE UM_TOKEN = ? AND " +
-                            "UM_STATUS = ?");
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_ACCESS_TOKEN);
             prepStmt.setString(1, accessToken);
             prepStmt.setString(2, UserStoreConstants.ACCESS_TOKEN_STATUS_ACTIVE);
             resultSet = prepStmt.executeQuery();
@@ -57,7 +61,7 @@ public class TokenMgtDao {
                 return token;
             }
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while getting reading data";
+            String errorMessage = "Error occurred while validating access token";
             LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);

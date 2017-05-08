@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.agent.outbound.server.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.outbound.server.SQLQueries;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.AgentConnection;
@@ -31,20 +32,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Token data access object
+ * Token management data access object
  */
 public class AgentMgtDao {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentMgtDao.class);
 
+    /**
+     * Update agent connection information.
+     * @param accessTokenId Access token ID
+     * @param node Client node
+     * @param serverNode Server node
+     * @param status connection status (Ex. F=Failed, C=Connected)
+     * @return result of the operation
+     */
     public boolean updateConnection(int accessTokenId, String node, String serverNode, String status) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         boolean result = true;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection.prepareStatement("UPDATE UM_AGENT_CONNECTIONS SET UM_STATUS=?,UM_SERVER_NODE=? " +
-                    "WHERE UM_ACCESS_TOKEN_ID=? AND UM_NODE=?");
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_UPDATE_AGENT_CONNECTIONS);
             prepStmt.setString(1, status);
             prepStmt.setString(2, serverNode);
             prepStmt.setInt(3, accessTokenId);
@@ -52,7 +60,8 @@ public class AgentMgtDao {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while updating connection";
+            String errorMessage = "Error occurred while updating connection client node: " + node + " server node: " +
+                    serverNode + " status: " + status;
             LOGGER.error(errorMessage, e);
             result = false;
         } finally {
@@ -61,6 +70,11 @@ public class AgentMgtDao {
         return result;
     }
 
+    /**
+     * Update all connections status as F=Failed.
+     * @param serverNode Server node
+     * @return result of the operation
+     */
     public boolean closeAllConnection(String serverNode) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
@@ -68,13 +82,13 @@ public class AgentMgtDao {
         try {
             dbConnection = DatabaseUtil.getDBConnection();
             prepStmt = dbConnection
-                    .prepareStatement("UPDATE UM_AGENT_CONNECTIONS SET UM_STATUS=? WHERE UM_SERVER_NODE=?");
+                    .prepareStatement(SQLQueries.QUERY_UPDATE_AGENT_CONNECTIONS_STATUS);
             prepStmt.setString(1, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
             prepStmt.setString(2, serverNode);
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while updating connection";
+            String errorMessage = "Error occurred while updating connection server node: " + serverNode;
             LOGGER.error(errorMessage, e);
             result = false;
         } finally {
@@ -83,6 +97,12 @@ public class AgentMgtDao {
         return result;
     }
 
+    /**
+     * Check is client node connected.
+     * @param accessTokenId Access token ID
+     * @param node Client node
+     * @return result of the operation
+     */
     public boolean isNodeConnected(int accessTokenId, String node) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
@@ -90,8 +110,7 @@ public class AgentMgtDao {
         boolean isValid = false;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection.prepareStatement("SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
-                    "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ? AND UM_STATUS = ?");
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_IS_AGENT_NODE_CONNECTED);
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
             prepStmt.setString(3, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
@@ -101,7 +120,7 @@ public class AgentMgtDao {
                 isValid = true;
             }
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while getting reading data";
+            String errorMessage = "Error occurred while checking node connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
@@ -109,6 +128,12 @@ public class AgentMgtDao {
         return isValid;
     }
 
+    /**
+     * Check client connection is exist.
+     * @param accessTokenId Access token ID
+     * @param node client node
+     * @return result of the operation
+     */
     public boolean isConnectionExist(int accessTokenId, String node) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
@@ -116,8 +141,7 @@ public class AgentMgtDao {
         boolean isExist = false;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection.prepareStatement("SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
-                    "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ?");
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_IS_AGENT_CONNECTION_EXIST);
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
             resultSet = prepStmt.executeQuery();
@@ -126,7 +150,7 @@ public class AgentMgtDao {
                 isExist = true;
             }
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while getting connection data";
+            String errorMessage = "Error occurred while checking connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
@@ -134,14 +158,18 @@ public class AgentMgtDao {
         return isExist;
     }
 
+    /**
+     * Add agent connection.
+     * @param connection Agent connection model
+     * @return result of the operation
+     */
     public boolean addAgentConnection(AgentConnection connection) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         boolean result = true;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection.prepareStatement("INSERT INTO UM_AGENT_CONNECTIONS(UM_ACCESS_TOKEN_ID,UM_NODE," +
-                    "UM_STATUS,UM_SERVER_NODE)VALUES(?,?,?,?)");
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_ADD_CONNECTION);
             prepStmt.setInt(1, connection.getAccessTokenId());
             prepStmt.setString(2, connection.getNode());
             prepStmt.setString(3, connection.getStatus());
@@ -149,7 +177,7 @@ public class AgentMgtDao {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while getting reading data";
+            String errorMessage = "Error occurred while adding connection information.";
             LOGGER.error(errorMessage, e);
             result = false;
         } finally {
@@ -158,6 +186,13 @@ public class AgentMgtDao {
         return result;
     }
 
+    /**
+     * Get all agent connections
+     * @param tenantDomain Tenant domain
+     * @param domain User store domain
+     * @param status connection status (Ex. F=Failed, C=Connected)
+     * @return List of connections
+     */
     public List<AgentConnection> getAgentConnections(String tenantDomain, String domain, String status) {
         Connection dbConnection = null;
         PreparedStatement insertTokenPrepStmt = null;
@@ -165,9 +200,7 @@ public class AgentMgtDao {
         List<AgentConnection> agentConnections = new ArrayList<>();
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            insertTokenPrepStmt = dbConnection.prepareStatement("SELECT UM_STATUS,UM_NODE,UM_ACCESS_TOKEN_ID," +
-                    "UM_SERVER_NODE FROM UM_AGENT_CONNECTIONS WHERE UM_STATUS =? AND UM_ACCESS_TOKEN_ID IN " +
-                    "(SELECT A.UM_ID FROM UM_ACCESS_TOKEN A WHERE A.UM_DOMAIN=? AND A.UM_TENANT=?);");
+            insertTokenPrepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_ALL_CONNECTIONS);
             insertTokenPrepStmt.setString(1, status);
             insertTokenPrepStmt.setString(2, domain);
             insertTokenPrepStmt.setString(3, tenantDomain);
@@ -181,7 +214,9 @@ public class AgentMgtDao {
                 agentConnections.add(agentConnection);
             }
         } catch (SQLException e) {
-            LOGGER.error("Error occurred while reading agent information", e);
+            String errorMessage = "Error occurred while reading agent connection information tenant: " +  tenantDomain +
+                    " domain: " + domain + " status: " + status;
+            LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, insertTokenPrepStmt);
         }

@@ -24,7 +24,6 @@ package org.wso2.carbon.identity.agent.outbound.server.model;
 public class ServerConfig {
 
     private int connectionlimit;
-    private String node;
 
     public int getConnectionlimit() {
         return connectionlimit;
@@ -32,13 +31,5 @@ public class ServerConfig {
 
     public void setConnectionlimit(int connectionlimit) {
         this.connectionlimit = connectionlimit;
-    }
-
-    public String getNode() {
-        return node;
-    }
-
-    public void setNode(String node) {
-        this.node = node;
     }
 }

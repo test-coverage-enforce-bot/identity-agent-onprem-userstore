@@ -25,17 +25,17 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.dao.TokenMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.model.MessageBrokerConfig;
-import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigUtil;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionException;
 import org.wso2.carbon.identity.user.store.common.messaging.JMSConnectionFactory;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
-import org.wso2.carbon.identity.user.store.common.model.AgentConnection;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
+import org.wso2.carbon.kernel.utils.StringUtils;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -52,42 +52,46 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 /**
- * Server endpoint
+ * Web socket server endpoint
  */
-@ServerEndpoint(value = "/server/{token}/{node}")
+@ServerEndpoint(value = "/server/{node}")
 public class UserStoreServerEndpoint {
 
-    private static final Logger log = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
-    private static final long QUEUE_MESSAGE_LIFETIME = 5 * 60 * 1000;
-    private ServerHandler serverHandler;
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
+    private static final String ACCESS_TOKEN_HEADER = "accesstoken";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
+    public static final String UM_JSON_ELEMENT_RESPONSE_DATA = "responseData";
+    private SessionHandler serverHandler;
     private String serverNode;
 
-    public UserStoreServerEndpoint(ServerHandler serverHandler, String serverNode) {
+    public UserStoreServerEndpoint(SessionHandler serverHandler, String serverNode) {
         this.serverHandler = serverHandler;
         this.serverNode = serverNode;
         initializeConnections();
     }
 
+    /**
+     * Initializing all the agent connection established with server node.
+     */
     private void initializeConnections() {
         AgentMgtDao agentMgtDao = new AgentMgtDao();
         agentMgtDao.closeAllConnection(serverNode);
     }
 
-    private void addSession(String tenantDomain, String userstoreDomain, Session session) {
-        serverHandler.addSession(tenantDomain, userstoreDomain, session);
-    }
-
-    private void removeSession(String tenantDomain, String userstoreDomain, Session session) {
-        serverHandler.removeSession(tenantDomain, userstoreDomain, session);
-    }
-
-    private void processResponse(String tenant, String message) {
+    /**
+     * Process response message and send to response queue.
+     * @param message Message
+     */
+    private void processResponse(String message) {
 
         JMSConnectionFactory connectionFactory = new JMSConnectionFactory();
         Connection connection = null;
         MessageProducer producer;
         try {
-            MessageBrokerConfig conf = ServerConfigUtil.build().getMessagebroker();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Start processing response message: " + message);
+            }
+            MessageBrokerConfig conf = ServerConfigurationBuilder.build().getMessagebroker();
             connectionFactory.createActiveMQConnectionFactory(conf.getUrl());
             connection = connectionFactory.createConnection();
             connectionFactory.start(connection);
@@ -97,110 +101,111 @@ public class UserStoreServerEndpoint {
             producer = connectionFactory.createMessageProducer(session, responseQueue, DeliveryMode.NON_PERSISTENT);
 
             JSONObject resultObj = new JSONObject(message);
-            String responseData = (String) resultObj.get("responseData");
-            String correlationId = (String) resultObj.get("correlationId");
+            String responseData = (String) resultObj.get(UM_JSON_ELEMENT_RESPONSE_DATA);
+            String correlationId = (String) resultObj.get(UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID);
 
-            UserOperation requestOperation = new UserOperation();
-            requestOperation.setCorrelationId(correlationId);
-            requestOperation.setResponseData(responseData);
+            UserOperation responseOperation = new UserOperation();
+            responseOperation.setCorrelationId(correlationId);
+            responseOperation.setResponseData(responseData);
 
-            ObjectMessage requestMessage = session.createObjectMessage();
-            requestMessage.setObject(requestOperation);
-            requestMessage.setJMSExpiration(QUEUE_MESSAGE_LIFETIME);
-            requestMessage.setJMSCorrelationID(correlationId);
-            producer.send(requestMessage);
-
+            ObjectMessage responseMessage = session.createObjectMessage();
+            responseMessage.setObject(responseOperation);
+            responseMessage.setJMSExpiration(UserStoreConstants.QUEUE_SERVER_MESSAGE_LIFETIME);
+            responseMessage.setJMSCorrelationID(correlationId);
+            producer.send(responseMessage);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Finished processing response message: " + message);
+            }
         } catch (JMSException e) {
-            log.error("Error occurred while sending message", e);
+            LOGGER.error("Error occurred while sending message", e);
         } catch (JSONException e) {
-            log.error("Error occurred while reading json payload", e);
+            LOGGER.error("Error occurred while reading json payload", e);
         } catch (JMSConnectionException e) {
-            log.error("Error occurred while creating JMS connection", e);
+            LOGGER.error("Error occurred while creating JMS connection", e);
         } finally {
             try {
                 connectionFactory.closeConnection(connection);
             } catch (JMSConnectionException e) {
-                log.error("Error occurred while closing JMS connection", e);
+                LOGGER.error("Error occurred while closing JMS connection", e);
             }
         }
     }
 
-    private AccessToken validateAccessToken(String accessToken) {
-        TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        return tokenMgtDao.validateAccessToken(accessToken);
-    }
-
-    private boolean isConnectionLimitExceed(String tenantDomain, String domain) {
-        AgentMgtDao agentMgtDao = new AgentMgtDao();
-        List<AgentConnection> agentConnections = agentMgtDao
-                .getAgentConnections(tenantDomain, domain, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
-        if (agentConnections.size() >= ServerConfigUtil.build().getServer().getConnectionlimit()) {
-            return true;
-        }
-        return false;
+    /**
+     * Get access token header "accesstoken" from user properties
+     * @param userProperties User properties
+     * @return Access token
+     */
+    private String getAccessTokenFromUserProperties(Map<String, Object> userProperties) {
+        return (String) userProperties.get(ACCESS_TOKEN_HEADER);
     }
 
     @OnOpen
-    public void onOpen(@PathParam("token") String token, @PathParam("node") String node, Session session) {
-        handleSession(token, node, session);
+    public void onOpen(@PathParam("node") String node, Session session) {
+        handleSession(getAccessTokenFromUserProperties(session.getUserProperties()), node, session);
     }
 
+    /**
+     * Handle session
+     * @param token access token
+     * @param node Client node
+     * @param session web socket session
+     */
     private void handleSession(String token, String node, Session session) {
 
-        log.info("Client " + node + " trying to connect the sever.");
-        AccessToken accessToken = validateAccessToken(token);
+        LOGGER.info("Client " + node + " trying to connect the sever.");
+
+        if (StringUtils.isNullOrEmpty(token)) {
+            try {
+                String message = "Closing session due to send invalid access token.";
+                LOGGER.error(message);
+                sendErrorMessage(session, message);
+            } catch (IOException e) {
+                LOGGER.error("Error occurred while closing session.");
+            }
+            return;
+        }
+        TokenMgtDao tokenMgtDao = new TokenMgtDao();
+        AccessToken accessToken = tokenMgtDao.validateAccessToken(token);
+        ConnectionHandler connectionHandler = new ConnectionHandler();
         if (accessToken == null) {
             try {
                 String message = "Closing session due to send invalid access token.";
-                log.error(message);
+                LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                log.error("Error occurred while clossing session.");
+                LOGGER.error("Error occurred while closing session.", e);
             }
-        } else if (isNodeConnected(accessToken, node)) {
+        } else if (connectionHandler.isNodeConnected(accessToken, node)) {
             try {
-                String message = "Client " + node + " already connected. Please contact WSO2 cloud";
-                log.error(message);
+                String message = "Client " + node + " already connected. Please contact WSO2 cloud support";
+                LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                log.error("Error occurred while closing session.");
+                LOGGER.error("Error occurred while closing session.", e);
             }
-        } else if (isConnectionLimitExceed(accessToken.getTenant(), accessToken.getDomain())) {
+        } else if (connectionHandler.isConnectionLimitExceed(accessToken.getTenant(), accessToken.getDomain())) {
             try {
-                String message = "No of agent connections limit exceeded.";
-                log.error(message);
+                String message = "No of agent connections limit exceeded for tenant: " + accessToken.getTenant();
+                LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                log.error("Error occurred while closing session.");
+                LOGGER.error("Error occurred while closing session.", e);
             }
         } else {
-            addConnection(accessToken, node);
-            addSession(accessToken.getTenant(), accessToken.getDomain(), session);
-            String msg = node + " from " + accessToken.getTenant() + " connected to server";
-            log.info(msg);
+            connectionHandler.addConnection(accessToken, node, serverNode);
+            serverHandler.addSession(accessToken.getTenant(), accessToken.getDomain(), session);
+            String msg = node + " from " + accessToken.getTenant() + " connected to server node: " + serverNode;
+            LOGGER.info(msg);
         }
     }
 
-    private void addConnection(AccessToken accessToken, String node) {
-        AgentMgtDao agentMgtDao = new AgentMgtDao();
-        if (agentMgtDao.isConnectionExist(accessToken.getId(), node)) {
-            agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
-                    UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
-        } else {
-            AgentConnection connection = new AgentConnection();
-            connection.setAccessTokenId(accessToken.getId());
-            connection.setStatus(UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
-            connection.setNode(node);
-            connection.setServerNode(serverNode);
-            agentMgtDao.addAgentConnection(connection);
-        }
-    }
-
-    private boolean isNodeConnected(AccessToken accessToken, String node) {
-        AgentMgtDao agentMgtDao = new AgentMgtDao();
-        return agentMgtDao.isNodeConnected(accessToken.getId(), node);
-    }
-
+    /**
+     * Send error message to client
+     * @param session web socket session
+     * @param message Error message
+     * @throws IOException
+     */
     private void sendErrorMessage(Session session, String message) throws IOException {
         UserOperation userOperation = new UserOperation();
         userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
@@ -210,31 +215,36 @@ public class UserStoreServerEndpoint {
     }
 
     @OnMessage
-    public void onTextMessage(@PathParam("token") String token, String text, Session session) throws IOException {
-        Thread loop = new Thread(() -> processResponse(token, text));
+    public void onTextMessage(String text, Session session) throws IOException {
+        Thread loop = new Thread(() -> processResponse(text));
         loop.start();
     }
 
     @OnMessage
     public void onBinaryMessage(byte[] bytes, Session session) {
-        log.info("Reading binary Message");
+        LOGGER.info("Reading binary Message");
     }
 
     @OnClose
-    public void onClose(@PathParam("token") String token, @PathParam("node") String node, CloseReason closeReason,
-            Session session) {
-        log.info("Connection is closed with status code : " + closeReason.getCloseCode().getCode()
-                + " On reason " + closeReason.getReasonPhrase());
-        AccessToken accessToken = validateAccessToken(token);
-        removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
-        AgentMgtDao agentMgtDao = new AgentMgtDao();
-        agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
-                UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+    public void onClose(@PathParam("node") String node, CloseReason closeReason, Session session) {
+
+        TokenMgtDao tokenMgtDao = new TokenMgtDao();
+        AccessToken accessToken = tokenMgtDao
+                .validateAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
+
+        LOGGER.info("Connection is closed with status code : " + closeReason.getCloseCode().getCode()
+                + " On reason " + closeReason.getReasonPhrase() + " tenant: " + accessToken.getTenant());
+        if (accessToken != null) {
+            serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
+            AgentMgtDao agentMgtDao = new AgentMgtDao();
+            agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
+                    UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+        }
     }
 
     @OnError
     public void onError(Throwable throwable, Session session) {
-        log.error("Error found in method : " + throwable.toString());
+        LOGGER.error("Error found in method : " + throwable.toString());
     }
 
 }

@@ -81,8 +81,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     /**
-     * Schedule a tast to send an ping message in every 30 seconds, otherwise connection get lost.
-     * @param channel
+     * Schedule a task to send an ping message in every 30 seconds, otherwise connection get lost.
+     * @param channel Netty channel
      */
     private void scheduleHeatBeatSendTask(Channel channel) {
         Timer time = new Timer();
@@ -93,13 +93,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.info("Server connection Client disconnected!");
-        if (!WebSocketClient.isRetryStarted) {
+        if (!WebSocketClient.isRetryStarted()) {
             startRetrying();
         }
     }
 
     private void startRetrying() {
-        WebSocketClient.isRetryStarted = true;
+        WebSocketClient.setIsRetryStarted(true);
         while (true) {
             boolean result = false;
             try {
@@ -114,7 +114,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 LOGGER.error("Error occurred while reconnecting to socket server", e);
             }
             if (result) {
-                WebSocketClient.isRetryStarted = false;
+                WebSocketClient.setIsRetryStarted(false);
                 LOGGER.info("Agent successfully reconnected to server.");
                 break;
             }
@@ -123,9 +123,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Write response to server socket with correlationId
-     * @param channel
-     * @param correlationId
-     * @param result
+     * @param channel netty channel
+     * @param correlationId id to corerelate request response
+     * @param result user operation result
      */
     private void writeResponse(Channel channel, String correlationId, String result) {
         channel.writeAndFlush(new TextWebSocketFrame(
@@ -134,8 +134,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process authentication request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processAuthenticationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
@@ -171,8 +171,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process Get claims request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processGetClaimsRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
@@ -192,8 +192,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process get user roles request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processGetUserRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
@@ -212,8 +212,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process get roles request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processGetRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
@@ -235,8 +235,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process get roles request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processGetUsersListRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
@@ -259,8 +259,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     /**
      * Process user operation request
-     * @param channel
-     * @param requestObj
+     * @param channel netty channel
+     * @param requestObj json request data object
      * @throws UserStoreException
      */
     private void processUserOperationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {

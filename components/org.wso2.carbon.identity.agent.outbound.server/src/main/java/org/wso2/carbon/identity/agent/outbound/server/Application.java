@@ -29,7 +29,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * This is the runner of the Fatjar. This should be configured as the main class in the pom.xml
+ * Application main class which initialize listening JMS message and deploy websocket endpoint.
  */
 public class Application {
 
@@ -44,12 +44,11 @@ public class Application {
 
     private void startApplication() throws UnknownHostException {
         String serverNode = InetAddress.getLocalHost().getHostAddress();
-        ServerHandler serverHandler = new ServerHandler();
-        JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler, serverNode);
+        SessionHandler serverHandler = new SessionHandler();
+        JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler);
         receiver.start();
-        Application application = new Application();
-        application.addShutdownHook(serverNode);
-        new MicroservicesRunner().deployWebSocketEndpoint(new OnpremServerEndpoint(serverHandler, serverNode))
+        addShutdownHook(serverNode);
+        new MicroservicesRunner().deployWebSocketEndpoint(new UserStoreServerEndpoint(serverHandler, serverNode))
                 .start();
     }
 
@@ -60,7 +59,7 @@ public class Application {
         shutdownHook = new Thread() {
 
             public void run() {
-                LOGGER.info("Shutdown hook triggered....");
+                LOGGER.info("Shutdown hook triggered.");
                 shutdownGracefully(serverNode);
             }
         };

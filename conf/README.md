@@ -1,12 +1,11 @@
-# WSO2 On-premise User Store Agent
-WSO2 On-premise User Store Agent is a lightweight MSF4J (WSO2 Microservices Framework for Java) service which is used by the WSO2 Identity Cloud to connect to the on-premise userstores.
+# WSO2 On-premise Outbound User Store Agent
+WSO2 On-premise Outbound User Store Agent is a lightweight MSF4J (WSO2 Microservices Framework for Java) service which is used by the WSO2 Identity Cloud to connect to the on-premise userstores.
 
 ## Key Features
 *  Authenticate users in LDAP userstore.
 *  Retrieve attributes of users in LDAP userstore.
 *  Retrieve roles of a user in LDAP userstore.
 *  Secure configuration files through Ciphertool.
-*  Secure Endpoint through JWT security interceptor.
 
 ## System Requirements
 1. Minimum memory - 512MB
@@ -22,7 +21,7 @@ WSO2 On-premise User Store Agent is a lightweight MSF4J (WSO2 Microservices Fram
 1. Extract the downloaded zip file
 2. Configure the userstore-mgt.xml file with the values relevant to your on premise userstore.
 3. Run the wso2agent.sh file.
-4. Once the server starts, REST endpoints are available through https://localhost:8888/wso2agent 
+4. When agent start enter access token created while configuring directory.
 
 ## WSO2 On Premise User Store Agent Directory Structure
  
@@ -68,4 +67,4 @@ For more information on WSO2 Carbon, visit the WSO2 Oxygen Tank (http://wso2.org
 
 ____
 
-(c) Copyright 2016 WSO2 Inc.
+(c) Copyright 2017 WSO2 Inc.

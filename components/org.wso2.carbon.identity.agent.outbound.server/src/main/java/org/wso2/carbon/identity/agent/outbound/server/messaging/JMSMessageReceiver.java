@@ -54,7 +54,7 @@ public class JMSMessageReceiver implements MessageListener {
             connection = connectionFactory.createConnection();
             connection.start();
             javax.jms.Session session = connection.createSession(transacted, javax.jms.Session.AUTO_ACKNOWLEDGE);
-            Topic adminQueue = session.createTopic(UserStoreConstants.QUEUE_NAME_REQUEST);
+            Topic adminQueue = session.createTopic(UserStoreConstants.TOPIC_NAME_REQUEST);
             MessageConsumer requestConsumer = session.createConsumer(adminQueue);
             requestConsumer.setMessageListener(this);
             JMSExceptionListener exceptionListener = new JMSExceptionListener(this);

@@ -31,7 +31,7 @@ import java.net.UnknownHostException;
 import javax.net.ssl.SSLException;
 
 /**
- * org.wso2.carbon.identity.agent.outbound.Application entry point.
+ * Application main class which initialize the socket connection with server
  *
  */
 public class Application {
@@ -46,6 +46,10 @@ public class Application {
         application.startAgent();
     }
 
+    /**
+     * Start agent which initialize security manager, check user store config and start socket connection with server
+     * @throws UnknownHostException
+     */
     private void startAgent() throws UnknownHostException {
         String accessToken = new AccessTokenHandler().getAccessToken();
         if (StringUtils.isEmpty(accessToken)) {
@@ -58,10 +62,10 @@ public class Application {
             LOGGER.info("Verifying user store.....");
             boolean connectionStatus = userStoreManager.getConnectionStatus();
             if (!connectionStatus) {
-                LOGGER.error("User store verification. Please check the user store configurations.");
+                LOGGER.error("User store verification failed. Please check the user store configurations.");
                 System.exit(0);
             }
-            LOGGER.info("User store verification completed.");
+            LOGGER.info("User store verification success.");
         } catch (UserStoreException e) {
             LOGGER.error("User store verification failed. Please check the user store configurations.");
             System.exit(0);
@@ -86,6 +90,10 @@ public class Application {
         app.addShutdownHook(webSocketClient);
     }
 
+    /**
+     * Add shutdown hook
+     * @param webSocketClient Websocket client
+     */
     private void addShutdownHook(WebSocketClient webSocketClient) {
         if (shutdownHook != null) {
             return;
@@ -99,13 +107,17 @@ public class Application {
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
+    /**
+     * Shutdown agent gracefully.
+     * @param webSocketClient Websocket client
+     */
     private void shutdownGracefully(WebSocketClient webSocketClient) {
         try {
             LOGGER.info("Shutting down agent....");
             webSocketClient.shutDown();
         } catch (InterruptedException e) {
-            LOGGER.error("Error occurred while sending shutdown signal.");
+            LOGGER.error("Error occurred while sending shutdown signal", e);
         }
-        LOGGER.info("shutdownGracefully Shutdown hook triggered....");
+        LOGGER.info("Agent shutting down completed.");
     }
 }

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.TimerTask;
 
 /**
- * HeartBeat task
+ * HeartBeat task to send ping message to server otherwise connection get lost when idle.
  */
 public class HeatBeatTask extends TimerTask {
 
@@ -38,6 +38,9 @@ public class HeatBeatTask extends TimerTask {
         sendPingtoServer();
     }
 
+    /**
+     * Send ping message to server.
+     */
     private void sendPingtoServer() {
         LOGGER.info("Sending ping message.");
         //TODO should send PingWebSocketFrame and it doesn't support at the moment

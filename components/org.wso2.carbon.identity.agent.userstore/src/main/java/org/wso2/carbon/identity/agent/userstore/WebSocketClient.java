@@ -108,42 +108,37 @@ public class WebSocketClient {
         }
 
         group = new NioEventLoopGroup();
-        try {
-            // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
+
+        // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
             // If you change it to V00, ping is not supported and remember to change
             // HttpResponseDecoder to WebSocketHttpResponseDecoder in the pipeline.
-            handler =
-                    new WebSocketClientHandler(
-                            WebSocketClientHandshakerFactory.newHandshaker(
-                                    uri, WebSocketVersion.V13, null,
-                                    true, new DefaultHttpHeaders().add(ACCESS_TOKEN_HEADER, accessToken)), this);
+        handler =
+                new WebSocketClientHandler(
+                        WebSocketClientHandshakerFactory.newHandshaker(
+                                uri, WebSocketVersion.V13, null,
+                                true, new DefaultHttpHeaders().add(ACCESS_TOKEN_HEADER, accessToken)), this);
 
-            Bootstrap b = new Bootstrap();
-            b.group(group)
-                    .channel(NioSocketChannel.class)
-                    .handler(new ChannelInitializer<SocketChannel>() {
+        Bootstrap b = new Bootstrap();
+        b.group(group)
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
 
-                        @Override
-                        protected void initChannel(SocketChannel ch) {
-                            ChannelPipeline p = ch.pipeline();
-                            if (sslCtx != null) {
-                                p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
-                            }
-                            p.addLast(
-                                    new HttpClientCodec(),
-                                    new HttpObjectAggregator(8192),
-                                    WebSocketClientCompressionHandler.INSTANCE,
-                                    handler);
+                    @Override
+                    protected void initChannel(SocketChannel ch) {
+                        ChannelPipeline p = ch.pipeline();
+                        if (sslCtx != null) {
+                            p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
                         }
-                    });
+                        p.addLast(
+                                new HttpClientCodec(),
+                                new HttpObjectAggregator(8192),
+                                WebSocketClientCompressionHandler.INSTANCE,
+                                handler);
+                    }
+                });
 
-            channel = b.connect(uri.getHost(), port).sync().channel();
-            isDone = handler.handshakeFuture().sync().isSuccess();
-        } catch (Exception e) {
-            LOGGER.error("Handshake unsuccessful", e);
-            return false;
-        }
-
+        channel = b.connect(uri.getHost(), port).sync().channel();
+        isDone = handler.handshakeFuture().sync().isSuccess();
         LOGGER.info("Connecting to server....");
         Thread.sleep(2000);
         LOGGER.info("Please wait.....");

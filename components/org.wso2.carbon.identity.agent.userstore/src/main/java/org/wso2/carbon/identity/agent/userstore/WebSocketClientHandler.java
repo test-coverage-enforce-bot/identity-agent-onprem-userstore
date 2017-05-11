@@ -45,7 +45,7 @@ import java.util.Timer;
 import javax.net.ssl.SSLException;
 
 /**
- * WebSocket Client Handler for Testing.
+ * WebSocket Client Handler
  */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
@@ -58,7 +58,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private String textReceived = "";
     private ByteBuffer bufferReceived = null;
     private WebSocketClient client;
-    private HeatBeatTask heatBeatTask;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketClient client) {
         this.handshaker = handshaker;
@@ -86,7 +85,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private void scheduleHeatBeatSendTask(Channel channel) {
         Timer time = new Timer();
-        heatBeatTask = new HeatBeatTask(channel);
+        HeatBeatTask heatBeatTask = new HeatBeatTask(channel);
         time.schedule(heatBeatTask, 10 * 1000, 10 * 1000);
     }
 

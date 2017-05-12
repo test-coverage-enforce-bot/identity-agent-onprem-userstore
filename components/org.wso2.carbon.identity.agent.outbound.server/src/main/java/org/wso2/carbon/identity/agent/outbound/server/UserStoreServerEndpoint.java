@@ -117,11 +117,11 @@ public class UserStoreServerEndpoint {
                 LOGGER.debug("Finished processing response message: " + message);
             }
         } catch (JMSException e) {
-            LOGGER.error("Error occurred while sending message", e);
+            LOGGER.error("Error occurred while sending message: " + message, e);
         } catch (JSONException e) {
-            LOGGER.error("Error occurred while reading json payload", e);
+            LOGGER.error("Error occurred while reading json payload of message: " + message, e);
         } catch (JMSConnectionException e) {
-            LOGGER.error("Error occurred while creating JMS connection", e);
+            LOGGER.error("Error occurred while creating JMS connection to send message: " + message, e);
         } finally {
             try {
                 connectionFactory.closeConnection(connection);
@@ -157,40 +157,37 @@ public class UserStoreServerEndpoint {
 
         if (StringUtils.isNullOrEmpty(token)) {
             try {
-                String message = "Closing session due to send invalid access token.";
+                String message = "Closing session from node: " + node + " due to send invalid access token.";
                 LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                LOGGER.error("Error occurred while closing session.");
+                LOGGER.error("Error occurred while closing session with client node: " + node);
             }
             return;
         }
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
-        AccessToken accessToken = tokenMgtDao.validateAccessToken(token);
+        AccessToken accessToken = tokenMgtDao.getAccessToken(token);
         ConnectionHandler connectionHandler = new ConnectionHandler();
-        if (accessToken == null) {
+        if (accessToken == null || !UserStoreConstants.ACCESS_TOKEN_STATUS_ACTIVE.equals(accessToken.getStatus())) {
             try {
-                String message = "Closing session due to send invalid access token.";
-                LOGGER.error(message);
+                String message = "Closing session with node: " + node + " due to send invalid access token.";
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                LOGGER.error("Error occurred while closing session.", e);
+                LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else if (connectionHandler.isNodeConnected(accessToken, node)) {
             try {
                 String message = "Client " + node + " already connected. Please contact WSO2 cloud support";
-                LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                LOGGER.error("Error occurred while closing session.", e);
+                LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else if (connectionHandler.isConnectionLimitExceed(accessToken.getTenant(), accessToken.getDomain())) {
             try {
                 String message = "No of agent connections limit exceeded for tenant: " + accessToken.getTenant();
-                LOGGER.error(message);
                 sendErrorMessage(session, message);
             } catch (IOException e) {
-                LOGGER.error("Error occurred while closing session.", e);
+                LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else {
             connectionHandler.addConnection(accessToken, node, serverNode);
@@ -207,6 +204,7 @@ public class UserStoreServerEndpoint {
      * @throws IOException
      */
     private void sendErrorMessage(Session session, String message) throws IOException {
+        LOGGER.error(message);
         UserOperation userOperation = new UserOperation();
         userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
         userOperation.setRequestData(message);
@@ -230,7 +228,7 @@ public class UserStoreServerEndpoint {
 
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         AccessToken accessToken = tokenMgtDao
-                .validateAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
+                .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
 
         LOGGER.info("Connection is closed with status code : " + closeReason.getCloseCode().getCode()
                 + " On reason " + closeReason.getReasonPhrase() + " tenant: " + accessToken.getTenant());

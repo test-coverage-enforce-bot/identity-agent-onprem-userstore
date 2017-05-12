@@ -95,12 +95,14 @@ public class SessionHandler {
      */
     public void removeSession(String tenantDomain, String userstoreDomain, Session session) {
 
-        Iterator<Session> iterator = sessions.get(getKey(tenantDomain, userstoreDomain)).iterator();
-        while (iterator.hasNext()) {
-            Session tmpSession = iterator.next();
-            if (tmpSession.getId().equals(session.getId())) {
-                sessions.get(getKey(tenantDomain, userstoreDomain)).remove(tmpSession);
-                break;
+        if (sessions.get(getKey(tenantDomain, userstoreDomain)) != null) {
+            Iterator<Session> iterator = sessions.get(getKey(tenantDomain, userstoreDomain)).iterator();
+            while (iterator.hasNext()) {
+                Session tmpSession = iterator.next();
+                if (tmpSession.getId().equals(session.getId())) {
+                    sessions.get(getKey(tenantDomain, userstoreDomain)).remove(tmpSession);
+                    break;
+                }
             }
         }
     }

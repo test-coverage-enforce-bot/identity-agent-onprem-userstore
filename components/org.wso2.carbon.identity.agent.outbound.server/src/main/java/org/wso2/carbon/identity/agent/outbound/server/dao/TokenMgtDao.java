@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.SQLQueries;
 import org.wso2.carbon.identity.agent.outbound.server.util.DatabaseUtil;
-import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.AccessToken;
 
 import java.sql.Connection;
@@ -37,11 +36,11 @@ public class TokenMgtDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(TokenMgtDao.class);
 
     /**
-     * Validate access token is an active one.
+     * Get access token.
      * @param accessToken Access token
      * @return Access token model
      */
-    public AccessToken validateAccessToken(String accessToken) {
+    public AccessToken getAccessToken(String accessToken) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -49,15 +48,14 @@ public class TokenMgtDao {
             dbConnection = DatabaseUtil.getDBConnection();
             prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_ACCESS_TOKEN);
             prepStmt.setString(1, accessToken);
-            prepStmt.setString(2, UserStoreConstants.ACCESS_TOKEN_STATUS_ACTIVE);
             resultSet = prepStmt.executeQuery();
-
             if (resultSet.next()) {
                 AccessToken token = new AccessToken();
                 token.setAccessToken(resultSet.getString("UM_TOKEN"));
                 token.setId(resultSet.getInt("UM_ID"));
                 token.setTenant(resultSet.getString("UM_TENANT"));
                 token.setDomain(resultSet.getString("UM_DOMAIN"));
+                token.setStatus(resultSet.getString("UM_STATUS"));
                 return token;
             }
         } catch (SQLException e) {

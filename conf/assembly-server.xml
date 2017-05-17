@@ -43,6 +43,11 @@
             <fileMode>644</fileMode>
         </file>
         <file>
+            <source>../../conf/conf/log4j.properties</source>
+            <outputDirectory>wso2server-${pom.version}/conf</outputDirectory>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
             <source>../../conf/conf/security/wso2carbon.jks</source>
             <outputDirectory>wso2server-${pom.version}/conf/security</outputDirectory>
             <fileMode>644</fileMode>

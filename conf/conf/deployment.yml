@@ -11,3 +11,5 @@ database:
 
 server:
   connectionlimit: 2
+  host:
+  maxthreadpoolsize: 30

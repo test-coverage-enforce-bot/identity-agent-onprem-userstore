@@ -19,9 +19,9 @@ WSO2 On-premise Outbound User Store Agent is a lightweight MSF4J (WSO2 Microserv
 
 ## Installation and Running
 1. Extract the downloaded zip file
-2. Configure the userstore-mgt.xml file with the values relevant to your on premise userstore.
+2. Configure the userstore-mgt.xml file with the values relevant to your on premise user store.
 3. Run the wso2agent.sh file.
-4. When agent start enter access token created while configuring directory.
+4. When agent start enter installation token created while configuring directory.
 
 ## WSO2 On Premise User Store Agent Directory Structure
  
@@ -50,8 +50,8 @@ Please go through following steps to secure them.
     
 This script would do following configurations that you need to do by manually
 
-(i) Replaces sensitive elements in configuration files, that have been defined in cipher-tool.properties, with alias token       values.   
-(ii) Encrypts plain text password which is defined in cipher-text.properties file.    
+(i)   Replaces sensitive elements in configuration files, that have been defined in cipher-tool.properties, with alias token       values.
+(ii)  Encrypts plain text password which is defined in cipher-text.properties file.
 (iii) Updates secret-conf.properties file with default keystore and callback class.   
 
 cipher-tool.properties, cipher-text.properties and secret-conf.properties files can be found at conf/security directory.

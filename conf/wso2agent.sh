@@ -154,6 +154,14 @@ if [ "$CMD" = "--debug" ]; then
   JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=$PORT"
   echo "Please start the remote debugging client to continue..."
 fi
+echo "###############################################################################################################"
+echo "#                                                                                                             #"
+echo "#                                            WSO2 Identity Cloud Outbound Agent                               #"
+echo "# Check https://docs.wso2.com/display/IdentityCloud/Configuring+an+On-premise+User+Store for more information #"
+echo "#                                                                                                             #"
+echo "###############################################################################################################"
+echo ""
+echo ""
 # ----- Execute The Requested Command -----------------------------------------
-$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/org.wso2.carbon.identity.agent.outbound.security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.userstore.Application $*
+$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Dlog4j.configuration=file:"$CARBON_HOME"/conf/log4j.properties -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/org.wso2.carbon.identity.agent.outbound.security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.userstore.Application $*
 

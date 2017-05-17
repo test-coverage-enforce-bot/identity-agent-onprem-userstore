@@ -1,3 +1,20 @@
+/*
+ *   Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *   WSO2 Inc. licenses this file to you under the Apache License,
+ *   Version 2.0 (the "License"); you may not use this file except
+ *   in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
 package org.wso2.carbon.identity.agent.outbound.server.messaging;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -5,29 +22,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.SessionHandler;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
-import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
-import org.wso2.carbon.identity.user.store.common.model.ServerOperation;
-import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 
-import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
 import javax.jms.Topic;
-import javax.websocket.Session;
 
 /**
  * JMS Message receiver
  */
 public class JMSMessageReceiver implements MessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(JMSMessageReceiver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMSMessageReceiver.class);
     private SessionHandler serverHandler;
     private boolean transacted = false;
+    private ThreadPoolExecutor executor;
 
     public JMSMessageReceiver(SessionHandler serverHandler) {
         this.serverHandler = serverHandler;
@@ -37,6 +51,8 @@ public class JMSMessageReceiver implements MessageListener {
      * Start JMS listening in a separate thread.
      */
     public void start() {
+        executor = (ThreadPoolExecutor) Executors
+                .newFixedThreadPool(ServerConfigurationBuilder.build().getServer().getMaxthreadpoolsize());
         Thread loop = new Thread(this::startReceive);
         loop.start();
     }
@@ -54,14 +70,16 @@ public class JMSMessageReceiver implements MessageListener {
             connection = connectionFactory.createConnection();
             connection.start();
             javax.jms.Session session = connection.createSession(transacted, javax.jms.Session.AUTO_ACKNOWLEDGE);
-            Topic adminQueue = session.createTopic(UserStoreConstants.TOPIC_NAME_REQUEST);
-            MessageConsumer requestConsumer = session.createConsumer(adminQueue);
+            Topic requestTopic = session.createTopic(UserStoreConstants.TOPIC_NAME_REQUEST);
+            MessageConsumer requestConsumer = session.createConsumer(requestTopic);
             requestConsumer.setMessageListener(this);
             JMSExceptionListener exceptionListener = new JMSExceptionListener(this);
             connection.setExceptionListener(exceptionListener);
-            log.info("Message listener successfully started.");
+            LOGGER.info("Message listener successfully started.");
         } catch (JMSException e) {
-            log.error("Error occurred while listening message.", e);
+            LOGGER.error(
+                    "Error occurred while start listening message from topic: " + UserStoreConstants.TOPIC_NAME_REQUEST,
+                    e);
             started = false;
         }
         return started;
@@ -69,63 +87,11 @@ public class JMSMessageReceiver implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
-        try {
-            processOperation(message);
-        } catch (JMSException e) {
-            log.error("Error occurred while receiving message", e);
-        }
+        addMessageToThreadPool(message);
     }
 
-    /**
-     * Process message
-     * @param message JMS Message
-     * @throws JMSException
-     */
-    public void processOperation(Message message) throws JMSException {
-        if (((ObjectMessage) message).getObject() instanceof UserOperation) {
-            UserOperation userOperation = (UserOperation) ((ObjectMessage) message).getObject();
-            log.info("Message received for user operation : " + userOperation.getRequestType() + " corerelation Id : "
-                    + userOperation.getCorrelationId());
-            processUserOperation(userOperation);
-        } else if (((ObjectMessage) message).getObject() instanceof ServerOperation) {
-            ServerOperation serverOperation = (ServerOperation) ((ObjectMessage) message).getObject();
-            log.info("Message received for server operation : " + serverOperation.getOperationType());
-            processServerOperation(serverOperation);
-        }
-    }
-
-    /**
-     * Process user operation in a separate thread.
-     * @param serverOperation Server operation message
-     */
-    public void processServerOperation(ServerOperation serverOperation) {
-        Thread loop = new Thread(() -> {
-            if (serverOperation.getOperationType().equals(UserStoreConstants.SERVER_OPERATION_TYPE_KILL_AGENTS)) {
-                try {
-                    serverHandler.removeAndKillSessions(serverOperation.getTenantDomain(), serverOperation.getDomain());
-                } catch (IOException e) {
-                    log.error("Error occurred while removing agent connection", e);
-                }
-            }
-        });
-        loop.start();
-    }
-
-    /**
-     * Process User operation in a separate thread
-     * @param userOperation User operation message
-     */
-    public void processUserOperation(UserOperation userOperation) {
-        Thread loop = new Thread(() -> {
-            try {
-                Session session = serverHandler.getSession(userOperation.getTenant(), userOperation.getDomain());
-                if (session != null) {
-                    session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
-                }
-            } catch (IOException ex) {
-                log.error("Error occurred while sending messaging to client", ex);
-            }
-        });
-        loop.start();
+    private void addMessageToThreadPool(Message message) {
+        MessageProcessor messageProcessor = new MessageProcessor(message, serverHandler);
+        executor.execute(messageProcessor);
     }
 }

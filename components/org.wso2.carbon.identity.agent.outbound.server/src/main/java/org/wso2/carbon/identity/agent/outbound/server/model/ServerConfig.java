@@ -24,6 +24,8 @@ package org.wso2.carbon.identity.agent.outbound.server.model;
 public class ServerConfig {
 
     private int connectionlimit;
+    private String host;
+    private int maxthreadpoolsize;
 
     public int getConnectionlimit() {
         return connectionlimit;
@@ -31,5 +33,21 @@ public class ServerConfig {
 
     public void setConnectionlimit(int connectionlimit) {
         this.connectionlimit = connectionlimit;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getMaxthreadpoolsize() {
+        return maxthreadpoolsize;
+    }
+
+    public void setMaxthreadpoolsize(int maxthreadpoolsize) {
+        this.maxthreadpoolsize = maxthreadpoolsize;
     }
 }

@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.agent.outbound.server;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.carbon.identity.user.store.common.model.UserOperation;
@@ -38,57 +40,52 @@ public class SessionHandler {
     private Map<String, List<Session>> sessions = new HashMap<>();
 
     /**
-     * Get key for session map
+     * Get key for session map.
      * @param tenantDomain Tenant domain
      * @param userstoreDomain User store domain
      * @return key
      */
     private String getKey(String tenantDomain, String userstoreDomain) {
-        return userstoreDomain + tenantDomain;
+        return userstoreDomain + "@" + tenantDomain;
     }
 
     /**
-     * Add session into cache
+     * Add session into cache.
      * @param tenantDomain Tenant domain
      * @param userstoreDomain User store domain
      * @param session websocket session
      */
     public void addSession(String tenantDomain, String userstoreDomain, Session session) {
-        if (sessions.containsKey(getKey(tenantDomain, userstoreDomain))) {
-            List<Session> tenantSessions = sessions.get(getKey(tenantDomain, userstoreDomain));
-            tenantSessions.add(session);
-            sessions.put(getKey(tenantDomain, userstoreDomain), tenantSessions);
-        } else {
-            List<Session> tenantSessions = new ArrayList<>();
-            tenantSessions.add(session);
+        List<Session> tenantSessions = sessions.get(getKey(tenantDomain, userstoreDomain));
+
+        if (tenantSessions == null) {
+            tenantSessions = new ArrayList<>();
             sessions.put(getKey(tenantDomain, userstoreDomain), tenantSessions);
         }
+        tenantSessions.add(session);
     }
 
     /**
-     * Get client session as round robin to send message
+     * Get client session as round robin to send message.
      * @param userstoreDomain User store domain
      * @return websocket session
      */
     public Session getSession(String tenantDomain, String userstoreDomain) {
 
         String key = getKey(tenantDomain, userstoreDomain);
-        if (!sessions.containsKey(key)) {
-            return null;
-        } else {
-            List<Session> sessionList = sessions.get(key);
-            if (!sessionList.isEmpty()) {
-                int noofSessions = sessionList.size();
-                Random random = new Random();
-                int randomIndex = Math.abs(random.nextInt()) % noofSessions;
-                return sessionList.get(randomIndex);
-            }
+        List<Session> sessionList = sessions.get(key);
+
+        if (sessionList != null && !sessionList.isEmpty()) {
+            int noofSessions = sessionList.size();
+            Random random = new Random();
+            int randomIndex = Math.abs(random.nextInt()) % noofSessions;
+            return sessionList.get(randomIndex);
         }
         return null;
     }
 
     /**
-     * Remove session from cache
+     * Remove session from cache.
      * @param tenantDomain Tenant domain
      * @param userstoreDomain User store domain
      * @param session websocket session
@@ -100,7 +97,7 @@ public class SessionHandler {
             while (iterator.hasNext()) {
                 Session tmpSession = iterator.next();
                 if (tmpSession.getId().equals(session.getId())) {
-                    sessions.get(getKey(tenantDomain, userstoreDomain)).remove(tmpSession);
+                    iterator.remove();
                     break;
                 }
             }
@@ -108,17 +105,19 @@ public class SessionHandler {
     }
 
     /**
-     * Remove websocket session from cache and kill sessions
+     * Remove websocket session from cache and kill sessions.
      * @param tenantDomain Tenant domain
      * @param userstoreDomain User store domain
      * @throws IOException
      */
-    public void removeAndKillSessions(String tenantDomain, String userstoreDomain) throws IOException {
+    public void removeAndKillSessions(String tenantDomain, String userstoreDomain) throws IOException, JSONException {
         List<Session> sessionList = sessions.get(getKey(tenantDomain, userstoreDomain));
         for (Session session : sessionList) {
             UserOperation userOperation = new UserOperation();
             userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
-            userOperation.setRequestData("Closing client connections from server.");
+            JSONObject jsonMessage = new JSONObject();
+            jsonMessage.put("message", "Closing client connection from server.");
+            userOperation.setRequestData(jsonMessage.toString());
             session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
         }
         sessions.remove(getKey(tenantDomain, userstoreDomain));

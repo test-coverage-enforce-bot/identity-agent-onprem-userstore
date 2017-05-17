@@ -55,7 +55,7 @@ public class WebSocketClient {
     private WebSocketClientHandler handler;
     private EventLoopGroup group;
     private String accessToken;
-    private static final String ACCESS_TOKEN_HEADER = "accesstoken";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     public WebSocketClient(String url, String accessToken) {
         this.url = System.getProperty("url", url);
@@ -112,37 +112,41 @@ public class WebSocketClient {
         // Connect with V13 (RFC 6455 aka HyBi-17). You can change it to V08 or V00.
             // If you change it to V00, ping is not supported and remember to change
             // HttpResponseDecoder to WebSocketHttpResponseDecoder in the pipeline.
-        handler =
-                new WebSocketClientHandler(
-                        WebSocketClientHandshakerFactory.newHandshaker(
-                                uri, WebSocketVersion.V13, null,
-                                true, new DefaultHttpHeaders().add(ACCESS_TOKEN_HEADER, accessToken)), this);
+        try {
+            handler =
+                    new WebSocketClientHandler(
+                            WebSocketClientHandshakerFactory.newHandshaker(
+                                    uri, WebSocketVersion.V13, null,
+                                    true, new DefaultHttpHeaders().add(AUTHORIZATION_HEADER, "Bearer " + accessToken)),
+                            this);
 
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<SocketChannel>() {
+            Bootstrap b = new Bootstrap();
+            b.group(group)
+                    .channel(NioSocketChannel.class)
+                    .handler(new ChannelInitializer<SocketChannel>() {
 
-                    @Override
-                    protected void initChannel(SocketChannel ch) {
-                        ChannelPipeline p = ch.pipeline();
-                        if (sslCtx != null) {
-                            p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
+                        @Override
+                        protected void initChannel(SocketChannel ch) {
+                            ChannelPipeline p = ch.pipeline();
+                            if (sslCtx != null) {
+                                p.addLast(sslCtx.newHandler(ch.alloc(), host, port));
+                            }
+                            p.addLast(
+                                    new HttpClientCodec(),
+                                    new HttpObjectAggregator(8192),
+                                    WebSocketClientCompressionHandler.INSTANCE,
+                                    handler);
                         }
-                        p.addLast(
-                                new HttpClientCodec(),
-                                new HttpObjectAggregator(8192),
-                                WebSocketClientCompressionHandler.INSTANCE,
-                                handler);
-                    }
-                });
+                    });
 
-        channel = b.connect(uri.getHost(), port).sync().channel();
-        isDone = handler.handshakeFuture().sync().isSuccess();
-        LOGGER.info("Connecting to server....");
-        Thread.sleep(2000);
-        LOGGER.info("Please wait.....");
-        Thread.sleep(3000);
+            channel = b.connect(uri.getHost(), port).sync().channel();
+            isDone = handler.handshakeFuture().sync().isSuccess();
+        } catch (Exception ex) {
+            LOGGER.error("Fail to connect Identity Cloud.", ex);
+            isDone = false;
+        }
+        LOGGER.info("Connecting to server... Please wait.");
+        Thread.sleep(5000);
         return isDone;
     }
 

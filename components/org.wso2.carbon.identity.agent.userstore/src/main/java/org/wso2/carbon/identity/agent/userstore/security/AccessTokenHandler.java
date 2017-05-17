@@ -61,7 +61,7 @@ public class AccessTokenHandler {
             Console console;
             char[] password;
             if ((console = System.console()) != null && (password = console.readPassword("[%s]",
-                    "Enter access token :")) != null) {
+                    "Enter installation token :")) != null) {
                 accesstoken = String.valueOf(password);
             }
         }

@@ -35,14 +35,16 @@ public class HeatBeatTask extends TimerTask {
     }
 
     public void run() {
-        sendPingtoServer();
+        sendPingToServer();
     }
 
     /**
      * Send ping message to server.
      */
-    private void sendPingtoServer() {
-        LOGGER.info("Sending ping message.");
+    private void sendPingToServer() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.info("Sending ping message to server.");
+        }
         //TODO should send PingWebSocketFrame and it doesn't support at the moment
         channel.writeAndFlush(new BinaryWebSocketFrame());
     }

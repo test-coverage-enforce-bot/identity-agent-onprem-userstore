@@ -15,7 +15,6 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-
 package org.wso2.carbon.identity.agent.outbound.server;
 
 import org.json.JSONException;
@@ -58,7 +57,7 @@ import javax.websocket.server.ServerEndpoint;
 public class UserStoreServerEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
-    private static final String ACCESS_TOKEN_HEADER = "accesstoken";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
     public static final String UM_JSON_ELEMENT_RESPONSE_DATA = "responseData";
     private SessionHandler serverHandler;
@@ -75,7 +74,7 @@ public class UserStoreServerEndpoint {
      */
     private void initializeConnections() {
         AgentMgtDao agentMgtDao = new AgentMgtDao();
-        agentMgtDao.closeAllConnection(serverNode);
+        agentMgtDao.updateConnectionStatus(serverNode, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
     }
 
     /**
@@ -137,7 +136,14 @@ public class UserStoreServerEndpoint {
      * @return Access token
      */
     private String getAccessTokenFromUserProperties(Map<String, Object> userProperties) {
-        return (String) userProperties.get(ACCESS_TOKEN_HEADER);
+        String authorizationHeader = (String) userProperties.get(AUTHORIZATION_HEADER);
+        if (!StringUtils.isNullOrEmpty(authorizationHeader)) {
+            String[] splitValues = authorizationHeader.trim().split(" ");
+            if (splitValues.length == 2) {
+                return splitValues[1];
+            }
+        }
+        return null;
     }
 
     @OnOpen
@@ -153,14 +159,13 @@ public class UserStoreServerEndpoint {
      */
     private void handleSession(String token, String node, Session session) {
 
-        LOGGER.info("Client " + node + " trying to connect the sever.");
+        LOGGER.info("Client: " + node + " trying to connect the sever.");
 
         if (StringUtils.isNullOrEmpty(token)) {
             try {
-                String message = "Closing session from node: " + node + " due to send invalid access token.";
-                LOGGER.error(message);
+                String message = "Closing session from node: " + node + " due to invalid access token.";
                 sendErrorMessage(session, message);
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 LOGGER.error("Error occurred while closing session with client node: " + node);
             }
             return;
@@ -170,23 +175,24 @@ public class UserStoreServerEndpoint {
         ConnectionHandler connectionHandler = new ConnectionHandler();
         if (accessToken == null || !UserStoreConstants.ACCESS_TOKEN_STATUS_ACTIVE.equals(accessToken.getStatus())) {
             try {
-                String message = "Closing session with node: " + node + " due to send invalid access token.";
+                String message = "Closing session with node: " + node + " due to invalid access token.";
                 sendErrorMessage(session, message);
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else if (connectionHandler.isNodeConnected(accessToken, node)) {
             try {
-                String message = "Client " + node + " already connected. Please contact WSO2 cloud support";
+                String message = "Client: " + node
+                        + " already connected. This may be an inconsistency of the server notification of agent";
                 sendErrorMessage(session, message);
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else if (connectionHandler.isConnectionLimitExceed(accessToken.getTenant(), accessToken.getDomain())) {
             try {
                 String message = "No of agent connections limit exceeded for tenant: " + accessToken.getTenant();
                 sendErrorMessage(session, message);
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else {
@@ -203,24 +209,34 @@ public class UserStoreServerEndpoint {
      * @param message Error message
      * @throws IOException
      */
-    private void sendErrorMessage(Session session, String message) throws IOException {
+    private void sendErrorMessage(Session session, String message) throws IOException, JSONException {
         LOGGER.error(message);
         UserOperation userOperation = new UserOperation();
         userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
-        userOperation.setRequestData(message);
+        JSONObject jsonMessage = new JSONObject();
+        jsonMessage.put("message", message);
+        userOperation.setRequestData(jsonMessage.toString());
         session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error occurred while sleep before close session");
+        }
         session.close();
     }
 
     @OnMessage
     public void onTextMessage(String text, Session session) throws IOException {
+        //Use thread executor
         Thread loop = new Thread(() -> processResponse(text));
         loop.start();
     }
 
     @OnMessage
     public void onBinaryMessage(byte[] bytes, Session session) {
-        LOGGER.info("Reading binary Message");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Reading binary Message");
+        }
     }
 
     @OnClose
@@ -230,13 +246,16 @@ public class UserStoreServerEndpoint {
         AccessToken accessToken = tokenMgtDao
                 .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
 
-        LOGGER.info("Connection is closed with status code : " + closeReason.getCloseCode().getCode()
-                + " On reason " + closeReason.getReasonPhrase() + " tenant: " + accessToken.getTenant());
+        LOGGER.info("Connection close triggered with status code : " + closeReason.getCloseCode().getCode()
+                + " On reason " + closeReason.getReasonPhrase());
         if (accessToken != null) {
             serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
             AgentMgtDao agentMgtDao = new AgentMgtDao();
             agentMgtDao.updateConnection(accessToken.getId(), node, serverNode,
                     UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Connection close for tenant: " + accessToken.getTenant());
+            }
         }
     }
 

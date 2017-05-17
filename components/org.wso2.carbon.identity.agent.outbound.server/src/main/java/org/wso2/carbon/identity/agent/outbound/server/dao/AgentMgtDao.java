@@ -71,24 +71,24 @@ public class AgentMgtDao {
     }
 
     /**
-     * Update all connections status as F=Failed.
+     * Update all connections status which connected to particular servernode.
      * @param serverNode Server node
+     * @param status Connection status
      * @return result of the operation
      */
-    public boolean closeAllConnection(String serverNode) {
+    public boolean updateConnectionStatus(String serverNode, String status) {
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         boolean result = true;
         try {
             dbConnection = DatabaseUtil.getDBConnection();
-            prepStmt = dbConnection
-                    .prepareStatement(SQLQueries.QUERY_UPDATE_AGENT_CONNECTIONS_STATUS);
-            prepStmt.setString(1, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_UPDATE_AGENT_CONNECTIONS_STATUS);
+            prepStmt.setString(1, status);
             prepStmt.setString(2, serverNode);
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while updating connection server node: " + serverNode;
+            String errorMessage = "Error occurred while updating connection status server node: " + serverNode;
             LOGGER.error(errorMessage, e);
             result = false;
         } finally {

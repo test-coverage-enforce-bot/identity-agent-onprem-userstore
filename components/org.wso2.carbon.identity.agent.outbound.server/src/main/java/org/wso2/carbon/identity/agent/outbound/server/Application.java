@@ -15,13 +15,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-
 package org.wso2.carbon.identity.agent.outbound.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiver;
+import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
+import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.msf4j.MicroservicesRunner;
 import org.wso2.msf4j.websocket.exception.WebSocketEndpointAnnotationException;
 
@@ -29,7 +30,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * Application main class which initialize listening JMS message and deploy websocket endpoint.
+ * Application main class which initialize listening JMS message and deploy web socket endpoint.
  */
 public class Application {
 
@@ -37,21 +38,37 @@ public class Application {
     private Thread shutdownHook;
 
     public static void main(String[] args) throws WebSocketEndpointAnnotationException, UnknownHostException {
-        LOGGER.info("Starting socket server.");
+
         Application application = new Application();
         application.startApplication();
     }
 
+    /**
+     * Starting Application with following tasks.
+     *  1. Start receiving JMS message
+     *  2. Add shutdown hook to trigger shutdown of server
+     *  3. Deploy web socket user store endpoint
+     * @throws UnknownHostException
+     */
     private void startApplication() throws UnknownHostException {
-        String serverNode = InetAddress.getLocalHost().getHostAddress();
+        LOGGER.info("Starting Cloud outbound user store server.");
+        String serverNode = ServerConfigurationBuilder.build().getServer().getHost();
+        if (serverNode == null) {
+            serverNode = InetAddress.getLocalHost().getHostAddress();
+        }
         SessionHandler serverHandler = new SessionHandler();
         JMSMessageReceiver receiver = new JMSMessageReceiver(serverHandler);
         receiver.start();
         addShutdownHook(serverNode);
         new MicroservicesRunner().deployWebSocketEndpoint(new UserStoreServerEndpoint(serverHandler, serverNode))
                 .start();
+        LOGGER.info("Cloud outbound user store server:" + serverNode + " started.");
     }
 
+    /**
+     * Add Shutdown hook.
+     * @param serverNode Server node
+     */
     private void addShutdownHook(String serverNode) {
         if (shutdownHook != null) {
             return;
@@ -66,9 +83,13 @@ public class Application {
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
+    /**
+     * Shutdown server gracefully by updating connection status
+     * @param serverNode Server node
+     */
     private void shutdownGracefully(String serverNode) {
         AgentMgtDao agentMgtDao = new AgentMgtDao();
-        agentMgtDao.closeAllConnection(serverNode);
-        LOGGER.info("Shutting down server node " + serverNode);
+        agentMgtDao.updateConnectionStatus(serverNode, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
+        LOGGER.info("Shutting down server node:" + serverNode);
     }
 }

@@ -62,12 +62,14 @@ public class Application {
             LOGGER.info("Verifying user store.....");
             boolean connectionStatus = userStoreManager.getConnectionStatus();
             if (!connectionStatus) {
-                LOGGER.error("User store verification failed. Please check the user store configurations.");
+                LOGGER.error("User store verification failed. Please check the user store configurations in file conf/"
+                        + UserAgentConstants.USERSTORE_CONFIG_FILE);
                 System.exit(0);
             }
             LOGGER.info("User store verification success.");
         } catch (UserStoreException e) {
-            LOGGER.error("User store verification failed. Please check the user store configurations.");
+            LOGGER.error("User store verification failed. Please check the user store configurations in file conf/"
+                    + UserAgentConstants.USERSTORE_CONFIG_FILE);
             System.exit(0);
         }
 

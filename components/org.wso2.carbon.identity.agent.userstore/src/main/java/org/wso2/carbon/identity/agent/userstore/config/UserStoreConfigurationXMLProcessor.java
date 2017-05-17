@@ -20,6 +20,7 @@ import org.apache.axiom.om.OMXMLParserWrapper;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.userstore.UserAgentConstants;
 import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.constant.XMLConfigurationConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
@@ -45,7 +46,6 @@ import javax.xml.stream.XMLStreamException;
 class UserStoreConfigurationXMLProcessor {
 
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
-    private static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
     private static final String CONF_DIR = "conf";
     private InputStream inStream = null;
     private SecretResolver secretResolver;
@@ -130,7 +130,7 @@ class UserStoreConfigurationXMLProcessor {
         OMXMLParserWrapper builder;
 
         File profileConfigXml = new File(System.getProperty(CommonConstants.CARBON_HOME),
-                CONF_DIR + File.separator + USERSTORE_CONFIG_FILE);
+                CONF_DIR + File.separator + UserAgentConstants.USERSTORE_CONFIG_FILE);
         if (profileConfigXml.exists()) {
 
             inStream = new FileInputStream(profileConfigXml);

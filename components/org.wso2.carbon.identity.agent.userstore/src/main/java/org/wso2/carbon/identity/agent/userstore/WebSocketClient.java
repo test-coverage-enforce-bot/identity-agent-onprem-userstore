@@ -145,7 +145,7 @@ public class WebSocketClient {
             LOGGER.error("Fail to connect Identity Cloud.", ex);
             isDone = false;
         }
-        LOGGER.info("Connecting to server... Please wait.");
+        LOGGER.info("Connecting to Identity Cloud... Please wait.");
         Thread.sleep(5000);
         return isDone;
     }

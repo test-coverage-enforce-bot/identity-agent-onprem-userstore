@@ -43,7 +43,7 @@ public class HeatBeatTask extends TimerTask {
      */
     private void sendPingToServer() {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("Sending ping message to server.");
+            LOGGER.debug("Sending ping message to Identity Cloud.");
         }
         //TODO should send PingWebSocketFrame and it doesn't support at the moment
         channel.writeAndFlush(new BinaryWebSocketFrame());

@@ -105,7 +105,7 @@ public class UserStoreServerEndpoint {
 
             UserOperation responseOperation = new UserOperation();
             responseOperation.setCorrelationId(correlationId);
-            responseOperation.setResponseData(responseData);
+            responseOperation.setResponseData(responseData.toString());
 
             ObjectMessage responseMessage = session.createObjectMessage();
             responseMessage.setObject(responseOperation);

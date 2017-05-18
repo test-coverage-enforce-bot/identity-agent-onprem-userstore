@@ -79,13 +79,13 @@ public class Application {
         try {
             boolean result = webSocketClient.handhshake();
             if (result) {
-                LOGGER.info("Agent successfully connected to server.");
+                LOGGER.info("Agent successfully connected to Identity Cloud.");
             } else {
-                LOGGER.info("Failed to connect server.");
+                LOGGER.info("Failed to connect Identity Cloud.");
                 System.exit(0);
             }
         } catch (InterruptedException | URISyntaxException | SSLException e) {
-            LOGGER.error("Error while connecting to server.", e);
+            LOGGER.error("Error occurred while connecting to server.", e);
         }
 
         Application app = new Application();

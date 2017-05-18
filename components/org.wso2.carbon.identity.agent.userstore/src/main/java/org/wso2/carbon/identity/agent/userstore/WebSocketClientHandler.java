@@ -103,7 +103,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        LOGGER.info("Server connection Client disconnected!");
+        LOGGER.info("Disconnected client connection.");
         cancelTimer();
         if (!WebSocketClient.isRetryStarted()) {
             startRetrying();
@@ -116,18 +116,18 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             boolean result = false;
             try {
                 Thread.sleep(SOCKET_RETRY_INTERVAL);
-                LOGGER.info("Trying to reconnect the server...");
+                LOGGER.info("Trying to reconnect the Identity Cloud...");
                 result = client.handhshake();
             } catch (InterruptedException e) {
-                LOGGER.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to Identity Cloud", e);
             } catch (URISyntaxException e) {
-                LOGGER.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to Identity Cloud", e);
             } catch (SSLException e) {
-                LOGGER.error("Error occurred while reconnecting to socket server", e);
+                LOGGER.error("Error occurred while reconnecting to Identity Cloud", e);
             }
             if (result) {
                 WebSocketClient.setIsRetryStarted(false);
-                LOGGER.info("Agent successfully reconnected to server.");
+                LOGGER.info("Agent successfully reconnected to Identity Cloud.");
                 break;
             }
         }
@@ -394,11 +394,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             bufferReceived = binaryFrame.content().nioBuffer();
             LOGGER.info("WebSocket Client received  binary message: " + bufferReceived.toString());
         } else if (frame instanceof PongWebSocketFrame) {
-            LOGGER.info("WebSocket Client received pong");
+            LOGGER.info("WebSocket Client received pong.");
             PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
             bufferReceived = pongFrame.content().nioBuffer();
         } else if (frame instanceof CloseWebSocketFrame) {
-            LOGGER.info("WebSocket Client received closing");
+            LOGGER.info("WebSocket Client received closing.");
             ch.close();
         }
     }

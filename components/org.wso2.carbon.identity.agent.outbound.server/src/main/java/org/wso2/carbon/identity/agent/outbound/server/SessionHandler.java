@@ -112,14 +112,16 @@ public class SessionHandler {
      */
     public void removeAndKillSessions(String tenantDomain, String userstoreDomain) throws IOException, JSONException {
         List<Session> sessionList = sessions.get(getKey(tenantDomain, userstoreDomain));
-        for (Session session : sessionList) {
-            UserOperation userOperation = new UserOperation();
-            userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
-            JSONObject jsonMessage = new JSONObject();
-            jsonMessage.put("message", "Closing client connection from server.");
-            userOperation.setRequestData(jsonMessage.toString());
-            session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+        if (sessionList != null) {
+            for (Session session : sessionList) {
+                UserOperation userOperation = new UserOperation();
+                userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
+                JSONObject jsonMessage = new JSONObject();
+                jsonMessage.put("message", "Closing client connection from server.");
+                userOperation.setRequestData(jsonMessage.toString());
+                session.getBasicRemote().sendText(MessageRequestUtil.getUserOperationJSONMessage(userOperation));
+            }
+            sessions.remove(getKey(tenantDomain, userstoreDomain));
         }
-        sessions.remove(getKey(tenantDomain, userstoreDomain));
     }
 }

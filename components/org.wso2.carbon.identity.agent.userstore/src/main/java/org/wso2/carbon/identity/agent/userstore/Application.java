@@ -69,7 +69,7 @@ public class Application {
             LOGGER.info("User store verification success.");
         } catch (UserStoreException e) {
             LOGGER.error("User store verification failed. Please check the user store configurations in file conf/"
-                    + UserAgentConstants.USERSTORE_CONFIG_FILE);
+                    + UserAgentConstants.USERSTORE_CONFIG_FILE, e);
             System.exit(0);
         }
 

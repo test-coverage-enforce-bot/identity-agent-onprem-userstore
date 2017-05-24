@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.claim.ClaimManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 
 import java.net.URISyntaxException;
@@ -140,8 +141,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * @param result user operation result
      */
     private void writeResponse(Channel channel, String correlationId, String result) {
-        channel.writeAndFlush(new TextWebSocketFrame(
-                String.format("{correlationId : '%s', responseData: '%s'}", correlationId, result)));
+        channel.writeAndFlush(
+                new TextWebSocketFrame(MessageRequestUtil.getUserResponseJSONMessage(correlationId, result)));
     }
 
     /**
@@ -152,7 +153,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private void processAuthenticationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
-        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
         if (LOGGER.isDebugEnabled()) {
@@ -172,7 +173,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (isAuthenticated) {
             authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 authenticationResult);
     }
 
@@ -184,7 +185,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private void processGetClaimsRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
-        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Starting to get claims for user: " + requestData
@@ -203,7 +204,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             LOGGER.debug("Claims retrieval completed. User: " + requestData
                     .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
@@ -214,7 +215,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * @throws UserStoreException
      */
     private void processGetUserRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
-        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Starting to get user roles for user: " + requestData
                     .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
@@ -231,7 +232,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             LOGGER.debug("User roles retrieval completed. User: " + requestData
                     .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 jsonObject.toString());
     }
 
@@ -242,7 +243,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * @throws UserStoreException
      */
     private void processGetRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
-        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Starting to get roles.");
         }
@@ -259,7 +260,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Roles retrieval completed.");
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
@@ -270,7 +271,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * @throws UserStoreException
      */
     private void processGetUsersListRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
-        JSONObject requestData = requestObj.getJSONObject(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Starting to get users");
@@ -291,7 +292,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Users list retrieval completed.");
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
@@ -315,7 +316,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Claim attributes retrieval completed.");
         }
-        writeResponse(channel, (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
+        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
     }
 
@@ -327,7 +328,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private void processUserOperationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
-        String type = (String) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
+        String type = (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_TYPE);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Message receive for operation " + type);
         }
@@ -362,7 +363,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     private void logError(JSONObject requestObj) {
-        JSONObject requestData = (JSONObject) requestObj.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA);
+        JSONObject requestData = (JSONObject) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         String message = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_MESSAGE);
         LOGGER.error(message);
     }

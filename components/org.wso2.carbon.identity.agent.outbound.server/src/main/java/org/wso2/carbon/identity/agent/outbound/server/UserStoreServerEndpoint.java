@@ -58,8 +58,6 @@ public class UserStoreServerEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
-    public static final String UM_JSON_ELEMENT_RESPONSE_DATA = "responseData";
     private SessionHandler serverHandler;
     private String serverNode;
 
@@ -100,8 +98,9 @@ public class UserStoreServerEndpoint {
             producer = connectionFactory.createMessageProducer(session, responseQueue, DeliveryMode.NON_PERSISTENT);
 
             JSONObject resultObj = new JSONObject(message);
-            String responseData = (String) resultObj.get(UM_JSON_ELEMENT_RESPONSE_DATA);
-            String correlationId = (String) resultObj.get(UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID);
+            String responseData = resultObj.get(UserStoreConstants.UM_JSON_ELEMENT_RESPONSE_DATA).toString();
+            String correlationId = (String) resultObj
+                    .get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID);
 
             UserOperation responseOperation = new UserOperation();
             responseOperation.setCorrelationId(correlationId);

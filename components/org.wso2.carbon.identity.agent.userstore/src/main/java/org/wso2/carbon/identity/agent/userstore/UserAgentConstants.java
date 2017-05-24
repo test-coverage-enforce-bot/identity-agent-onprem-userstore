@@ -25,15 +25,11 @@ public class UserAgentConstants {
     public static final String UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS = "SUCCESS";
     public static final String UM_OPERATION_AUTHENTICATE_RESULT_FAIL = "FAIL";
 
-    public static final String UM_JSON_ELEMENT_REQUEST_DATA = "requestData";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_MESSAGE = "message";
-    public static final String UM_JSON_ELEMENT_REQUEST_DATA_TYPE = "requestType";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_ROLE_LIMIT = "limit";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_ATTRIBUTES = "attributes";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME = "username";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD = "password";
-    public static final String UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID = "correlationId";
-
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_LIMIT = "limit";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_FILTER = "filter";
 

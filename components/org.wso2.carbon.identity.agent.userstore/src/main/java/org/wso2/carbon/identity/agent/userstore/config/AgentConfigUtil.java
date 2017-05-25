@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.agent.userstore.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.model.AgentConfiguration;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
@@ -44,7 +45,9 @@ public class AgentConfigUtil {
     public static AgentConfiguration build() {
 
         if (config == null) {
-            Path path = Paths.get("conf" + File.separator + FILE_NAME);
+            Path path = Paths
+                    .get(System.getProperty(CommonConstants.CARBON_HOME) + File.separator + "conf" + File.separator
+                            + FILE_NAME);
             if (Files.exists(path)) {
                 try {
                     Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);

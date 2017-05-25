@@ -51,6 +51,7 @@ public class Application {
      * @throws UnknownHostException
      */
     private void startAgent() throws UnknownHostException {
+
         String accessToken = new AccessTokenHandler().getAccessToken();
         if (StringUtils.isEmpty(accessToken)) {
             LOGGER.error("Please enter valid access token.");

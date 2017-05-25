@@ -163,5 +163,5 @@ echo "##########################################################################
 echo ""
 echo ""
 # ----- Execute The Requested Command -----------------------------------------
-$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Dlog4j.configuration=file:"$CARBON_HOME"/conf/log4j.properties -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.userstore.Application $*
+$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Dlog4j.configuration=file:"$CARBON_HOME"/conf/log4j.properties -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/security/client-truststore.jks -classpath "$CARBON_CLASSPATH" -Dcarbon.home="$CARBON_HOME" org.wso2.carbon.identity.agent.userstore.Application $*
 

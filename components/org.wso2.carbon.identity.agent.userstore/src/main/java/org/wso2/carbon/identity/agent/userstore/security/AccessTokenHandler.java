@@ -18,7 +18,7 @@ package org.wso2.carbon.identity.agent.userstore.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.userstore.util.ApplicationUtils;
+import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -42,7 +42,7 @@ public class AccessTokenHandler {
         String textFileName;
         String filedata[];
         String accesstoken = null;
-        String productHome = ApplicationUtils.getProductHomePath();
+        String productHome = System.getProperty(CommonConstants.CARBON_HOME);
 
         String osName = System.getProperty("os.name");
         if (!osName.toLowerCase().contains("win")) {

@@ -1,6 +1,6 @@
 #!/bin/sh
 # ----------------------------------------------------------------------------
-#  Copyright (c) 2016, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+#  Copyright (c) 2017, WSO2 Inc. (http://wso2.com) All Rights Reserved.
 # 
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ fi
 
 # update classpath
 CARBON_CLASSPATH=""
-for f in "$CARBON_HOME"/lib/org.wso2.carbon.identity.agent.outbound*.jar
+for f in "$CARBON_HOME"/lib/org.wso2.carbon.identity.agent.outbound.server*.jar
 do
   CARBON_CLASSPATH=$CARBON_CLASSPATH:$f
 done
@@ -154,14 +154,14 @@ if [ "$CMD" = "--debug" ]; then
   JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=$PORT"
   echo "Please start the remote debugging client to continue..."
 fi
+
 echo "###############################################################################################################"
 echo "#                                                                                                             #"
-echo "#                                            WSO2 Identity Cloud Outbound Agent                               #"
-echo "# Check https://docs.wso2.com/display/IdentityCloud/Configuring+an+On-premise+User+Store for more information #"
+echo "#                                    WSO2 Identity Cloud Outbound Server                                      #"
 echo "#                                                                                                             #"
 echo "###############################################################################################################"
 echo ""
 echo ""
 # ----- Execute The Requested Command -----------------------------------------
-$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Dlog4j.configuration=file:"$CARBON_HOME"/conf/log4j.properties -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/security/client-truststore.jks -classpath "$CARBON_CLASSPATH" -Dcarbon.home="$CARBON_HOME" org.wso2.carbon.identity.agent.userstore.Application $*
+$JAVA_HOME/bin/java $JAVA_OPTS -Dtransports.netty.conf="$CARBON_HOME"/conf/netty-transports.yml -Dlog4j.configuration=file:"$CARBON_HOME"/conf/log4j.properties -Djavax.net.ssl.trustStore="$CARBON_HOME"/conf/security/client-truststore.jks -classpath "$CARBON_CLASSPATH" org.wso2.carbon.identity.agent.outbound.server.Application $*
 

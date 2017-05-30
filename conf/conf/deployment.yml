@@ -1,0 +1,15 @@
+messagebroker:
+  url: "tcp://localhost:61616"
+
+database:
+  driver: "com.mysql.jdbc.Driver"
+  url: "jdbc:mysql://localhost:3306/sampleuserstoredb"
+  username: "root"
+  password: "root"
+  testonborrow: "true"
+  validationquery: "SELECT 1"
+
+server:
+  connectionlimit: 2
+  host:
+  maxthreadpoolsize: 30

@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Timer;
 import javax.net.ssl.SSLException;
@@ -202,7 +203,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Claims retrieval completed. User: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
+                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " claims: " + propertyMap
+                    .toString());
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());
@@ -230,7 +232,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("User roles retrieval completed. User: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
+                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " roles: " + Arrays.toString(
+                    roles));
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 jsonObject.toString());
@@ -314,7 +317,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         returnObject.put("attributes", usernameArray);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Claim attributes retrieval completed.");
+            LOGGER.debug("Claim attributes retrieval completed. Claims: " + claimAttributeMap.toString());
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
                 returnObject.toString());

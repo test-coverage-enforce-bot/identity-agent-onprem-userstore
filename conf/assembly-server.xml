@@ -45,7 +45,7 @@
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/conf/log4j.properties</source>
+            <source>../../conf/conf/server/log4j.properties</source>
             <outputDirectory>wso2server-${pom.version}/conf</outputDirectory>
             <fileMode>644</fileMode>
         </file>

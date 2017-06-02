@@ -118,7 +118,7 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.userstore.onprem</groupId>
                 <artifactId>org.wso2.carbon.identity.user.store.common</artifactId>
-                <version>${user.store.common.version}</version>
+                <version>${carbon.identity.userstore.onprem.version}</version>
             </dependency>
 
 
@@ -183,7 +183,7 @@
         <mysql-connector-java-version>5.1.6</mysql-connector-java-version>
         <activemq-core-version>5.7.0</activemq-core-version>
         <activemq-all-version>5.10.0</activemq-all-version>
-        <user.store.common.version>2.0.0-SNAPSHOT</user.store.common.version>
+        <carbon.identity.userstore.onprem.version>2.0.0</carbon.identity.userstore.onprem.version>
     </properties>
 
 </project>

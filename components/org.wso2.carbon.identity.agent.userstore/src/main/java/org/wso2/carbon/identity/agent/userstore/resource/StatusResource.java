@@ -60,7 +60,7 @@ public class StatusResource {
     public Response checkLDAPStatus() {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("Checking agent health.");
+            LOGGER.info("Checking agent LDAP health.");
         }
         try {
             UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();

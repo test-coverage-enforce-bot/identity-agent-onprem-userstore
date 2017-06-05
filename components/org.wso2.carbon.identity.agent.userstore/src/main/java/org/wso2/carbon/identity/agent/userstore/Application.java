@@ -22,8 +22,10 @@ import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+import org.wso2.carbon.identity.agent.userstore.resource.StatusResource;
 import org.wso2.carbon.identity.agent.userstore.security.AccessTokenHandler;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
+import org.wso2.msf4j.MicroservicesRunner;
 
 import java.net.InetAddress;
 import java.net.URISyntaxException;
@@ -91,6 +93,7 @@ public class Application {
 
         Application app = new Application();
         app.addShutdownHook(webSocketClient);
+        new MicroservicesRunner().deploy(new StatusResource()).start();
     }
 
     /**

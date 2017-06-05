@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.outbound.server.dao.AgentMgtDao;
 import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiver;
+import org.wso2.carbon.identity.agent.outbound.server.resource.StatusResource;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import org.wso2.msf4j.MicroservicesRunner;
@@ -61,6 +62,7 @@ public class Application {
         receiver.start();
         addShutdownHook(serverNode);
         new MicroservicesRunner().deployWebSocketEndpoint(new UserStoreServerEndpoint(serverHandler, serverNode))
+                .deploy(new StatusResource())
                 .start();
         LOGGER.info("Cloud outbound user store server:" + serverNode + " started.");
     }

@@ -96,6 +96,7 @@ public class UserStoreServerEndpoint {
             Destination responseQueue = connectionFactory
                     .createQueueDestination(session, UserStoreConstants.QUEUE_NAME_RESPONSE);
             producer = connectionFactory.createMessageProducer(session, responseQueue, DeliveryMode.NON_PERSISTENT);
+            producer.setTimeToLive(UserStoreConstants.QUEUE_SERVER_MESSAGE_LIFETIME);
 
             JSONObject resultObj = new JSONObject(message);
             String responseData = resultObj.get(UserStoreConstants.UM_JSON_ELEMENT_RESPONSE_DATA).toString();
@@ -108,7 +109,6 @@ public class UserStoreServerEndpoint {
 
             ObjectMessage responseMessage = session.createObjectMessage();
             responseMessage.setObject(responseOperation);
-            responseMessage.setJMSExpiration(UserStoreConstants.QUEUE_SERVER_MESSAGE_LIFETIME);
             responseMessage.setJMSCorrelationID(correlationId);
             producer.send(responseMessage);
             if (LOGGER.isDebugEnabled()) {

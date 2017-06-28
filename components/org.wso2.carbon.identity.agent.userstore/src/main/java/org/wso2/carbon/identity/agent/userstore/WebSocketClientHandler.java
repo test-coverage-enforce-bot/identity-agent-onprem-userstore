@@ -63,6 +63,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private ByteBuffer bufferReceived = null;
     private WebSocketClient client;
     private Timer time;
+    private boolean isDisconnected = false;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketClient client) {
         this.handshaker = handshaker;
@@ -106,6 +107,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         LOGGER.info("Disconnected client connection.");
+        isDisconnected = true;
         cancelTimer();
         if (!WebSocketClient.isRetryStarted()) {
             startRetrying();
@@ -356,8 +358,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             break;
         case UserStoreConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);
-            client.setShutdownFlag(true);
-            System.exit(0);
+            if (!isDisconnected) {
+                client.setShutdownFlag(true);
+                System.exit(0);
+            }
             break;
         default:
             LOGGER.error("Invalid user operation request type : " + type + " received.");

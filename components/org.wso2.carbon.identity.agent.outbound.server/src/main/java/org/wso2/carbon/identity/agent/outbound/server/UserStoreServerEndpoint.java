@@ -64,7 +64,6 @@ public class UserStoreServerEndpoint {
     public static final String STATUS_EP_NAME = "status";
     public static final String BROKER_PORT = "8080";
     public static final String BROKER_PROTOCOL = "http";
-    private static ThreadLocal<Boolean> isNodeExists = new ThreadLocal<>();
     private SessionHandler serverHandler;
     private String serverNode;
 
@@ -209,7 +208,6 @@ public class UserStoreServerEndpoint {
                     }
                 }
 
-                isNodeExists.set(true);
                 String message = "Client: " + node + " already connected. This may be an inconsistency of " +
                                  "the server notification of agent";
                 sendErrorMessage(session, message);
@@ -284,17 +282,36 @@ public class UserStoreServerEndpoint {
     @OnClose
     public void onClose(@PathParam("node") String node, CloseReason closeReason, Session session) {
 
-        Boolean isNodeExists = UserStoreServerEndpoint.isNodeExists.get();
-        if (isNodeExists != null && isNodeExists) {
-            return;
-        }
-
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         AccessToken accessToken = tokenMgtDao
                 .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
+        ConnectionHandler connectionHandler = new ConnectionHandler();
 
-        LOGGER.info("Connection close triggered with " + STATUS_EP_NAME + " code : " + closeReason.getCloseCode().getCode()
-                    + " On reason " + closeReason.getReasonPhrase());
+        if (connectionHandler.isNodeConnected(accessToken, node)) {
+            LOGGER.info("There is an agent in connected " + STATUS_EP_NAME + ". Checking whether connected node is " +
+                        "up and running");
+            String connectedNode = connectionHandler.getConnectedNode(accessToken);
+            HttpURLConnection conn = null;
+            try {
+                conn = getHttpURLConnection(connectedNode);
+
+                if (conn != null && conn.getResponseCode() == 200) {
+                    /**
+                     * if there is an agent connected from same access token and node, it implies this is rejected
+                     * because of its the second connection attempt from the same node. Since omit update db.
+                     */
+                    return;
+                }
+            } catch (IOException e) {
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        }
+
+        LOGGER.info("Connection close triggered with " + STATUS_EP_NAME + " code : " +
+                    closeReason.getCloseCode().getCode() + " On reason " + closeReason.getReasonPhrase());
         if (accessToken != null) {
             serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
             AgentMgtDao agentMgtDao = new AgentMgtDao();

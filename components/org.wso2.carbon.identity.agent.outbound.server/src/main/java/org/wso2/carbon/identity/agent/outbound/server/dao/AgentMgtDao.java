@@ -128,6 +128,30 @@ public class AgentMgtDao {
         return isValid;
     }
 
+    public String getConnectedNode(int accessTokenId) {
+        Connection dbConnection = null;
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        String serverNode = null;
+        try {
+            dbConnection = DatabaseUtil.getDBConnection();
+            prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_AGENT_NODE_CONNECTED);
+            prepStmt.setInt(1, accessTokenId);
+            prepStmt.setString(2, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
+            resultSet = prepStmt.executeQuery();
+
+            if (resultSet.next()) {
+                serverNode = resultSet.getString(1);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error occurred while checking node connected for : " + accessTokenId;
+            LOGGER.error(errorMessage, e);
+        } finally {
+            DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
+        return serverNode;
+    }
+
     /**
      * Check client connection is exist.
      * @param accessTokenId Access token ID

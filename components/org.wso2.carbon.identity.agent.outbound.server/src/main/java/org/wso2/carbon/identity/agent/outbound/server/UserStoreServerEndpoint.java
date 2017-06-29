@@ -242,12 +242,14 @@ public class UserStoreServerEndpoint {
     }
 
     private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
+
         LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
         URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
         return conn;
+
     }
 
     private void addConnection(String node, Session session, AccessToken accessToken,

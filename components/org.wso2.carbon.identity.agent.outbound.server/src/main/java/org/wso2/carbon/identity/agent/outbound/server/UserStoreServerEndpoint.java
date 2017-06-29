@@ -189,19 +189,30 @@ public class UserStoreServerEndpoint {
             }
         } else if (connectionHandler.isNodeConnected(accessToken, node)) {
             try {
-                LOGGER.info("There is an agent in connected " + STATUS_EP_NAME +
-                            ". Checking whether connected node is up and running");
-                String connectedNode = connectionHandler.getConnectedNode(accessToken);
+                LOGGER.info("Client: " + node + " is already connected. Checking whether the Identity Broker node " +
+                            "the client connected was up and running");
+                String connectedServer = connectionHandler.getConnectedServer(accessToken);
                 HttpURLConnection conn = null;
                 try {
-                    conn = getHttpURLConnection(connectedNode);
+                    conn = getHttpURLConnection(connectedServer, node);
 
                     if (conn != null && conn.getResponseCode() != 200) {
+                        // Server responded with a status non other than 200. Which means server is not contactable.
+                        // So accepting the connection.
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Server : " + connectedServer + " responded with a status not 200. " +
+                                         "Status relieved : " + conn.getResponseCode() +
+                                         "Accepting current connection.");
+                        }
                         addConnection(node, session, accessToken, connectionHandler);
                         return;
                     }
                 } catch (ConnectException e) {
-                    LOGGER.info("Cannot connect to the connected node. Accepting current connection.");
+                    // Suppressing the exception. Server cannot be contacted so connection coming in is valid.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Cannot connect to the server : " + connectedServer + ". " +
+                                    "Accepting current connection.");
+                    }
                     addConnection(node, session, accessToken, connectionHandler);
                     return;
                 } finally {
@@ -230,9 +241,9 @@ public class UserStoreServerEndpoint {
         }
     }
 
-    private HttpURLConnection getHttpURLConnection(String connectedNode) throws IOException {
-        LOGGER.info("Connected Node : " + connectedNode);
-        URL url = new URL(BROKER_PROTOCOL + "://" + connectedNode + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
+    private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
+        LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
+        URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
@@ -296,9 +307,9 @@ public class UserStoreServerEndpoint {
         AccessToken accessToken = tokenMgtDao
                 .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
 
-        LOGGER.info("Connection close triggered with " + STATUS_EP_NAME + " code : " +
-                    closeReason.getCloseCode().getCode() + " On reason " + closeReason.getReasonPhrase() + " from " +
-                    node + " in tenant " + accessToken.getTenant());
+        LOGGER.info("Connection close triggered with status code : " + closeReason.getCloseCode().getCode() +
+                    " On reason " + closeReason.getReasonPhrase() + " from " + node + " in tenant " +
+                    accessToken.getTenant());
         if (accessToken != null) {
             serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
             AgentMgtDao agentMgtDao = new AgentMgtDao();
@@ -307,7 +318,8 @@ public class UserStoreServerEndpoint {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Connection close for tenant: " + accessToken.getTenant());
             }
-            String msg = node + " from " + accessToken.getTenant() + " disconnected from server node: " + serverNode;
+            String msg = "Client : " + node + " from " + accessToken.getTenant() +
+                         " disconnected from server node: " + serverNode;
             LOGGER.info(msg);
         }
     }

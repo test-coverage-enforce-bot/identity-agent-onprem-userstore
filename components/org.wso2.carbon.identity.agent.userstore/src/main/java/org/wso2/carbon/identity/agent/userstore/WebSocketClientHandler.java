@@ -130,6 +130,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 LOGGER.error("Error occurred while reconnecting to Identity Cloud", e);
             }
             if (result) {
+                isDisconnected = false;
                 WebSocketClient.setIsRetryStarted(false);
                 LOGGER.info("Agent successfully reconnected to Identity Cloud.");
                 break;

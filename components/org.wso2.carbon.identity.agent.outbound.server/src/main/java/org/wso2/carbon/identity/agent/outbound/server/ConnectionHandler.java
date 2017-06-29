@@ -67,9 +67,9 @@ public class ConnectionHandler {
      * @param accessToken Access Token
      * @return Connected Node
      */
-    public String getConnectedNode(AccessToken accessToken) {
+    public String getConnectedServer(AccessToken accessToken) {
         AgentMgtDao agentMgtDao = new AgentMgtDao();
-        return agentMgtDao.getConnectedNode(accessToken.getId());
+        return agentMgtDao.getConnectedServer(accessToken.getId());
     }
 
     /**

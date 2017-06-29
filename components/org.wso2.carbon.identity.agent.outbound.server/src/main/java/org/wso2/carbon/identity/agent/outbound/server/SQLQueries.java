@@ -28,8 +28,8 @@ public class SQLQueries {
             "WHERE UM_SERVER_NODE=?";
     public static final String QUERY_IS_AGENT_NODE_CONNECTED = "SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
             "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ? AND UM_STATUS = ?";
-    public static final String QUERY_GET_AGENT_NODE_CONNECTED = "SELECT UM_SERVER_NODE FROM UM_AGENT_CONNECTIONS " +
-            "WHERE UM_ACCESS_TOKEN_ID = ? AND UM_STATUS = ?";
+    public static final String QUERY_GET_AGENT_SERVER_CONNECTED = "SELECT UM_SERVER_NODE FROM UM_AGENT_CONNECTIONS " +
+                                                                  "WHERE UM_ACCESS_TOKEN_ID = ? AND UM_STATUS = ?";
     public static final String QUERY_IS_AGENT_CONNECTION_EXIST = "SELECT UM_ID FROM UM_AGENT_CONNECTIONS WHERE " +
             "UM_ACCESS_TOKEN_ID = ? AND UM_NODE = ?";
     public static final String QUERY_ADD_CONNECTION = "INSERT INTO UM_AGENT_CONNECTIONS(UM_ACCESS_TOKEN_ID,UM_NODE," +

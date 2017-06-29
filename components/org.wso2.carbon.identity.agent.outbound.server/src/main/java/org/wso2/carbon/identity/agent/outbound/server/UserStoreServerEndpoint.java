@@ -297,7 +297,8 @@ public class UserStoreServerEndpoint {
                 .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
 
         LOGGER.info("Connection close triggered with " + STATUS_EP_NAME + " code : " +
-                    closeReason.getCloseCode().getCode() + " On reason " + closeReason.getReasonPhrase());
+                    closeReason.getCloseCode().getCode() + " On reason " + closeReason.getReasonPhrase() + " from " +
+                    node + " in tenant " + accessToken.getTenant());
         if (accessToken != null) {
             serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
             AgentMgtDao agentMgtDao = new AgentMgtDao();
@@ -306,6 +307,8 @@ public class UserStoreServerEndpoint {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Connection close for tenant: " + accessToken.getTenant());
             }
+            String msg = node + " from " + accessToken.getTenant() + " disconnected from server node: " + serverNode;
+            LOGGER.info(msg);
         }
     }
 

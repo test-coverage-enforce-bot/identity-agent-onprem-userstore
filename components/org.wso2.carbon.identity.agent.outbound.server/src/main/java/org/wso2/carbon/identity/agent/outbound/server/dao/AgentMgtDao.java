@@ -128,7 +128,15 @@ public class AgentMgtDao {
         return isValid;
     }
 
-    public String getConnectedServer(int accessTokenId) {
+    /**
+     * Returns the connected server's host / ip for the given node.
+     *
+     * @param accessTokenId Id of the access token
+     * @param node Node hostname / ip
+     * @return Connected server's host name / ip
+     */
+    public String getConnectedServer(int accessTokenId, String node) {
+
         Connection dbConnection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -137,19 +145,21 @@ public class AgentMgtDao {
             dbConnection = DatabaseUtil.getDBConnection();
             prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_AGENT_SERVER_CONNECTED);
             prepStmt.setInt(1, accessTokenId);
-            prepStmt.setString(2, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
+            prepStmt.setString(2, node);
+            prepStmt.setString(3, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTED);
             resultSet = prepStmt.executeQuery();
 
             if (resultSet.next()) {
                 serverNode = resultSet.getString(1);
             }
         } catch (SQLException e) {
-            String errorMessage = "Error occurred while checking server connected for : " + accessTokenId;
+            String errorMessage = "Error occurred while checking server connected for : " + node;
             LOGGER.error(errorMessage, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
         return serverNode;
+
     }
 
     /**

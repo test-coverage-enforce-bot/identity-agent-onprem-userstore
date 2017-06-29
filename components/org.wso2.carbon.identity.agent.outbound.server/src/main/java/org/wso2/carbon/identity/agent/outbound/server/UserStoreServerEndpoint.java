@@ -191,7 +191,7 @@ public class UserStoreServerEndpoint {
             try {
                 LOGGER.info("Client: " + node + " is already connected. Checking whether the Identity Broker node " +
                             "the client connected was up and running");
-                String connectedServer = connectionHandler.getConnectedServer(accessToken);
+                String connectedServer = connectionHandler.getConnectedServer(accessToken, node);
                 HttpURLConnection conn = null;
                 try {
                     conn = getHttpURLConnection(connectedServer, node);
@@ -211,7 +211,7 @@ public class UserStoreServerEndpoint {
                     // Suppressing the exception. Server cannot be contacted so connection coming in is valid.
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Cannot connect to the server : " + connectedServer + ". " +
-                                    "Accepting current connection.");
+                                    "Accepting current connection.", e);
                     }
                     addConnection(node, session, accessToken, connectionHandler);
                     return;
@@ -239,25 +239,6 @@ public class UserStoreServerEndpoint {
         } else {
             addConnection(node, session, accessToken, connectionHandler);
         }
-    }
-
-    private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
-
-        LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
-        URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "application/json");
-        return conn;
-
-    }
-
-    private void addConnection(String node, Session session, AccessToken accessToken,
-                               ConnectionHandler connectionHandler) {
-        connectionHandler.addConnection(accessToken, node, serverNode);
-        serverHandler.addSession(accessToken.getTenant(), accessToken.getDomain(), session);
-        String msg = node + " from " + accessToken.getTenant() + " connected to server node: " + serverNode;
-        LOGGER.info(msg);
     }
 
     /**
@@ -329,6 +310,28 @@ public class UserStoreServerEndpoint {
     @OnError
     public void onError(Throwable throwable, Session session) {
         LOGGER.error("Error found in method : " + throwable.toString());
+    }
+
+
+    private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
+
+        LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
+        URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+
+    }
+
+    private void addConnection(String node, Session session, AccessToken accessToken,
+                               ConnectionHandler connectionHandler) {
+
+        connectionHandler.addConnection(accessToken, node, serverNode);
+        serverHandler.addSession(accessToken.getTenant(), accessToken.getDomain(), session);
+        String msg = node + " from " + accessToken.getTenant() + " connected to server node: " + serverNode;
+        LOGGER.info(msg);
+
     }
 
 }

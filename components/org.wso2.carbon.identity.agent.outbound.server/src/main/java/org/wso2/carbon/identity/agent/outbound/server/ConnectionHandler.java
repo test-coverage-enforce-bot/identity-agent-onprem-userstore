@@ -63,6 +63,20 @@ public class ConnectionHandler {
     }
 
     /**
+     * Get server ip connected with the given node.
+     *
+     * @param accessToken Access token
+     * @param node Node host name
+     * @returnConnected Server Hostname / IP
+     */
+    public String getConnectedServer(AccessToken accessToken, String node) {
+
+        AgentMgtDao agentMgtDao = new AgentMgtDao();
+        return agentMgtDao.getConnectedServer(accessToken.getId(), node);
+
+    }
+
+    /**
      * Check is connection limit exceed
      * @param tenantDomain Tenant domain
      * @param domain User store domain

@@ -34,6 +34,10 @@ import org.wso2.carbon.identity.user.store.common.model.UserOperation;
 import org.wso2.carbon.kernel.utils.StringUtils;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -58,8 +62,12 @@ public class UserStoreServerEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserStoreServerEndpoint.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String STATUS_EP_NAME = "status";
+    public static final String BROKER_PORT = "8080";
+    public static final String BROKER_PROTOCOL = "http";
     private SessionHandler serverHandler;
     private String serverNode;
+    private Map<String, Boolean> isOnCloseNeededMap = new HashMap<>();
 
     public UserStoreServerEndpoint(SessionHandler serverHandler, String serverNode) {
         this.serverHandler = serverHandler;
@@ -181,8 +189,42 @@ public class UserStoreServerEndpoint {
             }
         } else if (connectionHandler.isNodeConnected(accessToken, node)) {
             try {
-                String message = "Client: " + node
-                        + " already connected. This may be an inconsistency of the server notification of agent";
+                LOGGER.info("Client: " + node + " is already connected. Checking whether the Identity Broker node " +
+                            "the client connected was up and running");
+                String connectedServer = connectionHandler.getConnectedServer(accessToken, node);
+                HttpURLConnection conn = null;
+                try {
+                    conn = getHttpURLConnection(connectedServer, node);
+
+                    if (conn != null && conn.getResponseCode() != 200) {
+                        // Server responded with a status non other than 200. Which means server is not contactable.
+                        // So accepting the connection.
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Server : " + connectedServer + " responded with a status not 200. " +
+                                         "Status relieved : " + conn.getResponseCode() +
+                                         "Accepting current connection.");
+                        }
+                        addConnection(node, session, accessToken, connectionHandler);
+                        return;
+                    }
+                } catch (ConnectException e) {
+                    // Suppressing the exception. Server cannot be contacted so connection coming in is valid.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Cannot connect to the server : " + connectedServer + ". " +
+                                    "Accepting current connection.", e);
+                    }
+                    addConnection(node, session, accessToken, connectionHandler);
+                    return;
+                } finally {
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
+                }
+
+                isOnCloseNeededMap.put(session.getId(), false);
+
+                String message = "Client: " + node + " already connected. This may be an inconsistency of " +
+                                 "the server notification of agent";
                 sendErrorMessage(session, message);
             } catch (IOException | JSONException e) {
                 LOGGER.error("Error occurred while closing session with node: " + node, e);
@@ -195,10 +237,7 @@ public class UserStoreServerEndpoint {
                 LOGGER.error("Error occurred while closing session with node: " + node, e);
             }
         } else {
-            connectionHandler.addConnection(accessToken, node, serverNode);
-            serverHandler.addSession(accessToken.getTenant(), accessToken.getDomain(), session);
-            String msg = node + " from " + accessToken.getTenant() + " connected to server node: " + serverNode;
-            LOGGER.info(msg);
+            addConnection(node, session, accessToken, connectionHandler);
         }
     }
 
@@ -241,12 +280,19 @@ public class UserStoreServerEndpoint {
     @OnClose
     public void onClose(@PathParam("node") String node, CloseReason closeReason, Session session) {
 
+        Boolean isOnCloseNeeded = this.isOnCloseNeededMap.get(session.getId());
+        if (isOnCloseNeeded != null && !isOnCloseNeeded) {
+            isOnCloseNeededMap.remove(session.getId());
+            return;
+        }
+
         TokenMgtDao tokenMgtDao = new TokenMgtDao();
         AccessToken accessToken = tokenMgtDao
                 .getAccessToken(getAccessTokenFromUserProperties(session.getUserProperties()));
 
-        LOGGER.info("Connection close triggered with status code : " + closeReason.getCloseCode().getCode()
-                + " On reason " + closeReason.getReasonPhrase());
+        LOGGER.info("Connection close triggered with status code : " + closeReason.getCloseCode().getCode() +
+                    " On reason " + closeReason.getReasonPhrase() + " from " + node + " in tenant " +
+                    accessToken.getTenant());
         if (accessToken != null) {
             serverHandler.removeSession(accessToken.getTenant(), accessToken.getDomain(), session);
             AgentMgtDao agentMgtDao = new AgentMgtDao();
@@ -255,12 +301,37 @@ public class UserStoreServerEndpoint {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Connection close for tenant: " + accessToken.getTenant());
             }
+            String msg = "Client : " + node + " from " + accessToken.getTenant() +
+                         " disconnected from server node: " + serverNode;
+            LOGGER.info(msg);
         }
     }
 
     @OnError
     public void onError(Throwable throwable, Session session) {
         LOGGER.error("Error found in method : " + throwable.toString());
+    }
+
+
+    private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
+
+        LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
+        URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+
+    }
+
+    private void addConnection(String node, Session session, AccessToken accessToken,
+                               ConnectionHandler connectionHandler) {
+
+        connectionHandler.addConnection(accessToken, node, serverNode);
+        serverHandler.addSession(accessToken.getTenant(), accessToken.getDomain(), session);
+        String msg = node + " from " + accessToken.getTenant() + " connected to server node: " + serverNode;
+        LOGGER.info(msg);
+
     }
 
 }

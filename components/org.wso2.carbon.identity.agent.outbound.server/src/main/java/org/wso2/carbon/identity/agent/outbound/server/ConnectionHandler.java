@@ -67,7 +67,7 @@ public class ConnectionHandler {
      *
      * @param accessToken Access token
      * @param node Node host name
-     * @returnConnected Server Hostname / IP
+     * @return Connected Server Hostname / IP
      */
     public String getConnectedServer(AccessToken accessToken, String node) {
 

@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.agent.userstore.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.userstore.exception.ClaimManagerException;
-import org.wso2.carbon.identity.agent.userstore.model.Claim;
 
 import java.util.Map;
 
@@ -29,7 +28,7 @@ import java.util.Map;
 public class ClaimConfiguration {
 
     private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);
-    private Map<String, Claim> claimMap;
+    private Map<String, String> claimMap;
     private static ClaimConfiguration instance = new ClaimConfiguration();
 
     private ClaimConfiguration() {
@@ -59,7 +58,7 @@ public class ClaimConfiguration {
     /**
      * @return The map of claims from claim-org.wso2.carbon.identity.agent.outbound.config.xml.
      */
-    public Map<String, Claim> getClaimMap() {
+    public Map<String, String> getClaimMap() {
         return claimMap;
     }
 }

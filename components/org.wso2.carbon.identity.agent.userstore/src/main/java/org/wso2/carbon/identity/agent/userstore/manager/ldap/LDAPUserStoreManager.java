@@ -20,6 +20,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.agent.userstore.config.ClaimConfiguration;
 import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.constant.LDAPConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
@@ -35,6 +36,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.naming.AuthenticationException;
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -294,8 +296,16 @@ public class LDAPUserStoreManager implements UserStoreManager {
     /**
      * {@inheritDoc}
      */
-    public Map<String, String> getUserPropertyValues(String userName, String[] propertyNames)
+    public Map<String, String> getUserClaimValues(String userName, String[] claimUris)
             throws UserStoreException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Claim uris to retrieve for user " + userName + ": " + Arrays.toString(claimUris));
+        }
+        String[] propertyNames = convertClaimToPropertyNames(claimUris);
+        if (log.isDebugEnabled()) {
+            log.debug("propertyNames to retrieve for user " + userName + ": " + Arrays.toString(propertyNames));
+        }
 
         String userAttributeSeparator = ",";
         String userDN = null;
@@ -421,7 +431,33 @@ public class LDAPUserStoreManager implements UserStoreManager {
             // close directory context
             JNDIUtil.closeContext(dirContext);
         }
-        return values;
+
+        Map<String, String> claimValues = new HashMap<>();
+        Map<String, String> claimMap = ClaimConfiguration.getConfiguration().getClaimMap();
+        for (String claim : claimUris) {
+            Optional<String> value = Optional.ofNullable(values.get(claimMap.get(claim)));
+            value.ifPresent(s -> claimValues.put(claim, s));
+        }
+
+        return claimValues;
+    }
+
+    private String[] convertClaimToPropertyNames(String[] claimUris) {
+
+        if (claimUris != null) {
+            List<String> propertyNames = new ArrayList<>();
+            Map<String, String> claimMap = ClaimConfiguration.getConfiguration().getClaimMap();
+            for (String claimUrl : claimUris) {
+                String propertyName = claimMap.get(claimUrl);
+                if (propertyName != null) {
+                    propertyNames.add(propertyName);
+                }
+            }
+            return propertyNames.toArray(new String[propertyNames.size()]);
+        } else {
+            return new String[0];
+        }
+
     }
 
     /**

@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.constant.XMLConfigurationConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.ClaimManagerException;
 import org.wso2.carbon.identity.agent.userstore.exception.XMLException;
-import org.wso2.carbon.identity.agent.userstore.model.Claim;
 import org.wso2.carbon.identity.agent.userstore.util.XMLUtils;
 
 import java.io.File;
@@ -52,9 +51,9 @@ public class ClaimConfigurationXMLProcessor {
     /**
      * @return The Map of claims and attributes
      */
-    Map<String, Claim> buildClaimConfigurationsFromFile() throws ClaimManagerException {
+    Map<String, String> buildClaimConfigurationsFromFile() throws ClaimManagerException {
         OMElement rootElement;
-        Map<String, Claim> properties;
+        Map<String, String> properties;
         try {
             rootElement = getRootElement();
             properties = buildClaimConfiguration(rootElement);
@@ -82,21 +81,18 @@ public class ClaimConfigurationXMLProcessor {
      * @param rootElement The root OMElement of the XML file
      * @return The map of claims
      */
-    private Map<String, Claim> buildClaimConfiguration(OMElement rootElement) throws ClaimManagerException {
-        Claim claim = null;
+    private Map<String, String> buildClaimConfiguration(OMElement rootElement) throws ClaimManagerException {
         String claimURI;
-        Map<String, Claim> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
         Iterator<?> ite = rootElement.getChildrenWithName(new QName(
                 XMLConfigurationConstants.LOCAL_NAME_CLAIM));
         while (ite.hasNext()) {
-            claim = new Claim();
             OMElement claimElement = (OMElement) ite.next();
             OMElement claimURIElement =
                     claimElement.getFirstChildWithName(
                             new QName(XMLConfigurationConstants.LOCAL_NAME_CLAIM_URI));
             if (claimURIElement != null) {
                 claimURI = claimURIElement.getText();
-                claim.setClaimURI(claimURI);
             } else {
                 throw new ClaimManagerException("Required Attribute Claim URI not set in a claim");
             }
@@ -104,9 +100,8 @@ public class ClaimConfigurationXMLProcessor {
                     claimElement.getFirstChildWithName(new QName(XMLConfigurationConstants.LOCAL_NAME_ATTRIBUTE_ID));
             if (attributeIDElement != null) {
                 String attributeID = attributeIDElement.getText();
-                claim.setAttributeID(attributeID);
+                map.put(claimURI, attributeID);
             }
-            map.put(claimURI, claim);
         }
         return map;
     }

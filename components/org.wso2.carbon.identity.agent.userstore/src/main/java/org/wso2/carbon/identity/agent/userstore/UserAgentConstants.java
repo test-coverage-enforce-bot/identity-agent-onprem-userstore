@@ -27,7 +27,7 @@ public class UserAgentConstants {
 
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_MESSAGE = "message";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_ROLE_LIMIT = "limit";
-    public static final String UM_JSON_ELEMENT_REQUEST_DATA_ATTRIBUTES = "attributes";
+    public static final String UM_JSON_ELEMENT_REQUEST_DATA_CLAIMS = "claims";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME = "username";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD = "password";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_LIMIT = "limit";

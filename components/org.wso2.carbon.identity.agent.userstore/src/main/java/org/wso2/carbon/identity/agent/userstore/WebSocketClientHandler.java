@@ -32,10 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.userstore.config.ClaimConfiguration;
 import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
-import org.wso2.carbon.identity.agent.userstore.manager.claim.ClaimManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
@@ -194,11 +192,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         }
 
         String username = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
-        String attributes = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_ATTRIBUTES);
-        String[] attributeArray = attributes.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
+        String claims = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CLAIMS);
+        String[] claimArray = claims.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
-        Map<String, String> propertyMap = userStoreManager.getUserPropertyValues(username, attributeArray);
+        Map<String, String> propertyMap = userStoreManager.getUserClaimValues(username, claimArray);
         JSONObject returnObject = new JSONObject(propertyMap);
 
         if (LOGGER.isDebugEnabled()) {
@@ -300,30 +298,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     /**
-     * Process all claim attributes
-     * @param channel netty channel
-     * @param requestObj json request data object
-     * @throws UserStoreException
-     */
-    private void processGetAllClaimAttributesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to get all claim attributes");
-        }
-
-        ClaimManager claimManager = new ClaimManager(ClaimConfiguration.getConfiguration().getClaimMap());
-        Map<String, String> claimAttributeMap = claimManager.getClaimAttributes();
-        JSONObject returnObject = new JSONObject();
-        JSONObject usernameArray = new JSONObject(claimAttributeMap);
-        returnObject.put("attributes", usernameArray);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Claim attributes retrieval completed. Claims: " + claimAttributeMap.toString());
-        }
-        writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
-                returnObject.toString());
-    }
-
-    /**
      * Process user operation request
      * @param channel netty channel
      * @param requestObj json request data object
@@ -350,9 +324,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             break;
         case UserStoreConstants.UM_OPERATION_TYPE_GET_USER_LIST:
             processGetUsersListRequest(channel, requestObj);
-            break;
-        case UserStoreConstants.UM_OPERATION_TYPE_GET_ALL_ATTRIBUTES:
-            processGetAllClaimAttributesRequest(channel, requestObj);
             break;
         case UserStoreConstants.UM_OPERATION_TYPE_ERROR:
             logError(requestObj);

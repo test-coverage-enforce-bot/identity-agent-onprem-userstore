@@ -27,11 +27,11 @@ public interface UserStoreManager {
 
     /**
      * @param userName Username of the user
-     * @param propertyNames Array of required attributes' names
+     * @param claimUris Array of required attributes' names
      * @return Map containing the name value pairs of required attributes
      * @throws UserStoreException If an error occurs while retrieving data.
      */
-    Map<String, String> getUserPropertyValues(String userName, String[] propertyNames) throws UserStoreException;
+    Map<String, String> getUserClaimValues(String userName, String[] claimUris) throws UserStoreException;
 
     /**
      * @param userName Username of the user

@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.agent.outbound.server.messaging.JMSMessageReceiv
 import org.wso2.carbon.identity.agent.outbound.server.resource.StatusResource;
 import org.wso2.carbon.identity.agent.outbound.server.util.ServerConfigurationBuilder;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
+import org.wso2.carbon.kernel.utils.StringUtils;
 import org.wso2.msf4j.MicroservicesRunner;
 import org.wso2.msf4j.websocket.exception.WebSocketEndpointAnnotationException;
 
@@ -54,7 +55,7 @@ public class Application {
     private void startApplication() throws UnknownHostException {
         LOGGER.info("Starting Cloud outbound user store server.");
         String serverNode = ServerConfigurationBuilder.build().getServer().getHost();
-        if (serverNode == null) {
+        if (StringUtils.isNullOrEmpty(serverNode)) {
             serverNode = InetAddress.getLocalHost().getHostAddress();
         }
         SessionHandler serverHandler = new SessionHandler();

@@ -38,7 +38,7 @@ import javax.net.ssl.SSLException;
  */
 public class Application {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
     private Thread shutdownHook;
 
     public static void main(String[] args)

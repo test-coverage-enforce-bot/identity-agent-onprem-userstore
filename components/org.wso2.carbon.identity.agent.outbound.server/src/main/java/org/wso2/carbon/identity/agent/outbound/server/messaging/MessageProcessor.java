@@ -37,7 +37,7 @@ import javax.websocket.Session;
  */
 public class MessageProcessor implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JMSMessageReceiver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageProcessor.class);
     private Message message;
     private SessionHandler serverHandler;
 

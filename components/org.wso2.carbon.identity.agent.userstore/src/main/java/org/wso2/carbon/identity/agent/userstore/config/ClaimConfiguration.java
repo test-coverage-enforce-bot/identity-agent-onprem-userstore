@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ClaimConfiguration {
 
-    private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);
+    private static Logger log = LoggerFactory.getLogger(ClaimConfiguration.class);
     private Map<String, String> claimMap;
     private static ClaimConfiguration instance = new ClaimConfiguration();
 
